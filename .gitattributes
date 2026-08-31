@@ -1,0 +1,29 @@
+# ---- VBA source: treat as text, normalize to Windows line endings ----
+# The VBE always writes CRLF on export. Forcing eol=crlf keeps every
+# contributor's checkout consistent regardless of their global git config,
+# so diffs show only real code changes, not line-ending noise.
+*.bas text eol=crlf
+*.cls text eol=crlf
+*.frm text eol=crlf
+
+# ---- UserForm binary resource files ----
+# .frx holds compiled binary data (control properties, images, etc.) paired
+# with each .frm. It is NOT text - never let git try to diff or merge it as
+# one, and never let line-ending conversion touch it (that will corrupt it).
+*.frx binary
+
+# ---- Ribbon / images ----
+*.png binary
+*.ico binary
+*.bmp binary
+
+# ---- Office files kept as build artifacts, not source ----
+# These generally shouldn't be committed at all (see .gitignore), but if one
+# ever ends up in the repo (e.g. the one-time /build base file), make sure
+# git never tries to treat it as text.
+*.xlam binary
+*.xlsm binary
+*.xlsx binary
+
+# ---- Ribbon XML: treat as normal text ----
+*.xml text eol=crlf

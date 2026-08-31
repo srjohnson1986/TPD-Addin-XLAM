@@ -1,0 +1,44 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="RibbonOnLoad">
+  <ribbon>
+    <tabs>
+      <tab id="tabTPD" label="TPD">
+        <group id="grpTPDEQListTools" label="EQ List Tools">
+          <button id="btnCountEquipmentRows" 
+                  label="EQ Count" 
+                  onAction="RunCountEquipmentRows" 
+                  imageMso="ActiveXCheckBox" 
+                  size="normal"
+                  screentip="Equipment Counter"
+                  supertip="Inserts a row called EQ count on the left and counts every row where purchased is not PARENT or INCLUDED"/>
+          <button id="btnInsertCustEQList" 
+                  label="Create Customer EQ List" 
+                  onAction="RunCreateCustEQList" 
+                  imageMso="NewTableStyle2" 
+                  size="large"/>
+          <button id="btnInsertCustEQListHeader" 
+                  label="Default EQ List Header" 
+                  onAction="RunInsertDefaultCustEQHeader" 
+                  imageMso="TableInsertRowsAbove" 
+                  size="large"/>
+          <button id="btnSplitSheetByColumn" 
+                  label="Split Sheet by Column" 
+                  onAction="SplitSheetByColumn" 
+                  imageMso="TableSplitTable" 
+                  size="large"/>
+          <button id="btnExportSheetsToXLSX" 
+                  label="Save Each Sheet to XLSX" 
+                  onAction="RunExportSheetsToXLSX" 
+                  imageMso="ExportExcel" 
+                  size="large"/>
+        </group>
+        <group id="grpTPDScheduleTools" label="Schedule Tools">
+			<button id="btnInsertSchedHeader"
+					label="Default Schedule Header"
+					onAction="RunInsertDefaultScheduleHeader"
+					imageMso="TableInsertRowsAbove"
+					size="large"/>
+		</group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

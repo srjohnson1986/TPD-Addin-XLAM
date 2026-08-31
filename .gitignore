@@ -1,0 +1,22 @@
+# ---- Excel scratch / lock files ----
+# Excel creates these while a file is open - never useful to track
+~$*.xlsx
+~$*.xlsm
+~$*.xlam
+*.tmp
+
+# ---- Local build output ----
+# The built .xlam is a generated artifact (see /build workflow), not source.
+# It belongs on GitHub Releases, not in the repo history.
+/build/*.xlam
+/build/*.xlsm
+/build/*.xls
+
+# ---- OS junk ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Editor/backup junk ----
+*.bak
+*~
