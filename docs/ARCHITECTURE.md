@@ -57,7 +57,9 @@ Shared utilities used across more than one feature area.
 | `modHelpers_Headers` | Reads a worksheet's header row into an array; finds a header's column index (searches right-to-left so the real "Vendor" column wins over decoy columns). |
 | `modHelpers_Columns` | Collection-membership helper; deletes columns not in a selected-headers list; gets unique values in a column; copies filtered rows across sheets by column selection; copies all rows verbatim. |
 | `modHelpers_Strings` | String cleanup/sanitizing helpers (sheet names, file names, cell value cleanup) used throughout the other modules. |
-| `modHelpers_Formatting` | The bulk of layout logic: inserts the EQ List header block, formats EQ/split sheets (borders, alignment, fonts), freezes panes, resizes/positions the logo, and inserts default headers for both EQ List and Schedule sheets. |
+| `modHelpers_SheetSetup` | Orchestrates default header construction: inserts the EQ List header block, and inserts the default EQ List / Schedule headers (calling into `modHelpers_SheetFormatting` and `modHelpers_Logo`). Also owns `InsertRows` and `GetTodaysDate`. |
+| `modHelpers_SheetFormatting` | Formats EQ/split sheets (borders, alignment, fonts), freezes panes, and autofits used columns. |
+| `modHelpers_Logo` | Positions and resizes the logo shape: default-logo insertion/alignment, right-aligned logo insertion, and resizing a picture to fit a max row count. |
 | `modHelpers_Forms` | Thin bridge functions that show `CustEQListColumnPickerForm` / `frmFilenameOptions` / `splitSheetByColumnOptionsForm` and hand back the user's selections to the caller. |
 | `modHelpers_Image` | `SafeInsertLogoAtRight` (error-wrapped logo insertion) and `PastePicture` (grabs an image off the clipboard). Flagged as now-unused since logo handling moved to the embedded-shape approach on `_Resources`. |
 | `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. |
@@ -72,7 +74,8 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 | `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. Known limitation: errors inside the wrapped routine are currently swallowed without a user-facing message (see open defects). |
 | `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
 | `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
-| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug: its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`) and the VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
+| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug: its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`). |
+| `modExport_VBAModules` | The VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
 
 ## TPD_Addin.Document
 
