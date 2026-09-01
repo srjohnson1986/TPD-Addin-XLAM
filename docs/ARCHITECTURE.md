@@ -57,7 +57,9 @@ Shared utilities used across more than one feature area.
 | `modHelpers_Headers` | Reads a worksheet's header row into an array; finds a header's column index (searches right-to-left so the real "Vendor" column wins over decoy columns). |
 | `modHelpers_Columns` | Collection-membership helper; deletes columns not in a selected-headers list; gets unique values in a column; copies filtered rows across sheets by column selection; copies all rows verbatim. |
 | `modHelpers_Strings` | String cleanup/sanitizing helpers (sheet names, file names, cell value cleanup) used throughout the other modules. |
-| `modHelpers_Formatting` | The bulk of layout logic: inserts the EQ List header block, formats EQ/split sheets (borders, alignment, fonts), freezes panes, resizes/positions the logo, and inserts default headers for both EQ List and Schedule sheets. |
+| `modHelpers_SheetSetup` | Orchestrates default header construction: inserts the EQ List header block, and inserts the default EQ List / Schedule headers (calling into `modHelpers_SheetFormatting` and `modHelpers_Logo`). Also owns `InsertRows` and `GetTodaysDate`. |
+| `modHelpers_SheetFormatting` | Formats EQ/split sheets (borders, alignment, fonts), freezes panes, and autofits used columns. |
+| `modHelpers_Logo` | Positions and resizes the logo shape: default-logo insertion/alignment, right-aligned logo insertion, and resizing a picture to fit a max row count. |
 | `modHelpers_Forms` | Thin bridge functions that show `CustEQListColumnPickerForm` / `frmFilenameOptions` / `splitSheetByColumnOptionsForm` and hand back the user's selections to the caller. |
 | `modHelpers_Image` | `SafeInsertLogoAtRight` (error-wrapped logo insertion) and `PastePicture` (grabs an image off the clipboard). Flagged as now-unused since logo handling moved to the embedded-shape approach on `_Resources`. |
 | `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. |
