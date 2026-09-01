@@ -74,7 +74,8 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 | `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. Known limitation: errors inside the wrapped routine are currently swallowed without a user-facing message (see open defects). |
 | `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
 | `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
-| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug: its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`) and the VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
+| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug: its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`). |
+| `modExport_VBAModules` | The VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
 
 ## TPD_Addin.Document
 

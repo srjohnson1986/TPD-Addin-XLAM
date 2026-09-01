@@ -24,7 +24,7 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 
 **Making a change:**
 1. Edit code in the VBE, test interactively in the open workbook.
-2. Export to `/src` — either run `ExportAllVBAModules2` (in `modHelpers_Diagnostics`) to refresh the whole tree, or export just the changed component(s) from the VBE Project Explorer (right-click → Export File, overwrite the matching `/src` file).
+2. Export to `/src` — either run `ExportAllVBAModules2` (in `modExport_VBAModules`) to refresh the whole tree, or export just the changed component(s) from the VBE Project Explorer (right-click → Export File, overwrite the matching `/src` file).
 3. Check `src/export_log.txt` (written by `ExportAllVBAModules2`) to confirm what was exported and where.
 4. Review the diff before committing — this is the code review step.
 
@@ -59,7 +59,7 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows, plus their UserForms.
 - **Preferences** — key/value settings backed by a hidden `_Preferences` sheet. All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference.
 - **Helpers** — shared utilities used by more than one feature area (sheet/workbook ops, header lookup, column filtering, string sanitizing, layout/formatting, checkbox-grid building).
-- **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modResources` (embeds default logo), `modStartup` (init sequencing), `modHelpers_Diagnostics` (export macros + `SheetExists2`).
+- **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modResources` (embeds default logo), `modStartup` (init sequencing), `modHelpers_Diagnostics` (`SheetExists2`), `modExport_VBAModules` (the export macros, `ExportAllVBAModules` / `ExportAllVBAModules2`).
 - **Document** — code-behind for `ThisWorkbook`/`Sheet1`-`3`. These are document modules: unlike standard modules they can't be removed and re-imported normally — the build macro clears and re-pastes their code text instead of a plain `VBComponents.Import`.
 
 ## Design intent vs. bugs (don't "fix" these without asking)
