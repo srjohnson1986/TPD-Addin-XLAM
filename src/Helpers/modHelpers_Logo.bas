@@ -31,12 +31,12 @@ Public Sub InsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Lo
     pic.Placement = xlFreeFloating
 End Sub
 
-Public Sub ResizeImageToMaxRows(pic As Shape, ws As Worksheet, headerRow As Long, maxRows As Long)
+Public Sub ResizeImageToMaxRows(pic As Shape, ws As Worksheet, anchorRow As Long, maxRows As Long)
     Dim maxHeight As Double
     Dim scaleFactor As Double
 
     ' Calculate maximum allowed height based on the header row height
-    maxHeight = ws.Rows(headerRow).Height * maxRows
+    maxHeight = ws.Rows(anchorRow).Height * maxRows
 
     If pic.Height <= maxHeight Then Exit Sub
 
@@ -46,7 +46,7 @@ Public Sub ResizeImageToMaxRows(pic As Shape, ws As Worksheet, headerRow As Long
     pic.Height = pic.Height * scaleFactor
 End Sub
 
-Public Sub InsertDefaultLogo(ws As Worksheet, headerRow As Long, _
+Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
                              Optional alignment As String = "left", _
                              Optional maxRows As Long = 0)
 
@@ -65,7 +65,7 @@ Public Sub InsertDefaultLogo(ws As Worksheet, headerRow As Long, _
         vert = Split(alignment, "-")(1)
     Else
         horiz = alignment
-        vert = "header"   ' default vertical alignment
+        vert = "anchor"   ' default vertical alignment
     End If
 
     ' Get embedded logo
@@ -83,7 +83,7 @@ Public Sub InsertDefaultLogo(ws As Worksheet, headerRow As Long, _
 
     ' Optional: resize to fit max rows
     If maxRows > 0 Then
-        ResizeImageToMaxRows newPic, ws, headerRow, maxRows
+        ResizeImageToMaxRows newPic, ws, anchorRow, maxRows
     Else
         newPic.Width = origW
         newPic.Height = origH
@@ -94,20 +94,20 @@ Public Sub InsertDefaultLogo(ws As Worksheet, headerRow As Long, _
     ' -----------------------------
     Select Case horiz
         Case "left"
-            newPic.Left = ws.Cells(headerRow, 1).Left
+            newPic.Left = ws.Cells(anchorRow, 1).Left
 
         Case "right"
-            lastCol = ws.Cells(headerRow, ws.Columns.Count).End(xlToLeft).Column
-            Set targetCell = ws.Cells(headerRow, lastCol)
+            lastCol = ws.Cells(anchorRow, ws.Columns.Count).End(xlToLeft).Column
+            Set targetCell = ws.Cells(anchorRow, lastCol)
             newPic.Left = targetCell.Left + (targetCell.Width - newPic.Width)
 
         Case "center"
-            lastCol = ws.Cells(headerRow, ws.Columns.Count).End(xlToLeft).Column
-            Set targetCell = ws.Range(ws.Cells(headerRow, 1), ws.Cells(headerRow, lastCol))
+            lastCol = ws.Cells(anchorRow, ws.Columns.Count).End(xlToLeft).Column
+            Set targetCell = ws.Range(ws.Cells(anchorRow, 1), ws.Cells(anchorRow, lastCol))
             newPic.Left = targetCell.Left + (targetCell.Width - newPic.Width) / 2
 
         Case Else
-            newPic.Left = ws.Cells(headerRow, 1).Left
+            newPic.Left = ws.Cells(anchorRow, 1).Left
     End Select
 
     ' -----------------------------
@@ -117,13 +117,15 @@ Public Sub InsertDefaultLogo(ws As Worksheet, headerRow As Long, _
         Case "top"
             newPic.Top = ws.Cells(1, 1).Top   ' align to row 1
 
-        Case "header"
-            newPic.Top = ws.Cells(headerRow, 1).Top   ' default behavior
+        Case "anchor"
+            newPic.Top = ws.Cells(anchorRow, 1).Top   ' default behavior
 
         Case Else
-            newPic.Top = ws.Cells(headerRow, 1).Top
+            newPic.Top = ws.Cells(anchorRow, 1).Top
     End Select
 
     newPic.LockAspectRatio = msoTrue
     newPic.Placement = xlFreeFloating
 End Sub
+
+

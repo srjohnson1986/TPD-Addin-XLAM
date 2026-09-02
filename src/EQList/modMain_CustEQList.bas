@@ -12,16 +12,16 @@ End Sub
 Public Sub CreateCustEQList_Internal()
 
     Dim wsSource As Worksheet
-    Dim headers As Variant
+    Dim headings As Variant
     Dim frm As CustEQListColumnPickerForm
     Dim selectedCols As Collection
     Dim imgPath As String
 
     Set wsSource = GetFirstVisibleSheet()
-    headers = GetHeaderList(wsSource, 1)
+    headings = modHelpers_Headers.GetHeadingList(wsSource, 1)
 
     Set frm = New CustEQListColumnPickerForm
-    frm.LoadColumns headers
+    frm.LoadColumns headings
     frm.Show
 
     If frm.Cancelled Then Exit Sub
@@ -44,7 +44,7 @@ Public Sub CreateCustEQList_DoWork( _
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
 
     CopyAllRowsPreserveGroups wsSource, wsNew
-    DeleteUnselectedColumnsByHeader wsNew, selectedCols, 1
+    modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
 
     FormatEQSheet wsNew, 1
     AutoFitUsedColumns wsNew
@@ -54,4 +54,5 @@ Public Sub CreateCustEQList_DoWork( _
     
     SafeFreezePanes wsNew, 7
 End Sub
+
 

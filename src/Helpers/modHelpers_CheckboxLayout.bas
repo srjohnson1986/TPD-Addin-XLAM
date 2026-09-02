@@ -5,7 +5,7 @@ Option Explicit
 
 Public Sub LayoutCheckboxes( _
         ByVal fra As MSForms.Frame, _
-        ByVal headerList As Variant, _
+        ByVal headingList As Variant, _
         ByVal rowsPerColumn As Long, _
         ByVal baseName As String, _
         Optional ByVal preferredDefaults As Variant = Empty, _
@@ -19,7 +19,7 @@ Public Sub LayoutCheckboxes( _
     Dim chkLeft As Single
     Dim chkTop As Single
     Dim chkWidth As Single
-    Dim hdr As String
+    Dim heading As String
 
     ' Clear existing checkboxes
     For idx = fra.Controls.Count - 1 To 0 Step -1
@@ -33,15 +33,15 @@ Public Sub LayoutCheckboxes( _
     colIndex = 0
     rowIndex = 0
 
-    For i = LBound(headerList) To UBound(headerList)
-        hdr = CStr(headerList(i))
+    For i = LBound(headingList) To UBound(headingList)
+        heading = CStr(headingList(i))
 
         chkLeft = 6 + (colIndex * chkWidth)
         chkTop = 6 + (rowIndex * 18)
 
         Set chk = fra.Controls.Add("Forms.CheckBox.1", _
-                    baseName & "_" & i & "_" & Replace(hdr, " ", "_"))
-        chk.Caption = hdr
+                    baseName & "_" & i & "_" & Replace(heading, " ", "_"))
+        chk.Caption = heading
         chk.Left = chkLeft
         chk.Top = chkTop
         chk.Width = chkWidth - 6
@@ -53,6 +53,5 @@ Public Sub LayoutCheckboxes( _
         End If
     Next i
 End Sub
-
 
 

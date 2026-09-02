@@ -88,8 +88,8 @@ Function GetLastRow(ws As Worksheet) As Long
 End Function
 
 
-Public Function GetLastCol(ws As Worksheet, headerRow As Long) As Long
-    GetLastCol = ws.Cells(headerRow, ws.Columns.Count).End(xlToLeft).Column
+Public Function GetLastCol(ws As Worksheet, headingsRow As Long) As Long
+    GetLastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
 End Function
 
 Public Sub DeleteSheetIfExists(wsName As String)

@@ -13,16 +13,16 @@ End Sub
 Public Sub SplitSheetByColumn_Internal()
 
     Dim wsSource As Worksheet
-    Dim headers As Variant
+    Dim headings As Variant
     Dim frm As splitSheetByColumnOptionsForm
     Dim selectedCols As Collection
     Dim groupCol As String
 
     Set wsSource = GetFirstVisibleSheet()
-    headers = GetHeaderList(wsSource, 1)
+    headings = GetHeadingList(wsSource, 1)
 
     Set frm = New splitSheetByColumnOptionsForm
-    frm.LoadColumns headers
+    frm.LoadColumns headings
     frm.Show
 
     If frm.Cancelled Then Exit Sub
@@ -43,7 +43,7 @@ Public Function SplitSheetByColumn_DoWork( _
         ByVal groupColumn As String, _
         ByVal selectedCols As Collection) As Long
 
-    Dim headers As Variant
+    Dim headings As Variant
     Dim groupColIndex As Long
     Dim rawValues As Collection
     Dim uniqueValues As Collection
@@ -54,9 +54,9 @@ Public Function SplitSheetByColumn_DoWork( _
     Dim newName As String
     Dim keyValue As Variant
 
-    ' Get headers and find the group column index
-    headers = GetHeaderList(wsSource, 1)
-    groupColIndex = FindHeaderIndex(headers, groupColumn)
+    ' Get headings and find the group column index
+    headings = GetHeadingList(wsSource, 1)
+    groupColIndex = modHelpers_Headers.FindHeadingIndex(headings, groupColumn)
     
     If groupColIndex = 0 Then
         MsgBox "Group column '" & groupColumn & "' not found.", vbExclamation
@@ -123,4 +123,5 @@ LoopError:
     Debug.Print "ERROR ON:", keyValue, "ERR:", Err.Number, Err.Description
     Resume Next
 End Function
+
 

@@ -13,16 +13,16 @@ Public Function CollectionContainsText(col As Collection, value As String) As Bo
     Next v
 End Function
 
-Public Sub DeleteUnselectedColumnsByHeader(ws As Worksheet, selectedHeaders As Collection, headerRow As Long)
+Public Sub DeleteUnselectedColumnsByHeading(ws As Worksheet, selectedHeadings As Collection, headingsRow As Long)
     Dim lastCol As Long
-    Dim colHeader As String
+    Dim colHeading As String
     Dim c As Long
 
-    lastCol = GetLastCol(ws, headerRow)
+    lastCol = GetLastCol(ws, headingsRow)
 
     For c = lastCol To 1 Step -1
-        colHeader = CStr(ws.Cells(headerRow, c).value)
-        If Not CollectionContainsText(selectedHeaders, colHeader) Then
+        colHeading = CStr(ws.Cells(headingsRow, c).value)
+        If Not CollectionContainsText(selectedHeadings, colHeading) Then
             ws.Columns(c).Delete
         End If
     Next c
@@ -39,7 +39,7 @@ Public Function GetUniqueValuesInColumn(ws As Worksheet, colIndex As Long) As Co
 
     lastRow = ws.Cells(ws.Rows.Count, colIndex).End(xlUp).Row
 
-    For i = 2 To lastRow   ' skip header row
+    For i = 2 To lastRow   ' skip heading row
         cellValue = CleanValue(ws.Cells(i, colIndex).value)
 
 
@@ -67,9 +67,9 @@ Public Sub CopyFilteredRowsByColumns( _
     ByVal wsSource As Worksheet, _
     ByVal wsDest As Worksheet, _
     ByVal groupColIndex As Long, _
-    ByVal selectedHeaders As Collection, _
+    ByVal selectedHeadings As Collection, _
     ByVal matchValue As String, _
-    ByVal headerRow As Long)
+    ByVal headingsRow As Long)
 
     Dim lastRow As Long
     Dim lastCol As Long
@@ -82,34 +82,34 @@ Public Sub CopyFilteredRowsByColumns( _
 
     lastRow = GetLastRow(wsSource)
 
-    lastCol = GetLastCol(wsSource, headerRow)
+    lastCol = GetLastCol(wsSource, headingsRow)
 
     ' Build column map
     Set colMap = CreateObject("Scripting.Dictionary")
     For i = 1 To lastCol
-        If CollectionContainsText(selectedHeaders, CStr(wsSource.Cells(headerRow, i).value)) Then
-            colMap.Add i, wsSource.Cells(headerRow, i).value
+        If CollectionContainsText(selectedHeadings, CStr(wsSource.Cells(headingsRow, i).value)) Then
+            colMap.Add i, wsSource.Cells(headingsRow, i).value
         End If
     Next i
 
-    ' Copy header
+    ' Copy headings row
     destCol = 1
     For Each idx In colMap.Keys
-        wsDest.Cells(headerRow, destCol).value = wsSource.Cells(headerRow, CLng(idx)).value
+        wsDest.Cells(headingsRow, destCol).value = wsSource.Cells(headingsRow, CLng(idx)).value
         destCol = destCol + 1
     Next idx
 
-    wsDest.Rows(headerRow).Font.Bold = True
+    wsDest.Rows(headingsRow).Font.Bold = True
 
-    ' Freeze header
+    ' Freeze headings row
     wsDest.Activate
-    wsDest.Range("A" & headerRow + 1).Select
+    wsDest.Range("A" & headingsRow + 1).Select
     ActiveWindow.FreezePanes = True
 
     ' Copy rows
-    destRow = headerRow + 1
+    destRow = headingsRow + 1
     
-    For Each cell In wsSource.Range(wsSource.Cells(headerRow + 1, groupColIndex), wsSource.Cells(lastRow, groupColIndex))
+    For Each cell In wsSource.Range(wsSource.Cells(headingsRow + 1, groupColIndex), wsSource.Cells(lastRow, groupColIndex))
 
         If StrComp(CleanValue(cell.value), CleanValue(matchValue), vbTextCompare) = 0 Then
     
@@ -123,18 +123,6 @@ Public Sub CopyFilteredRowsByColumns( _
         End If
     
     Next cell
-
-    
-'    For Each cell In wsSource.Range(wsSource.Cells(headerRow + 1, groupColIndex), wsSource.Cells(lastRow, groupColIndex))
-'        If CStr(cell.value) = matchValue Then
-'            destCol = 1
-'            For Each idx In colMap.Keys
-'                wsDest.Cells(destRow, destCol).value = wsSource.Cells(cell.Row, CLng(idx)).value
-'                destCol = destCol + 1
-'            Next idx
-'            destRow = destRow + 1
-'        End If
-'    Next cell
 
     wsDest.Columns.AutoFit
 

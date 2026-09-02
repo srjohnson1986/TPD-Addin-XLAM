@@ -3,30 +3,30 @@ Attribute VB_Name = "modHelpers_SheetFormatting"
 
 Option Explicit
 
-Public Sub FormatEQSheet(ws As Worksheet, dataHeaderRow As Long)
+Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
     Dim lastRow As Long
     Dim lastCol As Long
     Dim dataRange As Range
     Dim descCol As Variant
 
     lastRow = ws.Cells.Find("*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
-    lastCol = ws.Cells(dataHeaderRow, ws.Columns.Count).End(xlToLeft).Column
+    lastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
 
-    Set dataRange = ws.Range(ws.Cells(dataHeaderRow, 1), ws.Cells(lastRow, lastCol))
+    Set dataRange = ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol))
 
     With dataRange
         .Font.name = "Arial"
         .Font.Size = 10
     End With
 
-    descCol = Application.Match("Description", ws.Rows(dataHeaderRow), 0)
+    descCol = Application.Match("Description", ws.Rows(headingsRow), 0)
 
     If Not IsError(descCol) Then
         If descCol > 1 Then
-            ws.Range(ws.Cells(dataHeaderRow, 1), ws.Cells(lastRow, descCol - 1)).HorizontalAlignment = xlCenter
+            ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, descCol - 1)).HorizontalAlignment = xlCenter
         End If
         If descCol < lastCol Then
-            ws.Range(ws.Cells(dataHeaderRow, descCol + 1), ws.Cells(lastRow, lastCol)).HorizontalAlignment = xlCenter
+            ws.Range(ws.Cells(headingsRow, descCol + 1), ws.Cells(lastRow, lastCol)).HorizontalAlignment = xlCenter
         End If
     Else
         dataRange.HorizontalAlignment = xlCenter
@@ -40,7 +40,7 @@ Public Sub FormatEQSheet(ws As Worksheet, dataHeaderRow As Long)
 
     Dim r As Long
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
-    For r = dataHeaderRow To lastRow
+    For r = headingsRow To lastRow
         If Trim(CStr(ws.Cells(r, 1).value)) <> "" Then
             ws.Rows(r).Interior.ColorIndex = xlNone
         End If
@@ -49,15 +49,15 @@ Public Sub FormatEQSheet(ws As Worksheet, dataHeaderRow As Long)
 
 End Sub
 
-Public Sub FormatSplitSheet(ws As Worksheet, headerRow As Long)
+Public Sub FormatSplitSheet(ws As Worksheet, headingsRow As Long)
     Dim lastRow As Long
     Dim lastCol As Long
     Dim dataRange As Range
 
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
-    lastCol = ws.Cells(headerRow, ws.Columns.Count).End(xlToLeft).Column
+    lastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
 
-    Set dataRange = ws.Range(ws.Cells(headerRow, 1), ws.Cells(lastRow, lastCol))
+    Set dataRange = ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol))
 
     With dataRange
         .Font.name = "Arial"
@@ -69,10 +69,10 @@ Public Sub FormatSplitSheet(ws As Worksheet, headerRow As Long)
 End Sub
 
 
-Public Sub SafeFreezePanes(ws As Worksheet, headerRow As Long)
+Public Sub SafeFreezePanes(ws As Worksheet, headingsRow As Long)
     On Error Resume Next
     ws.Activate
-    ws.Range("A" & headerRow + 1).Select
+    ws.Range("A" & headingsRow + 1).Select
     ActiveWindow.FreezePanes = True
     On Error GoTo 0
 End Sub
