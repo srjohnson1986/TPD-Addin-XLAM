@@ -37,3 +37,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   "Split Sheet by Column" now warns and keeps the form open if OK is clicked
   with no columns checked, instead of proceeding with an empty selection. Adds
   `HasColumnSelection` to `modHelpers_CheckboxSelection`.
+- EXP-07 ([#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8)):
+  "Save Each Sheet to XLSX" no longer exports hidden sheets — the add-in's
+  internal `_Preferences` / `_Resources` sheets, very-hidden sheets, or
+  plain-hidden sheets. A source-level `EXPORT_INCLUDE_HIDDEN_SHEETS` flag can
+  re-enable plain-hidden sheets if a build ever needs them.
+- EXP-08 ([#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15)):
+  "Save Each Sheet to XLSX" with an empty filename suffix no longer fails and
+  leaves an orphaned workbook open. `ExportSheetToXLSX` catches `SaveAs`
+  failures, closes the temporary copy without saving, and reports which sheets
+  failed and why in a single summary. A target name that collides with an
+  already-open workbook gets a ` (export)` suffix.
