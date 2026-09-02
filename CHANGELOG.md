@@ -23,6 +23,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   working-as-intended: a blank Purchased value marks a real equipment line whose
   status isn't filled in yet, so "EQ Count" numbers it by design. Only `PARENT`
   and `INCLUDED` rows are skipped.
+- Closed CEQ-06 ([#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9)) and
+  UI-01 ([#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12)), folding
+  both into a tracking issue for the one-click "Create Customer EQ List" refactor
+  ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)) — moving column
+  and logo settings into saved defaults removes `CustEQListColumnPickerForm`, which
+  subsumes both. Trimmed the now-resolved defect IDs out of the `CLAUDE.md` and
+  `docs/ARCHITECTURE.md` "known defects" sections; no open `bug` issues remain.
 
 ### Fixed
 
