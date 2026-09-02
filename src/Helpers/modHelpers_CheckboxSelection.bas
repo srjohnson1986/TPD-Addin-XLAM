@@ -22,6 +22,22 @@ Public Function GetSelectedColumns(fra As MSForms.Frame) As Collection
 End Function
 
 '===========================================================
+'  True if at least one checkbox in the frame is checked
+'===========================================================
+Public Function HasColumnSelection(fra As MSForms.Frame) As Boolean
+    Dim ctrl As control
+
+    For Each ctrl In fra.Controls
+        If TypeName(ctrl) = "CheckBox" Then
+            If ctrl.value = True Then
+                HasColumnSelection = True
+                Exit Function
+            End If
+        End If
+    Next ctrl
+End Function
+
+'===========================================================
 '  Auto-select checkboxes based on saved column list
 '===========================================================
 Public Sub AutoSelectColumns(fra As MSForms.Frame, savedCols As Collection)
