@@ -6,6 +6,15 @@ This is a module-level map of the add-in as of the `v2.2.0` release, organized b
 
 The add-in exposes one custom ribbon tab ("TPD") with two groups: **EQ List Tools** and **Schedule Tools**, defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which delegate to the feature modules described below. Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and makes sure the hidden `_Resources` sheet (embedded logo) and `_Preferences` sheet (saved settings) both exist.
 
+## Naming: "header" vs. "heading"
+
+The word "header" has two unrelated meanings in this codebase, so the naming convention splits them:
+
+- **`header`** — the TPD title block at the top of a sheet (`EQUIPMENT LIST` / Customer / Project / PM / Date / Rev), e.g. `InsertEQHeaderBlock`, `InsertDefaultCustEQHeader`, `InsertDefaultCustScheduleHeader`.
+- **`heading`** — the column heading row of the data table, e.g. `headingsRow`, `headingList`, `colHeading`, `GetHeadingList`, `FindHeadingIndex`.
+
+A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither — it's called `anchorRow` since it can point at either a title-block row or a heading row depending on the caller. Use these names for any new code; don't reintroduce `header`/`headerRow` for column-heading concepts.
+
 ## TPD_Addin.Ribbon
 
 | Module | Purpose |
@@ -54,8 +63,8 @@ Shared utilities used across more than one feature area.
 | Module | Purpose |
 |---|---|
 | `modHelpers_Workbook` | Sheet/workbook utilities: first visible sheet, create-or-clear a sheet by name, next available sheet name, last-row/last-column lookups. |
-| `modHelpers_Headers` | Reads a worksheet's header row into an array; finds a header's column index (searches right-to-left so the real "Vendor" column wins over decoy columns). |
-| `modHelpers_Columns` | Collection-membership helper; deletes columns not in a selected-headers list; gets unique values in a column; copies filtered rows across sheets by column selection; copies all rows verbatim. |
+| `modHelpers_Headers` | Reads a worksheet's heading row into an array; finds a heading's column index (searches right-to-left so the real "Vendor" column wins over decoy columns). |
+| `modHelpers_Columns` | Collection-membership helper; deletes columns not in a selected-headings list; gets unique values in a column; copies filtered rows across sheets by column selection; copies all rows verbatim. |
 | `modHelpers_Strings` | String cleanup/sanitizing helpers (sheet names, file names, cell value cleanup) used throughout the other modules. |
 | `modHelpers_SheetSetup` | Orchestrates default header construction: inserts the EQ List header block, and inserts the default EQ List / Schedule headers (calling into `modHelpers_SheetFormatting` and `modHelpers_Logo`). Also owns `InsertRows` and `GetTodaysDate`. |
 | `modHelpers_SheetFormatting` | Formats EQ/split sheets (borders, alignment, fonts), freezes panes, and autofits used columns. |
@@ -94,5 +103,5 @@ These are tracked informally here until they move into GitHub Issues:
 - **GEN-04** — `modPerformance.WithPerformance` swallows errors silently without messaging the user (confirmed defect; fix is to add messaging, not remove the handler — removing it would leave session-wide Excel settings in a broken state).
 - **EXP-07** — `modMain_ExportSheets` exports hidden sheets without an opt-in (confirmed defect).
 - **CEQ-06 / SPL-11** — the column picker and split dialogs don't validate that at least one column is selected before proceeding (confirmed defects).
-- **Deferred risk** — the checkbox layout in `modHelpers_CheckboxLayout` clips beyond ~30 headers (reproducible with the EOG Ohio 35-column fixture).
+- **Deferred risk** — the checkbox layout in `modHelpers_CheckboxLayout` clips beyond ~30 headings (reproducible with the EOG Ohio 35-column fixture).
 - **Planned** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (using saved defaults instead of a per-run picker) lands.
