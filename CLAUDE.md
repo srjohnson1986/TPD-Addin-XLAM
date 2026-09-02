@@ -69,11 +69,9 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 ## Known open defects
 
-Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). `docs/ARCHITECTURE.md` carries inline pointers on the affected module rows. Two are open, both `low priority` and both expected to be handled by the planned one-click EQ List refactor rather than fixed on their own:
+Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). No open bug issues right now; the last two (CEQ-06 / UI-01) were folded into the refactor below.
 
-- **CEQ-06 ([#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9))** — `CustEQListColumnPickerForm.cmdOK_Click` doesn't check that at least one column is selected. One-line fix if the form outlives the refactor: `HasColumnSelection` (in `modHelpers_CheckboxSelection`), same as `splitSheetByColumnOptionsForm` already does.
-- **UI-01 ([#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12))** — `modHelpers_CheckboxLayout.LayoutCheckboxes` clips past ~30 headings (fixed 3-column grid in a fixed-size frame). Rare in practice; needs a scrollable or adaptive grid if the pickers survive.
-- **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (saved defaults instead of a per-run picker) lands; close #9 and #12 as part of that work.
+- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — planned: move Customer EQ List column/logo settings into `frmSetTPDDefaults` (saved defaults), make "Create Customer EQ List" run without a per-run picker, and remove `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + `modHelpers_Image`. Closes the former CEQ-06 (no min-column validation — gone with the form; `HasColumnSelection` in `modHelpers_CheckboxSelection` is the guard if any interim UI needs it) and UI-01 (`modHelpers_CheckboxLayout` 3-column grid clips past ~30 headings — stops mattering for this form; still relevant to `splitSheetByColumnOptionsForm` if it keeps a live grid).
 
 Also keep in mind when touching `modPerformance.WithPerformance` (GEN-04 / [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), fixed): the `CleanUp` handler must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those session-wide settings are left broken on error.
 
