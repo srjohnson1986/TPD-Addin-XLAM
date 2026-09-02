@@ -55,6 +55,14 @@ Public Function CreateOrClearSheet(wb As Workbook, sheetName As String) As Works
     Set CreateOrClearSheet = ws
 End Function
 
+Public Function IsWorkbookOpen(fileName As String) As Boolean
+    Dim wb As Workbook
+    On Error Resume Next
+    Set wb = Application.Workbooks(fileName)
+    On Error GoTo 0
+    IsWorkbookOpen = Not wb Is Nothing
+End Function
+
 Public Function SheetExists(wb As Workbook, sheetName As String) As Boolean
     Dim ws As Worksheet
     On Error Resume Next
