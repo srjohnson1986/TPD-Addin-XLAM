@@ -97,7 +97,7 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 ## Known open items
 
-Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Historical defect IDs map to issues as: EQC-10 → [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6) (closed, working as intended), GEN-04 → [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) (fixed), EXP-07 → [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8) (fixed), CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), SPL-11 → [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10) (fixed), CORE-01 → [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (fixed), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12), EXP-08 → [#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15) (fixed).
+Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Still-open historical defect IDs map to issues as: CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12). The rest (EQC-10, GEN-04, EXP-07, SPL-11, CORE-01, EXP-08) are resolved — see `CHANGELOG.md`.
 
 Non-issue guidance to keep in mind when working these areas:
 
