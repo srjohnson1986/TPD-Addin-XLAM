@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 '@Folder("TPD_Addin.EQList")
 
 Option Explicit
@@ -34,7 +35,7 @@ End Property
 '===========================================================
 ' Load columns into checkboxes
 '===========================================================
-Public Sub LoadColumns(headerList As Variant)
+Public Sub LoadColumns(headingList As Variant)
 
     Dim savedCols As Collection
     Dim applyDefaults As Boolean
@@ -58,7 +59,7 @@ Public Sub LoadColumns(headerList As Variant)
     )
 
     ' Build checkboxes
-    LayoutCheckboxes fraColumns, headerList, 10, "chkCustEQ"
+    LayoutCheckboxes fraColumns, headingList, 10, "chkCustEQ"
 
     ' Load saved preferences
     Set savedCols = LoadColumnList("PREF_CUSTEQ_COLUMNS")
@@ -139,4 +140,5 @@ Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
         Me.Hide
     End If
 End Sub
+
 

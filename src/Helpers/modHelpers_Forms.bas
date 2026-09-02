@@ -3,13 +3,13 @@ Attribute VB_Name = "modHelpers_Forms"
 
 Option Explicit
 
-Public Function ShowCustEQForm(headers As Variant, _
+Public Function ShowCustEQForm(headings As Variant, _
                                ByRef selectedCols As Collection, _
                                ByRef imgPath As String) As Boolean
     Dim frm As CustEQListColumnPickerForm
 
     Set frm = New CustEQListColumnPickerForm
-    frm.LoadColumns headers
+    frm.LoadColumns headings
     frm.Show
 
     If frm.Cancelled Then
@@ -49,13 +49,13 @@ Public Function GetExportSuffixFromForm() As String
     Unload frm
 End Function
 
-Public Function ShowSplitSheetForm(headers As Variant, _
+Public Function ShowSplitSheetForm(headings As Variant, _
                                    ByRef groupColName As String, _
                                    ByRef selectedCols As Collection) As Boolean
     Dim frm As splitSheetByColumnOptionsForm
 
     Set frm = New splitSheetByColumnOptionsForm
-    ' if needed, you can pass headers into the form here
+    ' if needed, you can pass headings into the form here
     frm.Show
 
     If frm.groupColumn = "" Or frm.SelectedColumns Is Nothing Then

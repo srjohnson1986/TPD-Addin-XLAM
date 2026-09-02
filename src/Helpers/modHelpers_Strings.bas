@@ -75,28 +75,3 @@ Public Function IsInArray(val As String, arr As Variant) As Boolean
 End Function
 
 
-Public Function CleanHeader(s As String) As String
-    If Len(s) = 0 Then
-        CleanHeader = ""
-        Exit Function
-    End If
-
-    ' Normalize NBSP and Unicode whitespace
-    s = Replace(s, Chr(160), " ")
-    s = Replace(s, ChrW(8203), "")
-    s = Replace(s, ChrW(8237), "")
-    s = Replace(s, ChrW(8236), "")
-    s = Replace(s, ChrW(9), " ")
-    s = Replace(s, ChrW(10), " ")
-    s = Replace(s, ChrW(13), " ")
-
-    ' Collapse multiple spaces
-    Do While InStr(s, "  ") > 0
-        s = Replace(s, "  ", " ")
-    Loop
-
-    CleanHeader = Trim(s)
-End Function
-
-
-

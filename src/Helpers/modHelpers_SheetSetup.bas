@@ -53,13 +53,13 @@ Public Sub InsertDefaultCustScheduleHeader(ws As Worksheet)
     ' on the active worksheet, insert numberOfRows
     InsertRows ws, numberOfRows
 
-    ' headerrow is one more than the number of inserted rows
-    Dim headerRow As Long
-    headerRow = numberOfRows + 1
+    ' headingsRow is one more than the number of inserted rows
+    Dim headingsRow As Long
+    headingsRow = numberOfRows + 1
 
-    ' date text 2 rows above header
+    ' date text 2 rows above headingsRow
     Dim dateTextRow As Long
-    dateTextRow = headerRow - 2
+    dateTextRow = headingsRow - 2
 
     ' Left date text cell (column before last)
     With ws.Cells(dateTextRow, lastColumn - 1)

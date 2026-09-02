@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 '@Folder("TPD_Addin.SplitExport")
 
 Option Explicit
@@ -28,7 +29,7 @@ End Property
 '===========================================================
 ' Load columns into checkboxes + ComboBox
 '===========================================================
-Public Sub LoadColumns(headerList As Variant)
+Public Sub LoadColumns(headingList As Variant)
     Dim savedCols As Collection
     Dim i As Long
     Dim applyDefaults As Boolean
@@ -48,12 +49,12 @@ Public Sub LoadColumns(headerList As Variant)
     )
 
     ' Build checkboxes
-    LayoutCheckboxes fraColumns, headerList, ROWS_PER_COLUMN, "chkSplit", PreferredDefaultColumns, applyDefaults
+    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkSplit", PreferredDefaultColumns, applyDefaults
 
     ' Populate group column dropdown
     cboGroupColumn.Clear
-    For i = LBound(headerList) To UBound(headerList)
-        cboGroupColumn.AddItem headerList(i)
+    For i = LBound(headingList) To UBound(headingList)
+        cboGroupColumn.AddItem headingList(i)
      
     Next i
     

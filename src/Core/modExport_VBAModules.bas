@@ -135,7 +135,7 @@ Private Function GetFolderTag(vbComp As Object) As String
     If linesToScan > 10 Then linesToScan = 10
 
     For i = 1 To linesToScan
-        lineText = cm.Lines(i, 1)
+        lineText = cm.lines(i, 1)
         If InStr(1, lineText, "@Folder(", vbTextCompare) > 0 Then
             startPos = InStr(lineText, """") + 1
             endPos = InStr(startPos, lineText, """")

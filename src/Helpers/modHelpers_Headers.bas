@@ -3,39 +3,30 @@ Attribute VB_Name = "modHelpers_Headers"
 
 Option Explicit
 
-Public Function GetHeaderList(ws As Worksheet, headerRow As Long) As Variant
+Public Function GetHeadingList(ws As Worksheet, headingsRow As Long) As Variant
     Dim lastCol As Long
     Dim arr() As String
     Dim c As Long
 
-    lastCol = GetLastCol(ws, headerRow)
+    lastCol = GetLastCol(ws, headingsRow)
     ReDim arr(1 To lastCol)
 
     For c = 1 To lastCol
-        arr(c) = CStr(ws.Cells(headerRow, c).value)
+        arr(c) = CStr(ws.Cells(headingsRow, c).value)
     Next c
 
-    GetHeaderList = arr
+    GetHeadingList = arr
 End Function
 
-'Public Function FindHeaderIndex(headers As Variant, headerName As String) As Long
-'    Dim i As Long
-'    For i = LBound(headers) To UBound(headers)
-'        If StrComp(headers(i), headerName, vbTextCompare) = 0 Then
-'            FindHeaderIndex = i
-'            Exit Function
-'        End If
-'    Next i
-'End Function
 
-Public Function FindHeaderIndex(headers As Variant, headerName As String) As Long
+Public Function FindHeadingIndex(headings As Variant, headingName As String) As Long
     Dim i As Long
-    FindHeaderIndex = 0
+    FindHeadingIndex = 0
 
     ' Search from RIGHT to LEFT so the real Vendor column is found
-    For i = UBound(headers) To LBound(headers) Step -1
-        If StrComp(CStr(headers(i)), headerName, vbTextCompare) = 0 Then
-            FindHeaderIndex = i
+    For i = UBound(headings) To LBound(headings) Step -1
+        If StrComp(CStr(headings(i)), headingName, vbTextCompare) = 0 Then
+            FindHeadingIndex = i
             Exit Function
         End If
     Next i
