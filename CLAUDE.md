@@ -69,10 +69,13 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 ## Known open defects
 
-Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). `docs/ARCHITECTURE.md` carries inline pointers on the affected module rows. Two things worth knowing before you touch the relevant code:
+Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). `docs/ARCHITECTURE.md` carries inline pointers on the affected module rows. Two are open, both `low priority` and both expected to be handled by the planned one-click EQ List refactor rather than fixed on their own:
 
-- **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7))** — fix `modPerformance.WithPerformance` by *adding* user-facing messaging; do **not** remove the `CleanUp` handler, or session-wide Excel settings (`ScreenUpdating`/`EnableEvents`/`Calculation`) are left broken on error.
-- **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (saved defaults instead of a per-run picker) lands.
+- **CEQ-06 ([#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9))** — `CustEQListColumnPickerForm.cmdOK_Click` doesn't check that at least one column is selected. One-line fix if the form outlives the refactor: `HasColumnSelection` (in `modHelpers_CheckboxSelection`), same as `splitSheetByColumnOptionsForm` already does.
+- **UI-01 ([#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12))** — `modHelpers_CheckboxLayout.LayoutCheckboxes` clips past ~30 headings (fixed 3-column grid in a fixed-size frame). Rare in practice; needs a scrollable or adaptive grid if the pickers survive.
+- **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (saved defaults instead of a per-run picker) lands; close #9 and #12 as part of that work.
+
+Also keep in mind when touching `modPerformance.WithPerformance` (GEN-04 / [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), fixed): the `CleanUp` handler must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those session-wide settings are left broken on error.
 
 ## File-format conventions (`.gitattributes`)
 
