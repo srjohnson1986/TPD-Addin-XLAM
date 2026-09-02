@@ -33,3 +33,7 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - CORE-01 ([#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11)):
   `modHelpers_Diagnostics.SheetExists2` assigned its result to the wrong
   identifier and always returned `False`; it now reports correctly.
+- SPL-11 ([#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10)):
+  "Split Sheet by Column" now warns and keeps the form open if OK is clicked
+  with no columns checked, instead of proceeding with an empty selection. Adds
+  `HasColumnSelection` to `modHelpers_CheckboxSelection`.
