@@ -27,8 +27,8 @@ A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither
 |---|---|
 | `modMain_CustEQList` | "Create Customer EQ List" entry point. Shows `CustEQListColumnPickerForm`, copies all rows to a new sheet, deletes unselected columns, formats the sheet, inserts the EQ header block and logo, and freezes panes. |
 | `modMain_CustEQListHeader` | "Default EQ List Header" entry point — thin wrapper around `InsertDefaultCustEQHeader`. |
-| `modMain_CountEquipmentRows` | "EQ Count" entry point. Inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or `INCLUDED` in the Purchased column, with leading-zero formatting. |
-| `CustEQListColumnPickerForm` | UserForm for choosing which columns to keep and the logo image path when creating a Customer EQ List. Builds its checkbox grid via `modHelpers_CheckboxLayout`, applies saved or default column selections, and saves preferences on OK. |
+| `modMain_CountEquipmentRows` | "EQ Count" entry point. Inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or `INCLUDED` in the Purchased column, with leading-zero formatting. Known bug [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6): blank Purchased values are miscounted as equipment. |
+| `CustEQListColumnPickerForm` | UserForm for choosing which columns to keep and the logo image path when creating a Customer EQ List. Builds its checkbox grid via `modHelpers_CheckboxLayout`, applies saved or default column selections, and saves preferences on OK. Known bug [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9): no validation that at least one column is selected. |
 
 ## TPD_Addin.Schedule
 
@@ -42,9 +42,9 @@ A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither
 | Module | Purpose |
 |---|---|
 | `modMain_SplitSheets` | "Split Sheet by Column" entry point. Prompts for a group column and columns to keep via `splitSheetByColumnOptionsForm`, then creates or clears one sheet per unique value in the group column and copies matching rows into it. |
-| `modMain_ExportSheets` | "Save Each Sheet to XLSX" entry point. Prompts for a filename suffix/date via `frmFilenameOptions`, then saves every worksheet in the workbook to its own `.xlsx` in a per-workbook export folder. |
+| `modMain_ExportSheets` | "Save Each Sheet to XLSX" entry point. Prompts for a filename suffix/date via `frmFilenameOptions`, then saves every worksheet in the workbook to its own `.xlsx` in a per-workbook export folder. Known bug [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8): hidden sheets (`_Preferences`, `_Resources`) are exported without an opt-in. |
 | `modHelpers_Export` | Creates/locates the export folder next to the workbook (`EnsureExportFolder`) and copies a single worksheet out to its own `.xlsx` file (`ExportSheetToXLSX`). |
-| `splitSheetByColumnOptionsForm` | UserForm for choosing the group-by column and which columns to keep when splitting a sheet. Remembers the last-used group column and column selection. |
+| `splitSheetByColumnOptionsForm` | UserForm for choosing the group-by column and which columns to keep when splitting a sheet. Remembers the last-used group column and column selection. Known bug [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10): validates the group column but not that at least one column is selected. |
 | `frmFilenameOptions` | Small UserForm for appending free text and/or today's date to exported filenames. |
 
 ## TPD_Addin.Preferences
@@ -71,7 +71,7 @@ Shared utilities used across more than one feature area.
 | `modHelpers_Logo` | Positions and resizes the logo shape: default-logo insertion/alignment, right-aligned logo insertion, and resizing a picture to fit a max row count. |
 | `modHelpers_Forms` | Thin bridge functions that show `CustEQListColumnPickerForm` / `frmFilenameOptions` / `splitSheetByColumnOptionsForm` and hand back the user's selections to the caller. |
 | `modHelpers_Image` | `SafeInsertLogoAtRight` (error-wrapped logo insertion) and `PastePicture` (grabs an image off the clipboard). Flagged as now-unused since logo handling moved to the embedded-shape approach on `_Resources`. |
-| `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. |
+| `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. Known bug [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12): the fixed 3-column grid clips beyond ~30 headings. |
 | `modHelpers_CheckboxSelection` | Reads which checkboxes are checked into a `Collection`, and re-checks boxes matching a previously saved column list. |
 
 ## TPD_Addin.Core
@@ -80,10 +80,10 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 
 | Module | Purpose |
 |---|---|
-| `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. Known limitation: errors inside the wrapped routine are currently swallowed without a user-facing message (see open defects). |
+| `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. Known bug [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7): errors inside the wrapped routine are swallowed without a user-facing message — the fix must keep the `CleanUp` handler (see Known open items). |
 | `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
 | `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
-| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug: its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`). |
+| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug CORE-01 / [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11): its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`). |
 | `modExport_VBAModules` | The VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
 
 ## TPD_Addin.Document
@@ -97,11 +97,9 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 ## Known open items
 
-These are tracked informally here until they move into GitHub Issues:
+Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Historical defect IDs map to issues as: EQC-10 → [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), GEN-04 → [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), EXP-07 → [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8), CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), SPL-11 → [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10), CORE-01 → [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12).
 
-- **EQC-10** — blank `Purchased` values are counted as equipment in `modMain_CountEquipmentRows` (confirmed defect).
-- **GEN-04** — `modPerformance.WithPerformance` swallows errors silently without messaging the user (confirmed defect; fix is to add messaging, not remove the handler — removing it would leave session-wide Excel settings in a broken state).
-- **EXP-07** — `modMain_ExportSheets` exports hidden sheets without an opt-in (confirmed defect).
-- **CEQ-06 / SPL-11** — the column picker and split dialogs don't validate that at least one column is selected before proceeding (confirmed defects).
-- **Deferred risk** — the checkbox layout in `modHelpers_CheckboxLayout` clips beyond ~30 headings (reproducible with the EOG Ohio 35-column fixture).
-- **Planned** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (using saved defaults instead of a per-run picker) lands.
+Non-issue guidance to keep in mind when working these areas:
+
+- **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)) constraint** — the fix is to add user-facing messaging to `modPerformance.WithPerformance`, *not* to remove the `CleanUp` handler. Removing it leaves `ScreenUpdating`/`EnableEvents`/`Calculation` broken for the rest of the Excel session on any error.
+- **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (using saved defaults instead of a per-run picker) lands.

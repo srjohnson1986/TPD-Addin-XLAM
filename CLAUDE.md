@@ -67,15 +67,12 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **Global preferences are shared across workbooks, not per-workbook** — "set once, applies everywhere" is intentional.
 - **Re-running a command stacks its output** (e.g. running "Create Customer EQ List" twice adds a second sheet) — intentional.
 
-## Known open defects (tracked in `docs/ARCHITECTURE.md`, not yet GitHub Issues)
+## Known open defects
 
-- **EQC-10** — blank `Purchased` values are counted as equipment in `modMain_CountEquipmentRows`.
-- **GEN-04** — `modPerformance.WithPerformance` swallows errors silently instead of messaging the user (fix by adding messaging — do not remove the handler, or session-wide Excel settings are left broken on error).
-- **EXP-07** — `modMain_ExportSheets` exports hidden sheets without an opt-in.
-- **CEQ-06 / SPL-11** — the column picker and split dialogs don't validate that at least one column is selected.
-- **Deferred risk** — `modHelpers_CheckboxLayout`'s checkbox grid clips beyond ~30 headers.
+Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). `docs/ARCHITECTURE.md` carries inline pointers on the affected module rows. Two things worth knowing before you touch the relevant code:
+
+- **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7))** — fix `modPerformance.WithPerformance` by *adding* user-facing messaging; do **not** remove the `CleanUp` handler, or session-wide Excel settings (`ScreenUpdating`/`EnableEvents`/`Calculation`) are left broken on error.
 - **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (saved defaults instead of a per-run picker) lands.
-- `modHelpers_Diagnostics.SheetExists2`'s body assigns to `SheetExists`, not `SheetExists2` — it always returns the default `False`.
 
 ## File-format conventions (`.gitattributes`)
 
