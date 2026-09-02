@@ -28,7 +28,7 @@ A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither
 | `modMain_CustEQList` | "Create Customer EQ List" entry point. Shows `CustEQListColumnPickerForm`, copies all rows to a new sheet, deletes unselected columns, formats the sheet, inserts the EQ header block and logo, and freezes panes. |
 | `modMain_CustEQListHeader` | "Default EQ List Header" entry point — thin wrapper around `InsertDefaultCustEQHeader`. |
 | `modMain_CountEquipmentRows` | "EQ Count" entry point. Inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or `INCLUDED` in the Purchased column, with leading-zero formatting. A row with a blank Purchased value is a real equipment line whose status isn't filled in yet, so it is numbered by design ([#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), closed as working-as-intended). |
-| `CustEQListColumnPickerForm` | UserForm for choosing which columns to keep and the logo image path when creating a Customer EQ List. Builds its checkbox grid via `modHelpers_CheckboxLayout`, applies saved or default column selections, and saves preferences on OK. Known bug [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9): no validation that at least one column is selected. |
+| `CustEQListColumnPickerForm` | UserForm for choosing which columns to keep and the logo image path when creating a Customer EQ List. Builds its checkbox grid via `modHelpers_CheckboxLayout`, applies saved or default column selections, and saves preferences on OK. `cmdOK_Click` does **not** check that at least one column is selected. Slated for removal in the one-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). |
 
 ## TPD_Addin.Schedule
 
@@ -71,7 +71,7 @@ Shared utilities used across more than one feature area.
 | `modHelpers_Logo` | Positions and resizes the logo shape: default-logo insertion/alignment, right-aligned logo insertion, and resizing a picture to fit a max row count. |
 | `modHelpers_Forms` | Thin bridge functions that show `CustEQListColumnPickerForm` / `frmFilenameOptions` / `splitSheetByColumnOptionsForm` and hand back the user's selections to the caller. |
 | `modHelpers_Image` | `SafeInsertLogoAtRight` (error-wrapped logo insertion) and `PastePicture` (grabs an image off the clipboard). Flagged as now-unused since logo handling moved to the embedded-shape approach on `_Resources`. |
-| `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. Known bug [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12): the fixed 3-column grid clips beyond ~30 headings. |
+| `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. The fixed 3-column grid in a fixed-size frame clips beyond ~30 headings — untracked (rare in practice); see the one-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). |
 | `modHelpers_CheckboxSelection` | Reads which checkboxes are checked into a `Collection` (`GetSelectedColumns`), tests whether any are checked (`HasColumnSelection`), and re-checks boxes matching a previously saved column list. |
 
 ## TPD_Addin.Core
@@ -97,9 +97,9 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 ## Known open items
 
-Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Still-open historical defect IDs map to issues as: CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12). The rest (EQC-10, GEN-04, EXP-07, SPL-11, CORE-01, EXP-08) are resolved — see `CHANGELOG.md`.
+Defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). No open bug issues right now. The historical defect IDs EQC-10, GEN-04, EXP-07, SPL-11, CORE-01 and EXP-08 are resolved (see `CHANGELOG.md`); CEQ-06 and UI-01 were folded into the refactor below.
 
 Non-issue guidance to keep in mind when working these areas:
 
 - **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7))** — fixed. When extending `modPerformance.WithPerformance`, keep the `CleanUp` handler: it must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those settings stay broken for the rest of the Excel session on any error.
-- **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (using saved defaults instead of a per-run picker) lands.
+- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once "Create Customer EQ List" moves to saved defaults (in `frmSetTPDDefaults`) instead of a per-run picker. This subsumes the old CEQ-06 (picker had no min-column validation) and UI-01 (`modHelpers_CheckboxLayout` clips past ~30 headings — still relevant to `splitSheetByColumnOptionsForm` if it keeps a live checkbox grid).
