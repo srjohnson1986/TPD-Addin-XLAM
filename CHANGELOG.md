@@ -19,3 +19,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - Filed EXP-08 ([#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15)):
   "Save Each Sheet to XLSX" fails and leaves an orphaned workbook open when run
   with an empty filename suffix.
+
+### Fixed
+
+- GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)):
+  `modPerformance.WithPerformance` no longer swallows errors silently. On failure
+  in a wrapped routine it still restores `ScreenUpdating`/`EnableEvents`/`Calculation`,
+  then shows the error description in a message box.
+- CORE-01 ([#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11)):
+  `modHelpers_Diagnostics.SheetExists2` assigned its result to the wrong
+  identifier and always returned `False`; it now reports correctly.

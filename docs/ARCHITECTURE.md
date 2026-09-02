@@ -80,10 +80,10 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 
 | Module | Purpose |
 |---|---|
-| `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. Known bug [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7): errors inside the wrapped routine are swallowed without a user-facing message — the fix must keep the `CleanUp` handler (see Known open items). |
+| `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. On an error inside the wrapped routine, `CleanUp` still restores all three settings and then surfaces `Err.Description` in a `MsgBox` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)). |
 | `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
 | `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
-| `modHelpers_Diagnostics` | Houses `SheetExists2` (known bug CORE-01 / [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11): its body assigns to `SheetExists`, not `SheetExists2`, so it always returns the default `False`). |
+| `modHelpers_Diagnostics` | Houses `SheetExists2` — checks whether a named sheet exists in `ThisWorkbook` (the add-in). Fixed in [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (its body previously assigned to `SheetExists`, so it always returned `False`). For an arbitrary workbook use `SheetExists(wb, name)` in `modHelpers_Workbook`. |
 | `modExport_VBAModules` | The VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
 
 ## TPD_Addin.Document
@@ -97,9 +97,9 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 ## Known open items
 
-Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Historical defect IDs map to issues as: EQC-10 → [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), GEN-04 → [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), EXP-07 → [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8), CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), SPL-11 → [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10), CORE-01 → [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12), EXP-08 → [#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15).
+Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Historical defect IDs map to issues as: EQC-10 → [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), GEN-04 → [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) (fixed), EXP-07 → [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8), CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), SPL-11 → [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10), CORE-01 → [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (fixed), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12), EXP-08 → [#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15).
 
 Non-issue guidance to keep in mind when working these areas:
 
-- **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)) constraint** — the fix is to add user-facing messaging to `modPerformance.WithPerformance`, *not* to remove the `CleanUp` handler. Removing it leaves `ScreenUpdating`/`EnableEvents`/`Calculation` broken for the rest of the Excel session on any error.
+- **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7))** — fixed. When extending `modPerformance.WithPerformance`, keep the `CleanUp` handler: it must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those settings stay broken for the rest of the Excel session on any error.
 - **Planned removal** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once the one-click EQ List refactor (using saved defaults instead of a per-run picker) lands.

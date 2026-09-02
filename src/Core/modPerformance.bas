@@ -4,6 +4,10 @@ Attribute VB_Name = "modPerformance"
 Option Explicit
 
 Public Sub WithPerformance(action As String)
+
+    Dim errNumber As Long
+    Dim errDescription As String
+
     On Error GoTo CleanUp
 
     Application.ScreenUpdating = False
@@ -29,8 +33,19 @@ Public Sub WithPerformance(action As String)
     End Select
 
 CleanUp:
+    ' Capture the error (if any) before any statement below clears Err.
+    errNumber = Err.Number
+    errDescription = Err.Description
+
+    ' Always restore session-wide Excel settings, error or not.
     Application.Calculation = xlCalculationAutomatic
     Application.EnableEvents = True
     Application.ScreenUpdating = True
-End Sub
 
+    If errNumber <> 0 Then
+        MsgBox "'" & action & "' did not finish." & vbCrLf & vbCrLf & _
+               errDescription & " (error " & errNumber & ")", _
+               vbExclamation, "TPD Add-in"
+    End If
+
+End Sub
