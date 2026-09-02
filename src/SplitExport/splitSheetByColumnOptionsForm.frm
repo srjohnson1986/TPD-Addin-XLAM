@@ -145,6 +145,11 @@ Private Sub cmdOK_Click()
         Exit Sub
     End If
 
+    If Not HasColumnSelection(fraColumns) Then
+        MsgBox "Please select at least one column to keep.", vbExclamation
+        Exit Sub
+    End If
+
     SavePref PREF_SPLIT_GROUPCOL, cboGroupColumn.value
     SaveColumnList PREF_SPLIT_COLUMNS, GetSelectedColumns(fraColumns)
 
