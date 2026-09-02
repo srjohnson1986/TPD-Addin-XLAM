@@ -27,7 +27,7 @@ A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither
 |---|---|
 | `modMain_CustEQList` | "Create Customer EQ List" entry point. Shows `CustEQListColumnPickerForm`, copies all rows to a new sheet, deletes unselected columns, formats the sheet, inserts the EQ header block and logo, and freezes panes. |
 | `modMain_CustEQListHeader` | "Default EQ List Header" entry point — thin wrapper around `InsertDefaultCustEQHeader`. |
-| `modMain_CountEquipmentRows` | "EQ Count" entry point. Inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or `INCLUDED` in the Purchased column, with leading-zero formatting. Known bug [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6): blank Purchased values are miscounted as equipment. |
+| `modMain_CountEquipmentRows` | "EQ Count" entry point. Inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or `INCLUDED` in the Purchased column, with leading-zero formatting. A row with a blank Purchased value is a real equipment line whose status isn't filled in yet, so it is numbered by design ([#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), closed as working-as-intended). |
 | `CustEQListColumnPickerForm` | UserForm for choosing which columns to keep and the logo image path when creating a Customer EQ List. Builds its checkbox grid via `modHelpers_CheckboxLayout`, applies saved or default column selections, and saves preferences on OK. Known bug [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9): no validation that at least one column is selected. |
 
 ## TPD_Addin.Schedule
@@ -97,7 +97,7 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 ## Known open items
 
-Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Historical defect IDs map to issues as: EQC-10 → [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), GEN-04 → [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) (fixed), EXP-07 → [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8), CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), SPL-11 → [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10), CORE-01 → [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (fixed), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12), EXP-08 → [#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15).
+Open defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). The affected module rows above carry an inline pointer to the relevant issue. Historical defect IDs map to issues as: EQC-10 → [#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6) (closed, working as intended), GEN-04 → [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) (fixed), EXP-07 → [#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8), CEQ-06 → [#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9), SPL-11 → [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10), CORE-01 → [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (fixed), UI-01 → [#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12), EXP-08 → [#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15).
 
 Non-issue guidance to keep in mind when working these areas:
 

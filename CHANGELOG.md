@@ -19,6 +19,10 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - Filed EXP-08 ([#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15)):
   "Save Each Sheet to XLSX" fails and leaves an orphaned workbook open when run
   with an empty filename suffix.
+- Closed EQC-10 ([#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6)) as
+  working-as-intended: a blank Purchased value marks a real equipment line whose
+  status isn't filled in yet, so "EQ Count" numbers it by design. Only `PARENT`
+  and `INCLUDED` rows are skipped.
 
 ### Fixed
 
