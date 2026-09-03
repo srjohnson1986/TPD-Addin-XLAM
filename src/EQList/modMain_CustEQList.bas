@@ -55,7 +55,7 @@ Public Sub CreateCustEQList_DoWork( _
 
     FormatEQSheet wsNew, 1
     AutoFitUsedColumns wsNew
-    
+
     InsertEQHeaderBlock wsNew
     SafeInsertLogoAtRight wsNew, imgPath, 1, EQ_HEADER_ROW_COUNT + 1
 
