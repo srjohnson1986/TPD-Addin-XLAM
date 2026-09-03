@@ -75,6 +75,8 @@ Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-
 
 Also keep in mind when touching `modPerformance.WithPerformance` (GEN-04 / [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), fixed): the `CleanUp` handler must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those session-wide settings are left broken on error.
 
+And ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29), fixed): never call a `Sub` as `MySub (obj)` — the extra parens make VBA evaluate the argument by value (its default property), so a `Worksheet`/`Workbook` raises run-time 438. Write `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop hides such errors behind `Resume Next`.
+
 ## File-format conventions (`.gitattributes`)
 
 - `.bas` / `.cls` / `.frm` / `.xml` are text, forced to CRLF (matches what the VBE always writes on export — keeps diffs to real code changes).
