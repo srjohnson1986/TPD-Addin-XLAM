@@ -16,7 +16,7 @@ Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
     Dim descCol As Variant
 
     lastRow = GetLastRow(ws)
-    lastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
+    lastCol = GetLastCol(ws, headingsRow)
 
     Set dataRange = ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol))
 
@@ -61,7 +61,7 @@ Public Sub FormatSplitSheet(ws As Worksheet, headingsRow As Long)
     Dim dataRange As Range
 
     lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
-    lastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
+    lastCol = GetLastCol(ws, headingsRow)
 
     Set dataRange = ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol))
 

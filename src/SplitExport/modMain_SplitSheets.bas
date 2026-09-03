@@ -43,7 +43,9 @@ Public Sub SplitSheetByColumn_Internal()
 
     createdCount = SplitSheetByColumn_DoWork(wsSource, groupCol, selectedCols, failures)
 
-    ReportSplitOutcome createdCount, failures
+    ReportBatchOutcome createdCount & " sheet(s) created.", failures, _
+                       "value(s) could not be split out:", _
+                       "Split finished with errors", "Split complete"
 
 End Sub
 
@@ -61,12 +63,8 @@ Public Function SplitSheetByColumn_DoWork( _
 
     Dim headings As Variant
     Dim groupColIndex As Long
-    Dim rawValues As Collection
     Dim uniqueValues As Collection
-    Dim seen As Object
     Dim usedNames As Object
-    Dim rawValue As Variant
-    Dim cleaned As String
     Dim groupValue As Variant
     Dim createdCount As Long
 
@@ -86,20 +84,9 @@ Public Function SplitSheetByColumn_DoWork( _
         Exit Function
     End If
 
-    ' Build a cleaned, deduped list of the values to split on
-    Set rawValues = GetUniqueValuesInColumn(wsSource, groupColIndex)
-    Set seen = CreateObject("Scripting.Dictionary")
-    Set uniqueValues = New Collection
-
-    For Each rawValue In rawValues
-        cleaned = NormalizeCellText(rawValue)
-        If Len(cleaned) > 0 Then
-            If Not seen.exists(cleaned) Then
-                seen.Add cleaned, cleaned
-                uniqueValues.Add cleaned
-            End If
-        End If
-    Next rawValue
+    ' Values to split on. GetUniqueValuesInColumn already normalizes each value
+    ' (NormalizeCellText) and dedupes case-insensitively - no second pass needed.
+    Set uniqueValues = GetUniqueValuesInColumn(wsSource, groupColIndex)
 
     ' One sheet per value. A failure on one value is recorded and skipped
     ' rather than aborting the whole run or vanishing into Debug.Print.
@@ -176,21 +163,3 @@ Private Function UniqueRunName(ByVal baseName As String, ByVal usedNames As Obje
 
     UniqueRunName = candidate
 End Function
-
-
-Private Sub ReportSplitOutcome(ByVal createdCount As Long, ByVal failures As Collection)
-    Dim msg As String
-    Dim f As Variant
-
-    msg = createdCount & " sheet(s) created."
-
-    If failures.Count > 0 Then
-        msg = msg & vbCrLf & vbCrLf & failures.Count & " value(s) could not be split out:"
-        For Each f In failures
-            msg = msg & vbCrLf & "  " & f
-        Next f
-        MsgBox msg, vbExclamation, "Split finished with errors"
-    Else
-        MsgBox msg, vbInformation, "Split complete"
-    End If
-End Sub

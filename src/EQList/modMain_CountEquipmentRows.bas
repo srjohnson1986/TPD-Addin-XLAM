@@ -48,7 +48,7 @@ Public Sub NumberEquipmentRows(ws As Worksheet)
     Dim maxNumber As Long
     Dim digits As Long
 
-    purchasedCol = FindPurchasedColumn(ws)
+    purchasedCol = FindHeadingIndex(GetHeadingList(ws, 1), "PURCHASED", preferRightmost:=False)
     If purchasedCol = 0 Then
         MsgBox "No column with heading PURCHASED was found.", vbExclamation, "TPD Add-in"
         Exit Sub
@@ -81,17 +81,3 @@ Public Sub NumberEquipmentRows(ws As Worksheet)
     digits = Len(CStr(maxNumber))
     ws.Range(ws.Cells(2, EQ_COUNT_COL), ws.Cells(lastRow, EQ_COUNT_COL)).NumberFormat = String(digits, "0")
 End Sub
-
-' Column index of the "PURCHASED" heading in row 1, or 0 if there isn't one.
-Private Function FindPurchasedColumn(ws As Worksheet) As Long
-    Dim lastCol As Long
-    Dim c As Long
-
-    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
-    For c = 1 To lastCol
-        If UCase$(Trim$(CStr(ws.Cells(1, c).value))) = "PURCHASED" Then
-            FindPurchasedColumn = c
-            Exit Function
-        End If
-    Next c
-End Function

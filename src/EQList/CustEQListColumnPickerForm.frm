@@ -62,7 +62,7 @@ Public Sub LoadColumns(headingList As Variant)
     LayoutCheckboxes fraColumns, headingList, 10, "chkCustEQ"
 
     ' Load saved preferences
-    Set savedCols = LoadColumnList("PREF_CUSTEQ_COLUMNS")
+    Set savedCols = LoadColumnList(PREF_CUSTEQ_COLUMNS)
     applyDefaults = (savedCols Is Nothing) Or (savedCols.Count = 0)
 
     ' Apply defaults if no saved prefs
