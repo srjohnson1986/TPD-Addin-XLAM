@@ -39,6 +39,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)):
+  "Split Sheet by Column" raised a silent run-time error 438 once per group
+  value — `FormatSplitSheet` called `AutoFitUsedColumns (ws)`, whose stray
+  parentheses forced VBA to evaluate the `Worksheet` by value (no default
+  property). The `LoopError` handler logged it and continued, so output looked
+  fine but the final autofit and freeze-panes were skipped. Removed the
+  parentheses.
 - GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)):
   `modPerformance.WithPerformance` no longer swallows errors silently. On failure
   in a wrapped routine it still restores `ScreenUpdating`/`EnableEvents`/`Calculation`,
