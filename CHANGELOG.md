@@ -63,6 +63,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#35](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/35)):
+  "EQ Count" now runs inside `WithPerformance` (`PERF_COUNT_EQ_ROWS`) so it no
+  longer flickers or leaves a half-inserted `EQ COUNT` column with screen
+  updating / calculation stuck if it errors partway. `CountEquipmentRows_Internal`
+  validates the active worksheet via `RequireActiveWorkbook`; the numbering work
+  moved to `NumberEquipmentRows` with `FindPurchasedColumn` split out. The dead
+  `ws` parameter (the old sub overwrote it with `ActiveSheet`) is gone, the
+  post-insert `purchasedCol` index is rebased once instead of `+ 1` at each use,
+  and a heading-only sheet exits cleanly instead of formatting an empty range.
 - ([#34](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/34)):
   "Create Customer EQ List" and "Split Sheet by Column" no longer raise a bare
   error 91 when run with no workbook open or from a workbook with no visible

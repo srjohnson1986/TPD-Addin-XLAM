@@ -21,6 +21,7 @@ Option Explicit
 Public Const PERF_CREATE_CUST_EQ_LIST As String = "CreateCustEQList_Internal"
 Public Const PERF_SPLIT_SHEET_BY_COLUMN As String = "SplitSheetByColumn_Internal"
 Public Const PERF_EXPORT_SHEETS As String = "ExportSheets_Internal"
+Public Const PERF_COUNT_EQ_ROWS As String = "CountEquipmentRows_Internal"
 
 Public Sub WithPerformance(action As String)
 
@@ -43,6 +44,9 @@ Public Sub WithPerformance(action As String)
 
         Case PERF_EXPORT_SHEETS
             ExportSheets_Internal
+
+        Case PERF_COUNT_EQ_ROWS
+            CountEquipmentRows_Internal
 
         Case Else
             MsgBox "Unknown action: " & action, vbCritical
