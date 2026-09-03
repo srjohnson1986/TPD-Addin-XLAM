@@ -44,6 +44,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- `CopyFilteredRowsByColumns` ([#44](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/44)),
+  no behavior change: the row-copy helper no longer bolds the heading row,
+  activates/selects the sheet, freezes panes, or autofits — all of which its
+  caller (`SplitOneGroup` → `FormatSplitSheet` + `SafeFreezePanes`) already did,
+  so per group value the sheet was frozen and autofitted twice and left
+  selected. Heading-row bold moved into `FormatSplitSheet`.
 - `WithPerformance` dispatch ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)),
   no behavior change: ribbon callbacks now pass a `PERF_*` string constant
   (declared in `modPerformance`) instead of a bare literal, and the `Select Case`
