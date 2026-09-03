@@ -5,10 +5,10 @@ Option Explicit
 
 ' Makes a string usable as an Excel sheet name: strips characters Excel
 ' forbids, trims, falls back to "Sheet" when empty, and truncates to 31.
-' KNOWN LIMITATION: the 31-char truncation happens here, before any caller
-' appends a " (2)" disambiguator, and two distinct source values that share
-' the first 31 characters collapse to the same name - in the Split Sheet
-' flow that means the second value's rows overwrite the first. See issue #37.
+' Two distinct source values can still collapse to the same name (shared
+' first 31 chars, or differing only in stripped characters) - callers that
+' create one sheet per value must dedupe the result themselves. The Split
+' Sheet flow does this via UniqueRunName (#57).
 Public Function SanitizeSheetName(ByVal name As String) As String
     Dim badChars As Variant
     Dim c As Variant
