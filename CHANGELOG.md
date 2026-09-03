@@ -11,39 +11,47 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
-- Migrating the repo from tracking the compiled `.xlam` to tracking its VBA
-  source under `/src`, with builds published as versioned Releases.
-- Filed the seven informally-tracked defects as GitHub Issues (#6–#12) and
-  reduced the defect lists in `CLAUDE.md` and `docs/ARCHITECTURE.md` to
-  pointers, with inline issue links on the affected module rows.
-- Filed EXP-08 ([#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15)):
-  "Save Each Sheet to XLSX" fails and leaves an orphaned workbook open when run
-  with an empty filename suffix.
-- Closed EQC-10 ([#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6)) as
-  working-as-intended: a blank Purchased value marks a real equipment line whose
-  status isn't filled in yet, so "EQ Count" numbers it by design. Only `PARENT`
-  and `INCLUDED` rows are skipped.
-- Closed CEQ-06 ([#9](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/9)) and
-  UI-01 ([#12](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/12)), folding
-  both into a tracking issue for the one-click "Create Customer EQ List" refactor
-  ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)) — moving column
-  and logo settings into saved defaults removes `CustEQListColumnPickerForm`, which
-  subsumes both. Trimmed the now-resolved defect IDs out of the `CLAUDE.md` and
-  `docs/ARCHITECTURE.md` "known defects" sections; no open `bug` issues remain.
-- Filed a second review pass as issues [#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)–[#37](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/37):
-  Split Sheet swallowing per-group failures (#32), `Find`-based last-row helpers
-  raising 91 on empty sheets (#33), unguarded `GetFirstVisibleSheet` (#34),
-  `CountNonParentOrIncludedRows` dead param / not perf-wrapped (#35),
-  `WithPerformance` string dispatch (#36), and a code-hygiene sweep (#37).
-- Removed commented-out code across `/src` (a stale `CreateOrClearSheet` copy and
-  an old `GetLastRow` overload in `modHelpers_Workbook`, leftover
-  `'MsgBox "Ribbon callback fired"` debug lines, an empty comment banner in
-  `modMain_CountEquipmentRows`). Deleted the superseded `ExportAllVBAModules` v1
-  (hardcoded `C:\VBA_Export\` path, skipped document modules) and renamed
-  `ExportAllVBAModules2` to `ExportAllVBAModules`; docs updated to match.
+## [2.3.0] - 2026-09-03
+
+The first release cut from the `/src` VBA source (v2.2.0 and earlier were built
+by hand). Almost entirely internal hardening, cleanup, and legibility — a few
+user-visible behavior changes are noted under **Changed** / **Fixed**.
+
+### Added
+
+- `tools/Build-TPDAddin.ps1` — drives `TPD_Builder.xlsm`'s `BuildAddin` macro
+  headlessly to rebuild `build/TPD_Addin.xlam` from `/src`. Paths default off the
+  script's own location, so `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1`
+  works from any clone.
+
+### Removed
+
+- Four dead / redundant modules:
+  `modHelpers_Diagnostics` (its one function `SheetExists2` had no callers and
+  duplicated `SheetExists(ThisWorkbook, …)`),
+  the empty `modMain_CustSchedule` placeholder
+  ([#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50),
+  [#48](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/48)),
+  `modHelpers_Forms` (three "show a picker form" bridges, none called), and
+  `modResources` (`CreateResourcesSheetIfMissing` only ever no-op'd and its
+  fallback loaded a logo from a hardcoded `C:\dev\` path)
+  ([#61](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/61),
+  [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62)).
+  `_Resources` + the embedded logo now come purely from the base `.xlam`.
+- Commented-out code across `/src` (a stale `CreateOrClearSheet` copy, an old
+  `GetLastRow` overload, `'MsgBox "Ribbon callback fired"` debug lines) and the
+  superseded `ExportAllVBAModules` v1 (hardcoded `C:\VBA_Export\` path);
+  `ExportAllVBAModules2` renamed to `ExportAllVBAModules`.
 
 ### Changed
 
+- Repo now tracks the VBA source under `/src` rather than the compiled `.xlam`;
+  builds are published as versioned Releases with the `.xlam` attached.
+- New `ADDIN_VERSION` constant in `modStartup` (`"2.3.0"`), stamped into
+  `_Preferences` as `PREF_VERSION` by `modPreferences_Initializer` when it
+  changes — replaces the vestigial hardcoded `"1.0"` seed.
+- The seven informally-tracked defects were filed as GitHub Issues and the
+  defect lists in `CLAUDE.md` / `docs/ARCHITECTURE.md` reduced to pointers.
 - Final legibility sweep: removed a stray `Debug.Print "MATCHED DEFAULT: …"`
   from `splitSheetByColumnOptionsForm.LoadColumns`, replaced two `?`-for-arrow
   comments in the same sub with plain English, and corrected the
@@ -55,16 +63,6 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   `modMain_CustEQList`, `modHelpers_Columns` (×2), `splitSheetByColumnOptionsForm`
   (×2). `git diff --ignore-all-space` is empty — no code change. The broader
   Rubberduck indent normalization is still open on #63.
-- Removed two more dead modules
-  ([#61](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/61),
-  [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62)):
-  `modHelpers_Forms` (all three "show a picker form" bridge functions had no
-  callers — every flow instantiates its own form) and `modResources` (its one
-  function only ever no-op'd, since the base `.xlam` always supplies the
-  `_Resources` sheet, and its fallback loaded a logo from a hardcoded
-  `C:\dev\` path). `modStartup.InitializeAddIn` no longer calls
-  `CreateResourcesSheetIfMissing`; `_Resources` + the embedded logo now come
-  purely from the base file.
 - Review loose ends ([#58](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/58)),
   no behavior change: `ExportSheets_Internal` uses the shared
   `RequireActiveWorkbook` guard instead of its own inline check; new
@@ -76,13 +74,6 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   lacked one (`modHelpers_Forms` — flagged as currently unused — `modHelpers_Headers`,
   `modHelpers_Strings`, `modHelpers_Export`, `modRibbonCallbacks`, `modResources`,
   the main flow and header-wrapper modules).
-- Removed two dead modules
-  ([#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50),
-  [#48](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/48)):
-  `modHelpers_Diagnostics` (its only function, `SheetExists2`, had no callers
-  and was just `SheetExists(ThisWorkbook, name)` with the workbook bound) and
-  the empty `modMain_CustSchedule` placeholder. Recreate `modMain_CustSchedule`
-  when Schedule automation actually starts.
 - Helper renames ([#49](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/49)),
   no behavior change: `modHelpers_Strings.CleanValue` → `NormalizeCellText` (the
   old name badly undersold what it does), `modHelpers_Columns.CopyAllRowsPreserveGroups`

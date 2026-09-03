@@ -54,7 +54,7 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 
 ## Cutting a release
 
-1. Bump the version (tracked via `PREF_VERSION` and/or `docProps`).
+1. Bump `ADDIN_VERSION` in `modStartup` (and the workbook's `docProps` if you keep those in sync). `modPreferences_Initializer` stamps `ADDIN_VERSION` into `_Preferences` as `PREF_VERSION` on the next run.
 2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — this is what the README's Download link points to.
 3. Add an entry to `CHANGELOG.md` describing what changed.
 4. That release's `.xlam` becomes the new `build/TPD_Addin_base.xlam` for next time.

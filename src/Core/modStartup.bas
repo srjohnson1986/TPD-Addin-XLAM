@@ -11,6 +11,10 @@ Attribute VB_Name = "modStartup"
 
 Option Explicit
 
+' The add-in's own version. Bump this on every release (see CONTRIBUTING.md);
+' modPreferences_Initializer stamps it into _Preferences as PREF_VERSION.
+Public Const ADDIN_VERSION As String = "2.3.0"
+
 Public Sub InitializeAddIn()
     ' GetPrefSheet creates _Preferences on first call
     GetPrefSheet
