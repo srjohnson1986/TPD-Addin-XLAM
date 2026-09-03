@@ -16,6 +16,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   since the initial `/build` setup despite the docs saying otherwise. Now
   `git rm --cached`'d and covered by `/build/**/*.xlam`; the base is a local
   per-contributor prerequisite (see CONTRIBUTING.md).
+- Corrected the "cutting a release" docs (`CONTRIBUTING.md`, `CLAUDE.md`): the
+  base file must be **stripped of standard modules and UserForms** — the
+  builder can't re-import a form that already exists, so a full add-in `.xlam`
+  is not a valid base. The old "that release's `.xlam` becomes the next base"
+  line was wrong. Also ignore the per-component `.log` files the builder drops
+  in `/src` on an import error.
 
 ## [2.3.0] - 2026-09-03
 

@@ -46,8 +46,8 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 
 ## Rebuilding a testable `.xlam` from `/src`
 
-1. Keep a known-good "base" file at `build/_base/TPD_Addin_base.xlam` (gitignored — this supplies the worksheets, ribbon, styles, and embedded logo shape that live outside `/src`).
-2. Run the `BuildAddin` macro in **`tools/TPD_Builder.xlsm`** (a separate driver workbook, not the add-in itself). It copies the base file, imports every module from `/src`, and writes `build/TPD_Addin.xlam`, logging to `build/build.log`.
+1. Keep a known-good **base** file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies the worksheets, ribbon, `_Resources` sheet + embedded logo, and styles that live outside `/src`). It must be **stripped of standard code modules and UserForms** — the builder replaces standard modules cleanly but chokes trying to re-import a form that already exists, so a full add-in `.xlam` is *not* a valid base. In practice the base almost never changes; update it only when the non-`/src` content does (see "Cutting a release").
+2. Run the `BuildAddin` macro in **`tools/TPD_Builder.xlsm`** (a separate driver workbook, not the add-in itself). It copies the base file, imports every module from `/src`, and writes `build/TPD_Addin.xlam`, logging to `build/build.log`. A healthy build reports every `/src` component "imported/injected, 0 skipped".
    - Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1` drives that macro via COM (paths default to this repo). Requires Trust Center → Macro Settings → "Trust access to the VBA project object model". A clean run means *a build exists*, not that it's good.
 3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and run it against the sample EQ List fixtures in `/tests`.
 4. If it checks out, this is your release candidate.
@@ -57,7 +57,7 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 1. Bump `ADDIN_VERSION` in `modStartup` (and the workbook's `docProps` if you keep those in sync). `modPreferences_Initializer` stamps `ADDIN_VERSION` into `_Preferences` as `PREF_VERSION` on the next run.
 2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — this is what the README's Download link points to.
 3. Add an entry to `CHANGELOG.md` describing what changed.
-4. That release's `.xlam` becomes the new `build/TPD_Addin_base.xlam` for next time.
+4. Refresh the base **only if this release changed something outside `/src`** (ribbon XML, worksheets, styles, the `_Resources` logo shape). To do it, take a copy of the release `.xlam`, delete every standard module and UserForm from its VBA project (leaving the document modules), and save that as `build/_base/TPD_Addin_base.xlam`. If the release was `/src`-only, the existing base is still current — leave it.
 
 ## Known constraints to keep in mind
 
