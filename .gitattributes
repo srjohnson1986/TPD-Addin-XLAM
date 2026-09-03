@@ -27,3 +27,6 @@
 
 # ---- Ribbon XML: treat as normal text ----
 *.xml text eol=crlf
+
+# ---- Dev tooling (Windows-only repo) ----
+*.ps1 text eol=crlf
