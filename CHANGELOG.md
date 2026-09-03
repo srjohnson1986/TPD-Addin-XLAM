@@ -97,6 +97,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#64](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/64)):
+  "Save Each Sheet to XLSX" re-run into a folder that already has the files no
+  longer pops Excel's "replace existing file?" dialog once per sheet.
+  `ExportSheetToXLSX` suppresses `Application.DisplayAlerts` around the `SaveAs`
+  (restored immediately after, and in the failure handler); re-exporting
+  silently replaces the prior files.
 - ([#57](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/57)):
   "Split Sheet by Column" no longer loses rows when two distinct group values
   sanitize to the same sheet name (shared first 31 chars, or differing only in

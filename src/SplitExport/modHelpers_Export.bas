@@ -52,7 +52,8 @@ End Function
 ' Copies one worksheet out to its own .xlsx file.
 ' Returns "" on success, or a "'SheetName': reason" string on failure.
 ' On any failure the temporary ws.Copy workbook is closed without saving,
-' so it is never left open and visible.
+' so it is never left open and visible. An already-existing target file is
+' overwritten without prompting (re-exporting is a deliberate refresh).
 Public Function ExportSheetToXLSX(ws As Worksheet, folder As String, suffix As String) As String
     Dim safeName As String
     Dim newWb As Workbook
@@ -77,7 +78,13 @@ Public Function ExportSheetToXLSX(ws As Worksheet, folder As String, suffix As S
 
     ws.Copy
     Set newWb = ActiveWorkbook
+
+    ' Without this, SaveAs onto an existing file prompts "replace?" - once per
+    ' sheet on a re-export. Restored right after (and in Failed).
+    Application.DisplayAlerts = False
     newWb.SaveAs Filename:=fullName, FileFormat:=xlOpenXMLWorkbook
+    Application.DisplayAlerts = True
+
     newWb.Close SaveChanges:=False
 
     Exit Function
@@ -86,6 +93,7 @@ Failed:
     Dim reason As String
     reason = Err.Description
 
+    Application.DisplayAlerts = True
     On Error Resume Next
     If Not newWb Is Nothing Then newWb.Close SaveChanges:=False
     On Error GoTo 0
