@@ -79,7 +79,7 @@ Public Function SplitSheetByColumn_DoWork( _
     Set uniqueValues = New Collection
 
     For Each rawValue In rawValues
-        cleaned = CleanValue(rawValue)
+        cleaned = NormalizeCellText(rawValue)
         If Len(cleaned) > 0 Then
             If Not seen.exists(cleaned) Then
                 seen.Add cleaned, cleaned
