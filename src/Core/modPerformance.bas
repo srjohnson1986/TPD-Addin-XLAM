@@ -1,7 +1,26 @@
 Attribute VB_Name = "modPerformance"
 '@Folder("TPD_Addin.Core")
 
+'===========================================================
+'  WithPerformance runs one internal routine with screen
+'  updating and events off and calculation manual, then
+'  ALWAYS restores those three session-wide settings - on
+'  success and on error alike (GEN-04 / #7). On error it also
+'  shows the failure in a message box instead of leaving the
+'  add-in silently half-done.
+'
+'  Callers pass one of the PERF_* constants below rather than
+'  a bare string, so a mistyped routine name is a compile
+'  error at the call site instead of a run-time "Unknown
+'  action". Adding a flow = add a PERF_* constant, a Case in
+'  the Select, and the WithPerformance call in the callback.
+'===========================================================
+
 Option Explicit
+
+Public Const PERF_CREATE_CUST_EQ_LIST As String = "CreateCustEQList_Internal"
+Public Const PERF_SPLIT_SHEET_BY_COLUMN As String = "SplitSheetByColumn_Internal"
+Public Const PERF_EXPORT_SHEETS As String = "ExportSheets_Internal"
 
 Public Sub WithPerformance(action As String)
 
@@ -16,16 +35,14 @@ Public Sub WithPerformance(action As String)
 
     Select Case action
 
-        Case "CreateCustEQList_Internal"
+        Case PERF_CREATE_CUST_EQ_LIST
             CreateCustEQList_Internal
 
-        Case "SplitSheetByColumn_Internal"
+        Case PERF_SPLIT_SHEET_BY_COLUMN
             SplitSheetByColumn_Internal
 
-        Case "ExportSheets_Internal"
+        Case PERF_EXPORT_SHEETS
             ExportSheets_Internal
-
-        ' Add more internal functions here as needed
 
         Case Else
             MsgBox "Unknown action: " & action, vbCritical

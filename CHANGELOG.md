@@ -44,6 +44,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- `WithPerformance` dispatch ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)),
+  no behavior change: ribbon callbacks now pass a `PERF_*` string constant
+  (declared in `modPerformance`) instead of a bare literal, and the `Select Case`
+  matches on the same constants. A mistyped routine name is now a compile error
+  at the call site rather than a run-time `"Unknown action"` message.
 - Code-hygiene sweep ([#37](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/37)),
   no behavior change: added `Option Explicit` to `modStartup`; fixed a mojibake
   comment in `modHelpers_Strings`; gave `GetLastRow` an explicit `Public` and a

@@ -5,7 +5,7 @@ Option Explicit
 
 ' Ribbon callback
 Public Sub CreateCustEQList(control As IRibbonControl)
-    WithPerformance "CreateCustEQList_Internal"
+    WithPerformance PERF_CREATE_CUST_EQ_LIST
 End Sub
 
 Public Sub CreateCustEQList_Internal()

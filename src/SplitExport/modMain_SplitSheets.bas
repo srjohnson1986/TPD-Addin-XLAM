@@ -5,7 +5,7 @@ Option Explicit
 
 ' Ribbon callback
 Public Sub SplitSheetByColumn(control As IRibbonControl)
-    WithPerformance "SplitSheetByColumn_Internal"
+    WithPerformance PERF_SPLIT_SHEET_BY_COLUMN
 End Sub
 
 
