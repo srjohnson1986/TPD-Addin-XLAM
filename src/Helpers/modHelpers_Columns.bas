@@ -107,16 +107,11 @@ Public Sub CopyFilteredRowsByColumns( _
         destCol = destCol + 1
     Next idx
 
-    wsDest.Rows(headingsRow).Font.Bold = True
-
-    ' Freeze headings row
-    wsDest.Activate
-    wsDest.Range("A" & headingsRow + 1).Select
-    ActiveWindow.FreezePanes = True
-
-    ' Copy rows
+    ' Copy rows. Formatting / bold headings / freeze panes / autofit are the
+    ' caller's job (FormatSplitSheet + SafeFreezePanes) - this routine only
+    ' moves data.
     destRow = headingsRow + 1
-    
+
     For Each cell In wsSource.Range(wsSource.Cells(headingsRow + 1, groupColIndex), wsSource.Cells(lastRow, groupColIndex))
 
         If StrComp(CleanValue(cell.value), CleanValue(matchValue), vbTextCompare) = 0 Then
@@ -129,10 +124,8 @@ Public Sub CopyFilteredRowsByColumns( _
     
             destRow = destRow + 1
         End If
-    
-    Next cell
 
-    wsDest.Columns.AutoFit
+    Next cell
 
 End Sub
 
