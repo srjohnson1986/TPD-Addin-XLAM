@@ -1,6 +1,15 @@
 Attribute VB_Name = "modHelpers_Image"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Logo-from-file insertion: SafeInsertLogoAtRight (error-
+'  wrapped, no-ops on an empty path) and PastePicture (grabs
+'  the clipboard image; currently unused). Both are legacy of
+'  the file-path logo approach - the add-in now copies the
+'  embedded shape from _Resources. Slated for removal with the
+'  one-click EQ List refactor (#25).
+'===========================================================
+
 Option Explicit
 
 Public Sub SafeInsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Long, dataHeaderRow As Long)

@@ -1,6 +1,13 @@
 Attribute VB_Name = "modHelpers_Headers"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Column-heading-row helpers: read a sheet's heading row into
+'  a 1-based array (GetHeadingList) and find a heading's column
+'  index (FindHeadingIndex). "heading" = the data table's
+'  column-title row, not the TPD title block.
+'===========================================================
+
 Option Explicit
 
 Public Function GetHeadingList(ws As Worksheet, headingsRow As Long) As Variant

@@ -1,6 +1,13 @@
 Attribute VB_Name = "modMain_CustEQList"
 '@Folder("TPD_Addin.EQList")
 
+'===========================================================
+'  "Create Customer EQ List" flow: shows the column picker,
+'  copies every row to a new sheet, drops the unselected
+'  columns, formats it, and adds the EQ header block + logo +
+'  frozen panes. _DoWork is the testable core (no UI).
+'===========================================================
+
 Option Explicit
 
 ' Ribbon callback

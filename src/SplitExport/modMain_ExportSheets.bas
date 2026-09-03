@@ -1,6 +1,14 @@
 Attribute VB_Name = "modMain_ExportSheets"
 '@Folder("TPD_Addin.SplitExport")
 
+'===========================================================
+'  "Save Each Sheet to XLSX" flow: prompts for an optional
+'  filename suffix / date, then writes every eligible worksheet
+'  to its own .xlsx in a per-workbook folder next to the file.
+'  Per-sheet failures are collected and reported in one summary
+'  rather than aborting the run.
+'===========================================================
+
 Option Explicit
 
 ' Save Each Sheet to XLSX never exports hidden sheets. Flip this to True (in
@@ -19,11 +27,7 @@ Public Sub ExportSheets_Internal()
     Dim frm As frmFilenameOptions
     Dim suffix As String
 
-    Set wb = ActiveWorkbook
-    If wb Is Nothing Then
-        MsgBox "No active workbook available.", vbExclamation
-        Exit Sub
-    End If
+    If Not RequireActiveWorkbook(wb) Then Exit Sub
 
     '---------------------------------------------
     ' Show the filename options form

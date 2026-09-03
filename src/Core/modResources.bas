@@ -1,6 +1,15 @@
 Attribute VB_Name = "modResources"
 '@Folder("TPD_Addin.Core")
 
+'===========================================================
+'  Creates the hidden "_Resources" sheet and embeds the
+'  default TPD logo shape on it the first time the add-in
+'  runs. The embedded shape is what the header/logo helpers
+'  copy onto generated sheets.
+'===========================================================
+
+Option Explicit
+
 Public Sub CreateResourcesSheetIfMissing()
     Dim ws As Worksheet
     Dim logoPath As String

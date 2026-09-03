@@ -23,7 +23,7 @@ Public Const PERF_SPLIT_SHEET_BY_COLUMN As String = "SplitSheetByColumn_Internal
 Public Const PERF_EXPORT_SHEETS As String = "ExportSheets_Internal"
 Public Const PERF_COUNT_EQ_ROWS As String = "CountEquipmentRows_Internal"
 
-Public Sub WithPerformance(action As String)
+Public Sub WithPerformance(workProcName As String)
 
     Dim errNumber As Long
     Dim errDescription As String
@@ -34,7 +34,7 @@ Public Sub WithPerformance(action As String)
     Application.EnableEvents = False
     Application.Calculation = xlCalculationManual
 
-    Select Case action
+    Select Case workProcName
 
         Case PERF_CREATE_CUST_EQ_LIST
             CreateCustEQList_Internal
@@ -49,7 +49,7 @@ Public Sub WithPerformance(action As String)
             CountEquipmentRows_Internal
 
         Case Else
-            MsgBox "Unknown action: " & action, vbCritical
+            MsgBox "Unknown action: " & workProcName, vbCritical
 
     End Select
 
@@ -64,7 +64,7 @@ CleanUp:
     Application.ScreenUpdating = True
 
     If errNumber <> 0 Then
-        MsgBox "'" & action & "' did not finish." & vbCrLf & vbCrLf & _
+        MsgBox "'" & workProcName & "' did not finish." & vbCrLf & vbCrLf & _
                errDescription & " (error " & errNumber & ")", _
                vbExclamation, "TPD Add-in"
     End If

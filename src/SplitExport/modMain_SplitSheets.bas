@@ -1,6 +1,13 @@
 Attribute VB_Name = "modMain_SplitSheets"
 '@Folder("TPD_Addin.SplitExport")
 
+'===========================================================
+'  "Split Sheet by Column" flow: one sheet per unique value in
+'  a chosen group column, each carrying the selected columns'
+'  rows. Per-value failures are collected and reported in one
+'  summary. _DoWork is the testable core (no UI).
+'===========================================================
+
 Option Explicit
 
 ' Ribbon callback
