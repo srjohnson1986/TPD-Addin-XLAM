@@ -22,14 +22,24 @@ Public Function RequireActiveWorkbook(ByRef wb As Workbook) As Boolean
     RequireActiveWorkbook = True
 End Function
 
+' Returns the first visible worksheet of the active workbook. Returns Nothing
+' (after showing a message) when there is no active workbook or it has no
+' visible worksheet - callers must check for Nothing and bail.
 Public Function GetFirstVisibleSheet() As Worksheet
+    Dim wb As Workbook
     Dim sh As Worksheet
-    For Each sh In ActiveWorkbook.Worksheets
+
+    If Not RequireActiveWorkbook(wb) Then Exit Function
+
+    For Each sh In wb.Worksheets
         If sh.Visible = xlSheetVisible Then
             Set GetFirstVisibleSheet = sh
             Exit Function
         End If
     Next sh
+
+    MsgBox "This workbook has no visible worksheet to work from.", _
+           vbExclamation, "TPD Add-in"
 End Function
 
 Public Function CreateNewSheetAfterLast(wb As Workbook, sheetName As String) As Worksheet

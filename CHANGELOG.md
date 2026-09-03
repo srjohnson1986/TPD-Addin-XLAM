@@ -58,6 +58,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#34](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/34)):
+  "Create Customer EQ List" and "Split Sheet by Column" no longer raise a bare
+  error 91 when run with no workbook open or from a workbook with no visible
+  sheet. `GetFirstVisibleSheet` now guards both cases via `RequireActiveWorkbook`,
+  shows a plain message, and returns `Nothing`; both callers check for `Nothing`
+  and exit.
 - ([#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)):
   "Split Sheet by Column" no longer reports `"N sheets created successfully."`
   when some group values failed. Per-value work moved into `SplitOneGroup`;
