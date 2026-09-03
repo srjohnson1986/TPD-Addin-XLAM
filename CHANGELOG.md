@@ -11,6 +11,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- `build/_base/TPD_Addin_base.xlam` is no longer tracked — the `.gitignore`
+  `/build/*.xlam` rule missed the `_base/` subdir, so it had been committed
+  since the initial `/build` setup despite the docs saying otherwise. Now
+  `git rm --cached`'d and covered by `/build/**/*.xlam`; the base is a local
+  per-contributor prerequisite (see CONTRIBUTING.md).
+
 ## [2.3.0] - 2026-09-03
 
 The first release cut from the `/src` VBA source (v2.2.0 and earlier were built
