@@ -115,13 +115,13 @@ Public Sub CopyFilteredRowsByColumns( _
     For Each cell In wsSource.Range(wsSource.Cells(headingsRow + 1, groupColIndex), wsSource.Cells(lastRow, groupColIndex))
 
         If StrComp(NormalizeCellText(cell.value), NormalizeCellText(matchValue), vbTextCompare) = 0 Then
-    
+
             destCol = 1
             For Each srcColIndex In colMap.Keys
                 wsDest.Cells(destRow, destCol).value = wsSource.Cells(cell.Row, CLng(srcColIndex)).value
                 destCol = destCol + 1
             Next srcColIndex
-    
+
             destRow = destRow + 1
         End If
 

@@ -55,9 +55,9 @@ Public Sub LoadColumns(headingList As Variant)
     cboGroupColumn.Clear
     For i = LBound(headingList) To UBound(headingList)
         cboGroupColumn.AddItem headingList(i)
-     
+
     Next i
-    
+
     '-----------------------------------------------------------
     ' Auto-select "Vendor" in cboGroupColumn if available
     '-----------------------------------------------------------

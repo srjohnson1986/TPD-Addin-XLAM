@@ -44,6 +44,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- Stripped trailing whitespace from 5 whitespace-only blank lines
+  ([#63](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/63), partial):
+  `modMain_CustEQList`, `modHelpers_Columns` (×2), `splitSheetByColumnOptionsForm`
+  (×2). `git diff --ignore-all-space` is empty — no code change. The broader
+  Rubberduck indent normalization is still open on #63.
 - Removed two more dead modules
   ([#61](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/61),
   [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62)):
