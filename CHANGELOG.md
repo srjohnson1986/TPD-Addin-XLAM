@@ -11,6 +11,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Merged `modHelpers_Image` into `modHelpers_Logo` ([#77](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/77)) — both its
+  functions (`SafeInsertLogoAtRight`, `PastePicture`) were logo-only, so a
+  separate module earned nothing. No behavior change; callers use unqualified
+  names. Retiring the `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path
+  pair itself stays with the one-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)).
 - `build/_base/TPD_Addin_base.xlam` is no longer tracked — the `.gitignore`
   `/build/*.xlam` rule missed the `_base/` subdir, so it had been committed
   since the initial `/build` setup despite the docs saying otherwise. Now
