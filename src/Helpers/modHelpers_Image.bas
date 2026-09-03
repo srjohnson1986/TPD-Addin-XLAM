@@ -2,12 +2,13 @@ Attribute VB_Name = "modHelpers_Image"
 '@Folder("TPD_Addin.Helpers")
 
 '===========================================================
-'  Logo-from-file insertion: SafeInsertLogoAtRight (error-
-'  wrapped, no-ops on an empty path) and PastePicture (grabs
-'  the clipboard image; currently unused). Both are legacy of
-'  the file-path logo approach - the add-in now copies the
-'  embedded shape from _Resources. Slated for removal with the
-'  one-click EQ List refactor (#25).
+'  SafeInsertLogoAtRight - error-wrapped logo-from-file
+'  insertion, no-ops on an empty path (called by the Customer
+'  EQ List flow, which usually passes an empty path now).
+'  PastePicture - pulls an image off the clipboard as a
+'  StdPicture (used by frmSetTPDDefaults to preview the logo).
+'  Both are legacy of the file-path logo approach; slated for
+'  removal with the one-click EQ List refactor (#25).
 '===========================================================
 
 Option Explicit
