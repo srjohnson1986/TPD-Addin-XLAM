@@ -69,15 +69,16 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **Global preferences are shared across workbooks, not per-workbook** — "set once, applies everywhere" is intentional.
 - **Re-running a command stacks its output** (e.g. running "Create Customer EQ List" twice adds a second sheet) — intentional.
 
-## Known open defects
+## Known open work
 
-Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). No open bug issues right now; the last two (CEQ-06 / UI-01) were folded into the refactor below.
+Tracked as GitHub Issues — no open `bug`-labelled issues. One open piece of work:
 
-- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — planned: move Customer EQ List column/logo settings into `frmSetTPDDefaults` (saved defaults), make "Create Customer EQ List" run without a per-run picker, and remove `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + `modHelpers_Image`. Closes the former CEQ-06 (no min-column validation — gone with the form; `HasColumnSelection` in `modHelpers_CheckboxSelection` is the guard if any interim UI needs it). The former UI-01 (`modHelpers_CheckboxLayout` grid clipping past ~30 headings) was fixed in [#47](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47) — the grid now caps at 3 columns and the frame scrolls.
+- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — move the Customer EQ List column/logo settings into `frmSetTPDDefaults` (saved defaults), make "Create Customer EQ List" run without a per-run picker, and drop `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + `modHelpers_Image`.
 
-Also keep in mind when touching `modPerformance.WithPerformance` (GEN-04 / [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), fixed): the `CleanUp` handler must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those session-wide settings are left broken on error. Callers pass a `PERF_*` constant (defined in `modPerformance`), not a bare string — a new flow needs a constant, a matching `Case` in the `Select`, and the `WithPerformance PERF_x` call in its ribbon callback ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)).
+### Regressions to guard against (all fixed — don't undo them)
 
-And ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29), fixed): never call a `Sub` as `MySub (obj)` — the extra parens make VBA evaluate the argument by value (its default property), so a `Worksheet`/`Workbook` raises run-time 438. Write `MySub obj` or `Call MySub(obj)`. Since [#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32) the `Split Sheet by Column` loop runs each group value through `SplitOneGroup` under inline error handling and lists any failure in the final summary, so a regression there is at least visible to the user.
+- **`modPerformance.WithPerformance`** ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) / [#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)): the `CleanUp` handler must **always** restore `ScreenUpdating` / `EnableEvents` / `Calculation`, or they stay broken for the Excel session. Callers pass a `PERF_*` constant, not a bare string — a new flow needs a constant, a `Case` in the `Select`, and the `WithPerformance PERF_x` call in its callback.
+- **Never call a `Sub` as `MySub (obj)`** ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)) — the parens force by-value evaluation (the default property), so a `Worksheet`/`Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop ([#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)) now reports per-value failures in its summary, so a regression there is at least visible.
 
 ## File-format conventions (`.gitattributes`)
 
