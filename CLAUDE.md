@@ -59,7 +59,7 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows, plus their UserForms.
 - **Preferences** — key/value settings backed by a hidden `_Preferences` sheet. All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference.
 - **Helpers** — shared utilities used by more than one feature area (sheet/workbook ops, header lookup, column filtering, string sanitizing, layout/formatting, checkbox-grid building).
-- **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modResources` (embeds default logo), `modStartup` (init sequencing), `modHelpers_Diagnostics` (`SheetExists2`), `modExport_VBAModules` (the export macro `ExportAllVBAModules`).
+- **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modResources` (embeds default logo), `modStartup` (init sequencing), `modExport_VBAModules` (the export macro `ExportAllVBAModules`).
 - **Document** — code-behind for `ThisWorkbook`/`Sheet1`-`3`. These are document modules: unlike standard modules they can't be removed and re-imported normally — the build macro clears and re-pastes their code text instead of a plain `VBComponents.Import`.
 
 ## Design intent vs. bugs (don't "fix" these without asking)

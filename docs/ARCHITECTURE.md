@@ -34,8 +34,9 @@ A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither
 
 | Module | Purpose |
 |---|---|
-| `modMain_CustSchedule` | Currently an empty placeholder (just the folder tag) reserved for future Schedule automation logic. |
 | `modMain_CustScheduleHeader` | "Default Schedule Header" entry point — thin wrapper around `InsertDefaultCustScheduleHeader`. |
+
+The main Schedule-automation module doesn't exist yet — the empty `modMain_CustSchedule` placeholder was removed in [#48](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/48); recreate it with a `@Folder("TPD_Addin.Schedule")` tag when that work starts.
 
 ## TPD_Addin.SplitExport
 
@@ -83,8 +84,9 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 | `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. On an error inside the wrapped routine, `CleanUp` still restores all three settings and then surfaces `Err.Description` in a `MsgBox` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)). The routine is selected by a `PERF_*` string constant passed by the ribbon callback, so a mistyped name fails to compile rather than hitting the `Unknown action` branch at run time ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)). |
 | `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
 | `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
-| `modHelpers_Diagnostics` | Houses `SheetExists2` — checks whether a named sheet exists in `ThisWorkbook` (the add-in). Fixed in [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (its body previously assigned to `SheetExists`, so it always returned `False`). For an arbitrary workbook use `SheetExists(wb, name)` in `modHelpers_Workbook`. |
 | `modExport_VBAModules` | The VBA export macro `ExportAllVBAModules` that supports the source-control workflow itself. |
+
+For "does this sheet exist in the add-in", use `SheetExists(ThisWorkbook, name)` from `modHelpers_Workbook` (the old single-purpose `modHelpers_Diagnostics.SheetExists2` was removed in [#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50) — no callers, and it did nothing `SheetExists` didn't).
 
 ## TPD_Addin.Document
 
