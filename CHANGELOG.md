@@ -44,6 +44,17 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- Review loose ends ([#58](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/58)),
+  no behavior change: `ExportSheets_Internal` uses the shared
+  `RequireActiveWorkbook` guard instead of its own inline check; new
+  `SCHEDULE_HEADER_ROW_COUNT` constant (parallel to `EQ_HEADER_ROW_COUNT`);
+  `WithPerformance`'s `action` param → `workProcName`,
+  `CopyFilteredRowsByColumns`'s `idx` → `srcColIndex`, `modHelpers_Logo`'s
+  `origW`/`origH` → `naturalWidth`/`naturalHeight`; `Option Explicit` added to
+  `modResources`; module-purpose banners added to the remaining modules that
+  lacked one (`modHelpers_Forms` — flagged as currently unused — `modHelpers_Headers`,
+  `modHelpers_Strings`, `modHelpers_Export`, `modRibbonCallbacks`, `modResources`,
+  the main flow and header-wrapper modules).
 - Removed two dead modules
   ([#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50),
   [#48](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/48)):

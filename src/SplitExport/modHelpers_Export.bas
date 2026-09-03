@@ -1,6 +1,13 @@
 Attribute VB_Name = "modHelpers_Export"
 '@Folder("TPD_Addin.SplitExport")
 
+'===========================================================
+'  Helpers behind "Save Each Sheet to XLSX": locate/create the
+'  per-workbook export folder (EnsureExportFolder) and write a
+'  single worksheet out to its own .xlsx (ExportSheetToXLSX,
+'  which returns "" on success or a reason string on failure).
+'===========================================================
+
 Option Explicit
 
 ' Returns the path of the per-workbook export folder (created next to the

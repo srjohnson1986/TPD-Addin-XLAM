@@ -83,7 +83,7 @@ Public Sub CopyFilteredRowsByColumns( _
     Dim lastCol As Long
     Dim colMap As Object
     Dim i As Long
-    Dim idx As Variant
+    Dim srcColIndex As Variant
     Dim destCol As Long
     Dim destRow As Long
     Dim cell As Range
@@ -102,10 +102,10 @@ Public Sub CopyFilteredRowsByColumns( _
 
     ' Copy headings row
     destCol = 1
-    For Each idx In colMap.Keys
-        wsDest.Cells(headingsRow, destCol).value = wsSource.Cells(headingsRow, CLng(idx)).value
+    For Each srcColIndex In colMap.Keys
+        wsDest.Cells(headingsRow, destCol).value = wsSource.Cells(headingsRow, CLng(srcColIndex)).value
         destCol = destCol + 1
-    Next idx
+    Next srcColIndex
 
     ' Copy rows. Formatting / bold headings / freeze panes / autofit are the
     ' caller's job (FormatSplitSheet + SafeFreezePanes) - this routine only
@@ -117,10 +117,10 @@ Public Sub CopyFilteredRowsByColumns( _
         If StrComp(NormalizeCellText(cell.value), NormalizeCellText(matchValue), vbTextCompare) = 0 Then
     
             destCol = 1
-            For Each idx In colMap.Keys
-                wsDest.Cells(destRow, destCol).value = wsSource.Cells(cell.Row, CLng(idx)).value
+            For Each srcColIndex In colMap.Keys
+                wsDest.Cells(destRow, destCol).value = wsSource.Cells(cell.Row, CLng(srcColIndex)).value
                 destCol = destCol + 1
-            Next idx
+            Next srcColIndex
     
             destRow = destRow + 1
         End If

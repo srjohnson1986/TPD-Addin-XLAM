@@ -15,7 +15,7 @@ Option Explicit
 Public Sub InsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Long, dataHeaderRow As Long)
     Dim pic As Shape
     Dim lastUsedCol As Long
-    Dim origW As Single, origH As Single
+    Dim naturalWidth As Single, naturalHeight As Single
 
     If Len(Dir(imgPath)) = 0 Then Exit Sub
 
@@ -25,17 +25,17 @@ Public Sub InsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Lo
         SaveWithDocument:=msoTrue, _
         Left:=0, Top:=0, Width:=-1, Height:=-1)
 
-    origW = pic.Width
-    origH = pic.Height
+    naturalWidth = pic.Width
+    naturalHeight = pic.Height
 
     lastUsedCol = ws.Cells(dataHeaderRow, ws.Columns.Count).End(xlToLeft).Column
 
     pic.Left = ws.Cells(headerRow, lastUsedCol).Left + _
-               (ws.Cells(headerRow, lastUsedCol).Width - origW)
+               (ws.Cells(headerRow, lastUsedCol).Width - naturalWidth)
     pic.Top = ws.Cells(headerRow, lastUsedCol).Top
 
-    pic.Width = origW
-    pic.Height = origH
+    pic.Width = naturalWidth
+    pic.Height = naturalHeight
     pic.LockAspectRatio = msoTrue
     pic.Placement = xlFreeFloating
 End Sub
@@ -62,7 +62,7 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
     Dim srcSheet As Worksheet
     Dim srcPic As Shape
     Dim newPic As Shape
-    Dim origW As Single, origH As Single
+    Dim naturalWidth As Single, naturalHeight As Single
     Dim targetCell As Range
     Dim lastCol As Long
     Dim horiz As String, vert As String
@@ -87,15 +87,15 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
     Set newPic = ws.Shapes(ws.Shapes.Count)
 
     ' Capture natural size
-    origW = newPic.Width
-    origH = newPic.Height
+    naturalWidth = newPic.Width
+    naturalHeight = newPic.Height
 
     ' Optional: resize to fit max rows
     If maxRows > 0 Then
         ResizeImageToMaxRows newPic, ws, anchorRow, maxRows
     Else
-        newPic.Width = origW
-        newPic.Height = origH
+        newPic.Width = naturalWidth
+        newPic.Height = naturalHeight
     End If
 
     ' -----------------------------

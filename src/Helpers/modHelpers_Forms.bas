@@ -1,6 +1,15 @@
 Attribute VB_Name = "modHelpers_Forms"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Bridge functions that show a picker UserForm and hand the
+'  result back to the caller.
+'
+'  NOTE: currently unused - every flow instantiates its form
+'  directly. Kept for the moment; slated for cleanup with the
+'  one-click EQ List refactor (#25).
+'===========================================================
+
 Option Explicit
 
 Public Function ShowCustEQForm(headings As Variant, _

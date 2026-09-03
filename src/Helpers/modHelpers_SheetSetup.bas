@@ -16,6 +16,9 @@ Option Explicit
 ' grows, update this constant AND the A1:B6 layout in InsertEQHeaderBlock.
 Public Const EQ_HEADER_ROW_COUNT As Long = 6
 
+' Rows InsertDefaultCustScheduleHeader inserts above the schedule heading row.
+Public Const SCHEDULE_HEADER_ROW_COUNT As Long = 5
+
 Public Sub InsertEQHeaderBlock(ws As Worksheet)
 
     InsertRows ws, EQ_HEADER_ROW_COUNT
@@ -61,7 +64,7 @@ Public Sub InsertDefaultCustScheduleHeader(ws As Worksheet)
 
     ' number of rows to insert
     Dim numberOfRows As Long
-    numberOfRows = 5
+    numberOfRows = SCHEDULE_HEADER_ROW_COUNT
 
     ' on the active worksheet, insert numberOfRows
     InsertRows ws, numberOfRows

@@ -1,6 +1,12 @@
 Attribute VB_Name = "modRibbonCallbacks"
 '@Folder("TPD_Addin.Ribbon")
 
+'===========================================================
+'  Bridges customUI14.xml onAction callbacks to the real
+'  entry points, owns the global gRibbon reference, and runs
+'  RibbonOnLoad -> modStartup.InitializeAddIn.
+'===========================================================
+
 Option Explicit
 
 Public gRibbon As IRibbonUI

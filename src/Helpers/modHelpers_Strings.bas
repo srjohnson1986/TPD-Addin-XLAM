@@ -1,6 +1,13 @@
 Attribute VB_Name = "modHelpers_Strings"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  String sanitizing / normalizing helpers used across the
+'  feature areas: SanitizeSheetName, SanitizeFileText,
+'  NormalizeCellText (compare/dedupe form of a cell value),
+'  and IsInArray.
+'===========================================================
+
 Option Explicit
 
 ' Makes a string usable as an Excel sheet name: strips characters Excel
