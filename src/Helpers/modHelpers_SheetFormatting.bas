@@ -64,7 +64,7 @@ Public Sub FormatSplitSheet(ws As Worksheet, headingsRow As Long)
         .Font.Size = 10
     End With
 
-    AutoFitUsedColumns (ws)
+    AutoFitUsedColumns ws
 
 End Sub
 
