@@ -17,6 +17,7 @@ Public Sub CreateCustEQList_Internal()
     Dim imgPath As String
 
     Set wsSource = GetFirstVisibleSheet()
+    If wsSource Is Nothing Then Exit Sub
     headings = modHelpers_Headers.GetHeadingList(wsSource, 1)
 
     Set frm = New CustEQListColumnPickerForm

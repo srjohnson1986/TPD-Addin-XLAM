@@ -18,6 +18,7 @@ Public Sub SplitSheetByColumn_Internal()
     Dim groupCol As String
 
     Set wsSource = GetFirstVisibleSheet()
+    If wsSource Is Nothing Then Exit Sub
     headings = GetHeadingList(wsSource, 1)
 
     Set frm = New splitSheetByColumnOptionsForm
