@@ -44,6 +44,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- Removed two dead modules
+  ([#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50),
+  [#48](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/48)):
+  `modHelpers_Diagnostics` (its only function, `SheetExists2`, had no callers
+  and was just `SheetExists(ThisWorkbook, name)` with the workbook bound) and
+  the empty `modMain_CustSchedule` placeholder. Recreate `modMain_CustSchedule`
+  when Schedule automation actually starts.
 - Helper renames ([#49](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/49)),
   no behavior change: `modHelpers_Strings.CleanValue` → `NormalizeCellText` (the
   old name badly undersold what it does), `modHelpers_Columns.CopyAllRowsPreserveGroups`
