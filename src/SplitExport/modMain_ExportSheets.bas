@@ -9,7 +9,7 @@ Option Explicit
 Private Const EXPORT_INCLUDE_HIDDEN_SHEETS As Boolean = False
 
 Public Sub ExportSheets(control As IRibbonControl)
-    WithPerformance "ExportSheets_Internal"
+    WithPerformance PERF_EXPORT_SHEETS
 End Sub
 
 
