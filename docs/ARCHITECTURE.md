@@ -4,7 +4,7 @@ This is a module-level map of the add-in as of the `v2.2.0` release, organized b
 
 ## Overview
 
-The add-in exposes one custom ribbon tab ("TPD") with two groups: **EQ List Tools** and **Schedule Tools**, defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which delegate to the feature modules described below. Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and makes sure the hidden `_Resources` sheet (embedded logo) and `_Preferences` sheet (saved settings) both exist.
+The add-in exposes one custom ribbon tab ("TPD") with two groups: **EQ List Tools** and **Schedule Tools**, defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which delegate to the feature modules described below. Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and makes sure the hidden `_Preferences` sheet (saved settings) exists. The hidden `_Resources` sheet and its embedded default-logo shape come from the base `.xlam`, not from code.
 
 ## Naming: "header" vs. "heading"
 
@@ -70,7 +70,6 @@ Shared utilities used across more than one feature area.
 | `modHelpers_SheetSetup` | Orchestrates default header construction: inserts the EQ List header block, and inserts the default EQ List / Schedule headers (calling into `modHelpers_SheetFormatting` and `modHelpers_Logo`). Owns `EQ_HEADER_ROW_COUNT` / `SCHEDULE_HEADER_ROW_COUNT`, `InsertRows`, and `GetTodaysDate`. |
 | `modHelpers_SheetFormatting` | Formats EQ/split sheets (borders, alignment, fonts), freezes panes, and autofits used columns. |
 | `modHelpers_Logo` | Positions and resizes the logo shape: default-logo insertion/alignment, right-aligned logo insertion, and resizing a picture to fit a max row count. |
-| `modHelpers_Forms` | Thin bridge functions that show `CustEQListColumnPickerForm` / `frmFilenameOptions` / `splitSheetByColumnOptionsForm` and hand back the user's selections. **Currently unused** — each flow instantiates its own form directly; slated for cleanup with [#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25). |
 | `modHelpers_Image` | `SafeInsertLogoAtRight` (error-wrapped logo insertion) and `PastePicture` (grabs an image off the clipboard). Flagged as now-unused since logo handling moved to the embedded-shape approach on `_Resources`. |
 | `modHelpers_CheckboxLayout` | Builds the checkbox grid shared by both column-picker forms — one box per heading, 3 columns filled top-to-bottom. When there are more headings than fit in 3 columns at the preferred height, the columns grow taller (never a 4th column off the right edge) and the frame gets a vertical scrollbar so every box stays reachable ([#47](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47)). |
 | `modHelpers_CheckboxSelection` | Reads which checkboxes are checked into a `Collection` (`GetSelectedColumns`), tests whether any are checked (`HasColumnSelection`), and re-checks boxes matching a previously saved column list. |
@@ -82,8 +81,7 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 | Module | Purpose |
 |---|---|
 | `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. On an error inside the wrapped routine, `CleanUp` still restores all three settings and then surfaces `Err.Description` in a `MsgBox` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)). The routine is selected by a `PERF_*` string constant passed by the ribbon callback, so a mistyped name fails to compile rather than hitting the `Unknown action` branch at run time ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)). |
-| `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
-| `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
+| `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures `_Preferences` exists before anything else runs. (`_Resources` + the embedded logo come from the base `.xlam`; the code-side fallback `modResources` was removed in [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62).) |
 | `modExport_VBAModules` | The VBA export macro `ExportAllVBAModules` that supports the source-control workflow itself. |
 
 For "does this sheet exist in the add-in", use `SheetExists(ThisWorkbook, name)` from `modHelpers_Workbook` (the old single-purpose `modHelpers_Diagnostics.SheetExists2` was removed in [#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50) — no callers, and it did nothing `SheetExists` didn't).
