@@ -57,12 +57,18 @@ Public Function SplitSheetByColumn_DoWork( _
     Dim rawValues As Collection
     Dim uniqueValues As Collection
     Dim seen As Object
+    Dim usedNames As Object
     Dim rawValue As Variant
     Dim cleaned As String
     Dim groupValue As Variant
     Dim createdCount As Long
 
     If failures Is Nothing Then Set failures = New Collection
+
+    ' Sheet names produced this run - used to disambiguate distinct group
+    ' values that sanitize to the same 31-char name (#57).
+    Set usedNames = CreateObject("Scripting.Dictionary")
+    usedNames.CompareMode = vbTextCompare
 
     ' Get headings and find the group column index
     headings = GetHeadingList(wsSource, 1)
@@ -93,7 +99,7 @@ Public Function SplitSheetByColumn_DoWork( _
     For Each groupValue In uniqueValues
         On Error Resume Next
         Err.Clear
-        SplitOneGroup wsSource, groupColIndex, selectedCols, groupValue
+        SplitOneGroup wsSource, groupColIndex, selectedCols, groupValue, usedNames
 
         If Err.Number = 0 Then
             createdCount = createdCount + 1
@@ -110,12 +116,15 @@ End Function
 
 
 ' Builds (or clears and refills) the destination sheet for a single group value.
-' Raises on any failure - the caller records it against this value.
+' Raises on any failure - the caller records it against this value. usedNames
+' accumulates the sheet names created this run so colliding values don't
+' overwrite each other.
 Private Sub SplitOneGroup( _
         ByVal wsSource As Worksheet, _
         ByVal groupColIndex As Long, _
         ByVal selectedCols As Collection, _
-        ByVal groupValue As Variant)
+        ByVal groupValue As Variant, _
+        ByVal usedNames As Object)
 
     Dim wsNew As Worksheet
     Dim newName As String
@@ -126,7 +135,9 @@ Private Sub SplitOneGroup( _
     If wsSource.AutoFilterMode Then wsSource.AutoFilter.ShowAllData
     On Error GoTo 0
 
-    newName = SanitizeSheetName(CStr(groupValue))
+    newName = UniqueRunName(SanitizeSheetName(CStr(groupValue)), usedNames)
+    usedNames.Add newName, True
+
     Set wsNew = CreateOrClearSheet(ActiveWorkbook, newName)
 
     CopyFilteredRowsByColumns wsSource, wsNew, groupColIndex, selectedCols, groupValue, 1
@@ -135,6 +146,29 @@ Private Sub SplitOneGroup( _
     SafeFreezePanes wsNew, 1
 
 End Sub
+
+' Returns baseName if it hasn't been used this run, otherwise baseName with a
+' " (2)" / " (3)" / ... suffix - trimming baseName so the result stays within
+' Excel's 31-char sheet-name limit.
+Private Function UniqueRunName(ByVal baseName As String, ByVal usedNames As Object) As String
+    Dim n As Long
+    Dim suffix As String
+    Dim candidate As String
+
+    If Not usedNames.exists(baseName) Then
+        UniqueRunName = baseName
+        Exit Function
+    End If
+
+    n = 2
+    Do
+        suffix = " (" & n & ")"
+        candidate = Left$(baseName, 31 - Len(suffix)) & suffix
+        n = n + 1
+    Loop While usedNames.exists(candidate)
+
+    UniqueRunName = candidate
+End Function
 
 
 Private Sub ReportSplitOutcome(ByVal createdCount As Long, ByVal failures As Collection)

@@ -86,6 +86,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#57](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/57)):
+  "Split Sheet by Column" no longer loses rows when two distinct group values
+  sanitize to the same sheet name (shared first 31 chars, or differing only in
+  characters Excel forbids in sheet names). `SplitSheetByColumn_DoWork` tracks
+  the names created this run and `SplitOneGroup` routes each through
+  `UniqueRunName`, which appends ` (2)` / ` (3)` / … (trimming the base to stay
+  within 31 chars). Re-running the command still reuses/clears sheets by name
+  as before.
 - ([#47](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47)):
   The column-picker checkbox grid no longer clips past ~30 headings. It was
   a fixed 3-column layout that spilled a 4th (and 5th…) column off the right
