@@ -72,7 +72,7 @@ Shared utilities used across more than one feature area.
 | `modHelpers_Logo` | Positions and resizes the logo shape: default-logo insertion/alignment, right-aligned logo insertion, and resizing a picture to fit a max row count. |
 | `modHelpers_Forms` | Thin bridge functions that show `CustEQListColumnPickerForm` / `frmFilenameOptions` / `splitSheetByColumnOptionsForm` and hand back the user's selections to the caller. |
 | `modHelpers_Image` | `SafeInsertLogoAtRight` (error-wrapped logo insertion) and `PastePicture` (grabs an image off the clipboard). Flagged as now-unused since logo handling moved to the embedded-shape approach on `_Resources`. |
-| `modHelpers_CheckboxLayout` | Dynamically builds and arranges the checkbox grid shared by both column-picker forms. The fixed 3-column grid in a fixed-size frame clips beyond ~30 headings — untracked (rare in practice); see the one-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). |
+| `modHelpers_CheckboxLayout` | Builds the checkbox grid shared by both column-picker forms — one box per heading, 3 columns filled top-to-bottom. When there are more headings than fit in 3 columns at the preferred height, the columns grow taller (never a 4th column off the right edge) and the frame gets a vertical scrollbar so every box stays reachable ([#47](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47)). |
 | `modHelpers_CheckboxSelection` | Reads which checkboxes are checked into a `Collection` (`GetSelectedColumns`), tests whether any are checked (`HasColumnSelection`), and re-checks boxes matching a previously saved column list. |
 
 ## TPD_Addin.Core

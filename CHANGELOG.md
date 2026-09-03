@@ -86,6 +86,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#47](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47)):
+  The column-picker checkbox grid no longer clips past ~30 headings. It was
+  a fixed 3-column layout that spilled a 4th (and 5th…) column off the right
+  edge of a fixed frame; `LayoutCheckboxes` now caps at 3 columns, grows them
+  taller as needed, and turns on a vertical scrollbar when the grid is taller
+  than the frame. (This is the surviving half of the old UI-01.)
 - ([#46](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/46)):
   "Save Each Sheet to XLSX" names its export folder after the workbook file
   (minus extension) instead of `Worksheets(1).Name` — the leftmost tab, which
