@@ -3,10 +3,14 @@ Attribute VB_Name = "modHelpers_Export"
 
 Option Explicit
 
+' Returns the path of the per-workbook export folder (created next to the
+' workbook if missing), or "" - after a message - if the workbook is unsaved
+' or the folder can't be created.
 Public Function EnsureExportFolder(wb As Workbook) As String
     Dim basePath As String
     Dim baseName As String
     Dim exportFolder As String
+    Dim dotPos As Long
 
     basePath = wb.Path
     If basePath = "" Then
@@ -14,14 +18,28 @@ Public Function EnsureExportFolder(wb As Workbook) As String
         Exit Function
     End If
 
-    baseName = SanitizeSheetName(wb.Worksheets(1).name)
+    ' Name the folder after the workbook file (minus extension), not whatever
+    ' sheet happens to be leftmost in tab order.
+    baseName = wb.name
+    dotPos = InStrRev(baseName, ".")
+    If dotPos > 1 Then baseName = Left$(baseName, dotPos - 1)
+    baseName = SanitizeFileText(baseName)
+    If Len(baseName) = 0 Then baseName = "Export"
+
     exportFolder = basePath & "\" & baseName
 
+    On Error GoTo MkDirFailed
     If Dir(exportFolder, vbDirectory) = "" Then
         MkDir exportFolder
     End If
+    On Error GoTo 0
 
     EnsureExportFolder = exportFolder
+    Exit Function
+
+MkDirFailed:
+    MsgBox "Couldn't create the export folder:" & vbCrLf & exportFolder & _
+           vbCrLf & vbCrLf & Err.Description, vbExclamation, "TPD Add-in"
 End Function
 
 ' Copies one worksheet out to its own .xlsx file.

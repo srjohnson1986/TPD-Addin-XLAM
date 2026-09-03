@@ -79,6 +79,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#46](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/46)):
+  "Save Each Sheet to XLSX" names its export folder after the workbook file
+  (minus extension) instead of `Worksheets(1).Name` — the leftmost tab, which
+  could be an internal sheet or shift as tabs are reordered. `MkDir` is now
+  wrapped: a failure shows "Couldn't create the export folder: …" and the run
+  stops cleanly instead of throwing.
 - ([#35](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/35)):
   "EQ Count" now runs inside `WithPerformance` (`PERF_COUNT_EQ_ROWS`) so it no
   longer flickers or leaves a half-inserted `EQ COUNT` column with screen
