@@ -11,6 +11,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Consolidated the two column-picker forms ([#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81)),
+  no behavior change: the "check the user's saved list, else the built-in
+  defaults" step is now one shared `modHelpers_CheckboxSelection.ApplyColumnSelection`
+  instead of a copy in each `LoadColumns`. Dropped the two unused optional
+  parameters on `LayoutCheckboxes`, and removed a wasted `AutoSelectColumns`
+  call each form made from `UserForm_Initialize` before its checkboxes existed.
+  The split picker's group-column default (saved → "Vendor" → first) moved
+  into one `SelectGroupColumn` helper that runs after the dropdown is filled,
+  instead of being split across `UserForm_Initialize` and `LoadColumns`.
 - Preferences (column-picker selections, Split group column, logo path) now
   persist across Excel sessions ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
   They were stored in a hidden `_Preferences` sheet **inside `TPD_Addin.xlam`**,

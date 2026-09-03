@@ -23,9 +23,7 @@ Public Sub LayoutCheckboxes( _
         ByVal fra As MSForms.Frame, _
         ByVal headingList As Variant, _
         ByVal rowsPerColumn As Long, _
-        ByVal baseName As String, _
-        Optional ByVal preferredDefaults As Variant = Empty, _
-        Optional ByVal applyDefaults As Boolean = False)
+        ByVal baseName As String)
 
     Dim i As Long
     Dim idx As Long

@@ -37,11 +37,6 @@ End Property
 '===========================================================
 Public Sub LoadColumns(headingList As Variant)
 
-    Dim savedCols As Collection
-    Dim applyDefaults As Boolean
-    Dim i As Long
-
-    ' Define default columns
     PreferredDefaultColumns = Array( _
         "INTERNAL ID", _
         "CUSTOMER ID", _
@@ -58,27 +53,8 @@ Public Sub LoadColumns(headingList As Variant)
         "Details" _
     )
 
-    ' Build checkboxes
-    LayoutCheckboxes fraColumns, headingList, 10, "chkCustEQ"
-
-    ' Load saved preferences
-    Set savedCols = LoadColumnList(PREF_CUSTEQ_COLUMNS)
-    applyDefaults = (savedCols Is Nothing) Or (savedCols.Count = 0)
-
-    ' Apply defaults if no saved prefs
-    If applyDefaults Then
-        Dim ctrl As control
-        For Each ctrl In fraColumns.Controls
-            If TypeName(ctrl) = "CheckBox" Then
-                If IsInArray(ctrl.Caption, PreferredDefaultColumns) Then
-                    ctrl.value = True
-                End If
-            End If
-        Next ctrl
-    Else
-        ' Apply saved preferences
-        AutoSelectColumns fraColumns, savedCols
-    End If
+    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkCustEQ"
+    ApplyColumnSelection fraColumns, PREF_CUSTEQ_COLUMNS, PreferredDefaultColumns
 
 End Sub
 
@@ -88,13 +64,10 @@ End Sub
 ' Initialize form
 '===========================================================
 Private Sub UserForm_Initialize()
-    Dim savedCols As Collection
-
+    ' Column checkboxes don't exist yet - LoadColumns (called right after New)
+    ' builds them and applies the saved / default selection.
     SelectedImgPath = LoadPref(PREF_CUSTEQ_IMAGE, "")
     txtImgPath.Text = SelectedImgPath
-
-    Set savedCols = LoadColumnList(PREF_CUSTEQ_COLUMNS)
-    AutoSelectColumns fraColumns, savedCols
 End Sub
 
 '===========================================================
