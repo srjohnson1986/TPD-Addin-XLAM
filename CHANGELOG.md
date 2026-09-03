@@ -58,6 +58,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- ([#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)):
+  "Split Sheet by Column" no longer reports `"N sheets created successfully."`
+  when some group values failed. Per-value work moved into `SplitOneGroup`;
+  `SplitSheetByColumn_DoWork` runs it under inline error handling, collects any
+  failure as a `'value': reason` string, and `ReportSplitOutcome` shows a
+  created/failed summary (same pattern as `ExportSheets_DoWork`). The old
+  `LoopError` / `Debug.Print` / `Resume Next` handler is gone.
 - ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)):
   "Split Sheet by Column" raised a silent run-time error 438 once per group
   value — `FormatSplitSheet` called `AutoFitUsedColumns (ws)`, whose stray
