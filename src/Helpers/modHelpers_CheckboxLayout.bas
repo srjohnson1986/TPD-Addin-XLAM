@@ -77,7 +77,9 @@ Public Sub LayoutCheckboxes( _
     Next i
 
     ' Scroll vertically when the grid is taller than the frame's interior.
+    ' Wrapped defensively - a scrollbar quirk must never break the picker.
     gridHeight = (MARGIN * 2) + (rowsPerColumn * ROW_PITCH)
+    On Error Resume Next
     If gridHeight > fra.InsideHeight Then
         fra.ScrollBars = fmScrollBarsVertical
         fra.ScrollHeight = gridHeight
@@ -85,4 +87,5 @@ Public Sub LayoutCheckboxes( _
     Else
         fra.ScrollBars = fmScrollBarsNone
     End If
+    On Error GoTo 0
 End Sub
