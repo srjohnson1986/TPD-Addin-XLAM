@@ -1,11 +1,24 @@
 Attribute VB_Name = "modHelpers_SheetSetup"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Builds the TPD title block (header) at the top of a sheet
+'  and orchestrates the default EQ List / Schedule header
+'  setup (rows, date text, logo, freeze panes). "header" here
+'  is the title block, not the column heading row.
+'===========================================================
+
 Option Explicit
+
+' Number of rows InsertEQHeaderBlock inserts and populates (A1:B6). Anything
+' that needs the row where the data headings land after the block is inserted
+' should use EQ_HEADER_ROW_COUNT + 1 rather than a bare literal. If the block
+' grows, update this constant AND the A1:B6 layout in InsertEQHeaderBlock.
+Public Const EQ_HEADER_ROW_COUNT As Long = 6
 
 Public Sub InsertEQHeaderBlock(ws As Worksheet)
 
-    InsertRows ws, 6
+    InsertRows ws, EQ_HEADER_ROW_COUNT
 
     ws.Range("A1").value = "EQUIPMENT LIST"
     ws.Range("A2").value = "Customer"
@@ -98,18 +111,14 @@ Public Sub InsertDefaultCustEQHeader(ws As Worksheet)
     FormatEQSheet ws, headingsRow
     AutoFitUsedColumns ws
 
-    ' Inserts 6 rows (currently) and adds the EQ header text
+    ' Inserts the EQ header block (EQ_HEADER_ROW_COUNT rows) and its text
     InsertEQHeaderBlock ws
 
-    ' number of rows inserted (modify as EQ header block changes)
-    Dim numberOfRows As Long
-    numberOfRows = 6
-
-    ' headingsRow is after the number of inserted rows
-    headingsRow = numberOfRows + headingsRow
+    ' headingsRow moves down by the number of rows the block inserted
+    headingsRow = EQ_HEADER_ROW_COUNT + headingsRow
 
     ' Insert logo on this worksheet on the headingsRow, right-top aligned, scaled to the number of rows we inserted
-    InsertDefaultLogo ws, headingsRow, "right-top", numberOfRows
+    InsertDefaultLogo ws, headingsRow, "right-top", EQ_HEADER_ROW_COUNT
 
     SafeFreezePanes ws, headingsRow
 

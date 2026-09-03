@@ -31,7 +31,7 @@ Private Function PrefSheet() As Worksheet
         ws.name = PREF_SHEET
         ws.Visible = xlSheetVeryHidden
 
-        ' Add headers
+        ' Add headings
         ws.Range("A1").value = "Key"
         ws.Range("B1").value = "Value"
     End If
@@ -151,12 +151,10 @@ Public Sub ClearAllPrefs()
     ws.Rows("2:" & ws.Rows.Count).ClearContents
 End Sub
 
-Public Sub EnsurePreferenceSheet()
-    Dim ws As Worksheet
-    Set ws = PrefSheet()   ' This works because PrefSheet is private to this module
-End Sub
-
+' Single public accessor for the _Preferences sheet. Callers that only need
+' to guarantee the sheet exists can ignore the return value; calling this
+' creates _Preferences (very hidden, with Key/Value headings) on first use.
 Public Function GetPrefSheet() As Worksheet
-    Set GetPrefSheet = PrefSheet()   ' PrefSheet stays private
+    Set GetPrefSheet = PrefSheet()   ' PrefSheet stays private to this module
 End Function
 

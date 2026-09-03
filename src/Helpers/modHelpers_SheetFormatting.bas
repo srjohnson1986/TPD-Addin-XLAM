@@ -1,6 +1,12 @@
 Attribute VB_Name = "modHelpers_SheetFormatting"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Visual formatting for generated EQ / split sheets: fonts,
+'  alignment, borders, autofit, and freeze panes. Pure
+'  presentation - no data is moved here.
+'===========================================================
+
 Option Explicit
 
 Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
@@ -9,7 +15,7 @@ Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
     Dim dataRange As Range
     Dim descCol As Variant
 
-    lastRow = ws.Cells.Find("*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
+    lastRow = GetLastRow(ws)
     lastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
 
     Set dataRange = ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol))

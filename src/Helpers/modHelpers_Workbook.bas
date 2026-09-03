@@ -1,7 +1,26 @@
 Attribute VB_Name = "modHelpers_Workbook"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Sheet / workbook utilities shared across feature areas:
+'  first visible sheet, create-or-clear a sheet by name, next
+'  available sheet name, last-row / last-column lookups, and
+'  open-workbook / sheet-exists checks.
+'===========================================================
+
 Option Explicit
+
+' Sets wb to ActiveWorkbook and returns True; if there is no active workbook
+' it shows a message and returns False. Use as the standard guard at the top
+' of any flow that needs a workbook:  If Not RequireActiveWorkbook(wb) Then Exit Sub
+Public Function RequireActiveWorkbook(ByRef wb As Workbook) As Boolean
+    Set wb = ActiveWorkbook
+    If wb Is Nothing Then
+        MsgBox "Open a workbook first.", vbExclamation, "TPD Add-in"
+        Exit Function
+    End If
+    RequireActiveWorkbook = True
+End Function
 
 Public Function GetFirstVisibleSheet() As Worksheet
     Dim sh As Worksheet
@@ -71,8 +90,16 @@ Public Function GetNextAvailableSheetName(baseName As String) As String
     GetNextAvailableSheetName = nameToTry
 End Function
 
-Function GetLastRow(ws As Worksheet) As Long
-    GetLastRow = ws.Cells.Find("*", , , , xlByRows, xlPrevious).Row
+Public Function GetLastRow(ws As Worksheet) As Long
+    ' Find returns Nothing on a completely empty sheet - treat that as row 1
+    ' rather than letting .Row raise error 91 (see issue #33).
+    Dim found As Range
+    Set found = ws.Cells.Find("*", , , , xlByRows, xlPrevious)
+    If found Is Nothing Then
+        GetLastRow = 1
+    Else
+        GetLastRow = found.Row
+    End If
 End Function
 
 

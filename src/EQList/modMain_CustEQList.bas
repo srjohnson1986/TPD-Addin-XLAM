@@ -49,9 +49,9 @@ Public Sub CreateCustEQList_DoWork( _
     AutoFitUsedColumns wsNew
     
     InsertEQHeaderBlock wsNew
-    SafeInsertLogoAtRight wsNew, imgPath, 1, 7
-    
-    SafeFreezePanes wsNew, 7
+    SafeInsertLogoAtRight wsNew, imgPath, 1, EQ_HEADER_ROW_COUNT + 1
+
+    SafeFreezePanes wsNew, EQ_HEADER_ROW_COUNT + 1
 End Sub
 
 

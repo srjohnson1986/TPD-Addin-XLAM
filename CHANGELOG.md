@@ -30,12 +30,31 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   and logo settings into saved defaults removes `CustEQListColumnPickerForm`, which
   subsumes both. Trimmed the now-resolved defect IDs out of the `CLAUDE.md` and
   `docs/ARCHITECTURE.md` "known defects" sections; no open `bug` issues remain.
+- Filed a second review pass as issues [#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)–[#37](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/37):
+  Split Sheet swallowing per-group failures (#32), `Find`-based last-row helpers
+  raising 91 on empty sheets (#33), unguarded `GetFirstVisibleSheet` (#34),
+  `CountNonParentOrIncludedRows` dead param / not perf-wrapped (#35),
+  `WithPerformance` string dispatch (#36), and a code-hygiene sweep (#37).
 - Removed commented-out code across `/src` (a stale `CreateOrClearSheet` copy and
   an old `GetLastRow` overload in `modHelpers_Workbook`, leftover
   `'MsgBox "Ribbon callback fired"` debug lines, an empty comment banner in
   `modMain_CountEquipmentRows`). Deleted the superseded `ExportAllVBAModules` v1
   (hardcoded `C:\VBA_Export\` path, skipped document modules) and renamed
   `ExportAllVBAModules2` to `ExportAllVBAModules`; docs updated to match.
+
+### Changed
+
+- Code-hygiene sweep ([#37](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/37)),
+  no behavior change: added `Option Explicit` to `modStartup`; fixed a mojibake
+  comment in `modHelpers_Strings`; gave `GetLastRow` an explicit `Public` and a
+  guard so it returns row 1 instead of raising 91 on a completely empty sheet
+  (also closes [#33](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/33) —
+  `FormatEQSheet` now calls `GetLastRow` instead of its own inline `Find`);
+  introduced `EQ_HEADER_ROW_COUNT` in `modHelpers_SheetSetup` to replace three
+  hand-synced copies of the header-block row count; added a shared
+  `RequireActiveWorkbook` helper to `modHelpers_Workbook`; collapsed the three
+  `_Preferences` sheet accessors down to `GetPrefSheet`; and added module-purpose
+  banners to the sheet/column/logo helpers.
 
 ### Fixed
 
