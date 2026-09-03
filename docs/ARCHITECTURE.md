@@ -55,7 +55,7 @@ The main Schedule-automation module doesn't exist yet — the empty `modMain_Cus
 | `modPreferences` | Key/value preference storage backed by a hidden `_Preferences` worksheet. Also handles saving/loading comma-separated column lists. |
 | `modPreferences_KeyMap` | Central list of every preference key (`PREF_CUSTEQ_IMAGE`, `PREF_SPLIT_GROUPCOL`, `PREF_EXPORT_APPEND`, etc.) so keys never float as loose string literals. |
 | `modPreferences_Initializer` | Seeds default preference values the first time the add-in initializes on a workbook. |
-| `frmSetTPDDefaults` | The in-progress unified defaults UserForm (planned tabs: Header Logo / Customer EQ List / Split Sheet / Export). Currently loads the embedded default logo into a preview image control on activation. |
+| `frmSetTPDDefaults` | The intended "Set TPD Defaults" UserForm ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). **Currently unreachable** — no ribbon button opens it, and its only code is a `UserForm_Activate` that previews the embedded logo. To be built out with tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo. |
 
 ## TPD_Addin.Helpers
 
@@ -99,7 +99,7 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 Tracked as GitHub Issues — no open `bug`-labelled issues. One open piece of work:
 
-- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once "Create Customer EQ List" moves to saved defaults (in `frmSetTPDDefaults`) instead of a per-run picker.
+- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — build out `frmSetTPDDefaults` (currently unreachable) into the settings UI: a ribbon button opens it; tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo write the `PREF_*` keys. Feature flows then read prefs and run one-click (built-in lists as the fallback). `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are removed as part of it. Future enhancement.
 
 ### Regressions to guard against (all fixed — don't undo them)
 

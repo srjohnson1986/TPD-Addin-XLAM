@@ -73,7 +73,7 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 Tracked as GitHub Issues — no open `bug`-labelled issues. One open piece of work:
 
-- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — move the Customer EQ List column/logo settings into `frmSetTPDDefaults` (saved defaults), make "Create Customer EQ List" run without a per-run picker, and drop `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + `modHelpers_Image`.
+- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — build out `frmSetTPDDefaults` (add a ribbon button; tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo) as the one place to configure each flow's settings. The feature commands then run from `_Preferences` (built-in lists as the fallback), no per-run modal for EQ List. Drops `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + `modHelpers_Image`. Future enhancement, not started.
 
 ### Regressions to guard against (all fixed — don't undo them)
 
