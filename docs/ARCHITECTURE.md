@@ -1,6 +1,6 @@
 # TPD Add-in — Architecture
 
-This is a module-level map of the add-in as of the `v2.2.0` release, organized by the same `@Folder("TPD_Addin.X")` grouping used in Rubberduck's Code Explorer and in the `/src` export layout. For the developer workflow (how to change, export, build, and release), see [CONTRIBUTING.md](../CONTRIBUTING.md).
+This is a module-level map of the add-in as of the `v2.3.0` release, organized by the same `@Folder("TPD_Addin.X")` grouping used in Rubberduck's Code Explorer and in the `/src` export layout. For the developer workflow (how to change, export, build, and release), see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Overview
 

@@ -34,9 +34,10 @@ Public Sub InitializePreferences()
         SavePref PREF_EXPORT_INCLUDEDATE, "0"
     End If
 
-    ' ---- Versioning (optional) ----
-    If LoadPref(PREF_VERSION, "") = "" Then
-        SavePref PREF_VERSION, "1.0"
+    ' ---- Version stamp: which add-in version last initialized here ----
+    ' Bumped each release (see CONTRIBUTING.md). Written only when it changes.
+    If LoadPref(PREF_VERSION, "") <> ADDIN_VERSION Then
+        SavePref PREF_VERSION, ADDIN_VERSION
     End If
 
 End Sub

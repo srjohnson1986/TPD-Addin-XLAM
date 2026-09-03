@@ -36,7 +36,7 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 
 A clean build is not a passing test — there's no compile step in the macro. For a headless compile check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`): VBA refuses to run any macro when the project has a compile error, so a clean return means the whole project compiled.
 
-**Cutting a release:** bump the version (`PREF_VERSION` / `docProps`), tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry. That release's `.xlam` becomes the next `build/TPD_Addin_base.xlam`.
+**Cutting a release:** bump `ADDIN_VERSION` in `modStartup`, tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry. That release's `.xlam` becomes the next `build/_base/TPD_Addin_base.xlam`.
 
 ## Module organization convention
 
