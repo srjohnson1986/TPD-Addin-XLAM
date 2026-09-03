@@ -10,6 +10,12 @@ Option Explicit
 '
 '  This is the portable, cross-platform way
 '  to store persistent settings for an Excel add-in.
+'
+'  SavePref / SaveColumnList write only the in-memory copy of
+'  the .xlam. Call PersistPrefs once afterwards to flush them
+'  to disk - Excel closes add-ins without prompting to save,
+'  so unsaved preference writes are otherwise lost on quit
+'  ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
 '===========================================================
 
 Private Const PREF_SHEET As String = "_Preferences"
@@ -157,4 +163,19 @@ End Sub
 Public Function GetPrefSheet() As Worksheet
     Set GetPrefSheet = PrefSheet()   ' PrefSheet stays private to this module
 End Function
+
+' Flushes preference writes to disk. SavePref only mutates the in-memory copy
+' of TPD_Addin.xlam; Excel shuts add-ins down without prompting to save, so
+' without this every SavePref since the add-in was last saved is lost on quit
+' ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
+'
+' Call once after a batch of SavePref / SaveColumnList calls (e.g. at the end
+' of a picker's OK handler), not per key. Silent no-op if the add-in can't be
+' saved - a read-only or network-share install - rather than throwing mid-flow;
+' the preference still holds for the rest of the session.
+Public Sub PersistPrefs()
+    On Error Resume Next
+    If Not ThisWorkbook.Saved Then ThisWorkbook.Save
+    On Error GoTo 0
+End Sub
 

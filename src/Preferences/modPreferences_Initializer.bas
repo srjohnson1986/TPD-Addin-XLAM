@@ -40,5 +40,11 @@ Public Sub InitializePreferences()
         SavePref PREF_VERSION, ADDIN_VERSION
     End If
 
+    ' Deliberately no PersistPrefs here - these seed values are re-derived
+    ' identically on every launch, so saving the .xlam on each Excel start
+    ' would just be an avoidable disk write. User-chosen values are flushed
+    ' where they're set, in the picker OK handlers
+    ' ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
+
 End Sub
 

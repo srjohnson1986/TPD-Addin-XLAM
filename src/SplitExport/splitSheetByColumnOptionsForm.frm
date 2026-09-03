@@ -151,6 +151,7 @@ Private Sub cmdOK_Click()
 
     SavePref PREF_SPLIT_GROUPCOL, cboGroupColumn.value
     SaveColumnList PREF_SPLIT_COLUMNS, GetSelectedColumns(fraColumns)
+    PersistPrefs
 
     CancelPressed = False
     Me.Hide

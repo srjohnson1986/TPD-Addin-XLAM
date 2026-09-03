@@ -123,6 +123,7 @@ End Sub
 Private Sub cmdOK_Click()
     SavePref PREF_CUSTEQ_IMAGE, SelectedImgPath
     SaveColumnList PREF_CUSTEQ_COLUMNS, GetSelectedColumns(fraColumns)
+    PersistPrefs
 
     CancelPressed = False
     Me.Hide

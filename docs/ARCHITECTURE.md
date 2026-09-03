@@ -52,7 +52,7 @@ The main Schedule-automation module doesn't exist yet — the empty `modMain_Cus
 
 | Module | Purpose |
 |---|---|
-| `modPreferences` | Key/value preference storage backed by a hidden `_Preferences` worksheet. Also handles saving/loading comma-separated column lists. |
+| `modPreferences` | Key/value preference storage backed by a hidden `_Preferences` worksheet. Also handles saving/loading comma-separated column lists. `SavePref` / `SaveColumnList` only touch the in-memory add-in; `PersistPrefs` (called from each picker's OK handler) flushes them to the `.xlam` on disk so they survive the Excel session — Excel closes add-ins without prompting to save ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). |
 | `modPreferences_KeyMap` | Central list of every preference key (`PREF_CUSTEQ_IMAGE`, `PREF_SPLIT_GROUPCOL`, `PREF_EXPORT_APPEND`, etc.) so keys never float as loose string literals. |
 | `modPreferences_Initializer` | Seeds default preference values the first time the add-in initializes on a workbook. |
 | `frmSetTPDDefaults` | The intended "Set TPD Defaults" UserForm ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). **Currently unreachable** — no ribbon button opens it, and its only code is a `UserForm_Activate` that previews the embedded logo. To be built out with tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo. |

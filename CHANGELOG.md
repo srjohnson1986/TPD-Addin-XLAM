@@ -11,6 +11,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Preferences (column-picker selections, Split group column) now survive
+  quitting and reopening Excel ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
+  `SavePref` only ever wrote the in-memory copy of the add-in, and Excel closes
+  add-ins without prompting to save, so anything picked in a session was lost on
+  quit. New `modPreferences.PersistPrefs` flushes the add-in to disk and is
+  called from each picker's OK handler; it's a silent no-op on a read-only /
+  network-share install (the selection still holds for that session).
 - Merged `modHelpers_Image` into `modHelpers_Logo` ([#77](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/77)) — both its
   functions (`SafeInsertLogoAtRight`, `PastePicture`) were logo-only, so a
   separate module earned nothing. No behavior change; callers use unqualified
