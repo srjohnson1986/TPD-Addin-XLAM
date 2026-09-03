@@ -75,7 +75,7 @@ Tracked as GitHub Issues — [`bug` label](https://github.com/srjohnson1986/TPD-
 
 Also keep in mind when touching `modPerformance.WithPerformance` (GEN-04 / [#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7), fixed): the `CleanUp` handler must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those session-wide settings are left broken on error. Callers pass a `PERF_*` constant (defined in `modPerformance`), not a bare string — a new flow needs a constant, a matching `Case` in the `Select`, and the `WithPerformance PERF_x` call in its ribbon callback ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)).
 
-And ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29), fixed): never call a `Sub` as `MySub (obj)` — the extra parens make VBA evaluate the argument by value (its default property), so a `Worksheet`/`Workbook` raises run-time 438. Write `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop hides such errors behind `Resume Next`.
+And ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29), fixed): never call a `Sub` as `MySub (obj)` — the extra parens make VBA evaluate the argument by value (its default property), so a `Worksheet`/`Workbook` raises run-time 438. Write `MySub obj` or `Call MySub(obj)`. Since [#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32) the `Split Sheet by Column` loop runs each group value through `SplitOneGroup` under inline error handling and lists any failure in the final summary, so a regression there is at least visible to the user.
 
 ## File-format conventions (`.gitattributes`)
 
