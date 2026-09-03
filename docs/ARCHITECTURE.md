@@ -84,7 +84,7 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 | `modResources` | Creates the hidden `_Resources` sheet and embeds the default logo shape on first run. |
 | `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures both `_Resources` and `_Preferences` exist before anything else runs. |
 | `modHelpers_Diagnostics` | Houses `SheetExists2` — checks whether a named sheet exists in `ThisWorkbook` (the add-in). Fixed in [#11](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/11) (its body previously assigned to `SheetExists`, so it always returned `False`). For an arbitrary workbook use `SheetExists(wb, name)` in `modHelpers_Workbook`. |
-| `modExport_VBAModules` | The VBA export macros (`ExportAllVBAModules` / `ExportAllVBAModules2`) that support the source-control workflow itself. |
+| `modExport_VBAModules` | The VBA export macro `ExportAllVBAModules` that supports the source-control workflow itself. |
 
 ## TPD_Addin.Document
 

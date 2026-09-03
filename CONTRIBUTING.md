@@ -38,9 +38,9 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 
 1. Edit code in the VBE as normal, and test interactively in the open workbook.
 2. When you're happy with a change, export it to `/src`:
-   - Run `ExportAllVBAModules2` (in `modExport_VBAModules`) to export everything and refresh the whole `/src` tree, **or**
+   - Run `ExportAllVBAModules` (in `modExport_VBAModules`) to export everything and refresh the whole `/src` tree, **or**
    - Select just the component(s) you changed in the VBE's Project Explorer → right-click → **Export File** → overwrite the matching file(s) in your local `/src`.
-3. Check `export_log.txt` (written to `/src` by `ExportAllVBAModules2`) to confirm what was exported and where.
+3. Check `export_log.txt` (written to `/src` by `ExportAllVBAModules`) to confirm what was exported and where.
 4. In GitHub Desktop, review the diff for each changed file — this is your code review moment, even working solo.
 5. Commit with a message describing the change (not "updated code"). For anything non-trivial, push to a feature branch and open a PR against `main` rather than committing straight to `main`.
 

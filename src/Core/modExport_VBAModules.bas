@@ -1,38 +1,11 @@
 Attribute VB_Name = "modExport_VBAModules"
 '@Folder("TPD_Addin.Core")
 
-Sub ExportAllVBAModules()
-    Dim vbProj As Object, vbComp As Object
-    Dim exportPath As String, ext As String
-
-    exportPath = "C:\VBA_Export\"
-    If Dir(exportPath, vbDirectory) = "" Then MkDir exportPath
-
-    Set vbProj = ThisWorkbook.VBProject
-
-    For Each vbComp In vbProj.VBComponents
-        If vbComp.Type <> 100 Then  ' skip document objects (ThisWorkbook, sheets)
-            Select Case vbComp.Type
-                Case 1: ext = ".bas"
-                Case 2: ext = ".cls"
-                Case 3: ext = ".frm"
-            End Select
-            vbComp.Export exportPath & vbComp.name & ext
-        End If
-    Next vbComp
-
-    MsgBox "Exported " & vbProj.VBComponents.Count & " components to " & exportPath
-End Sub
-
 '============================================================
-' ExportAllVBAModules2 - replacement for ExportAllVBAModules
-' above (kept alongside it for reference; safe to delete once
-' you've verified this one works).
+' ExportAllVBAModules - exports every VBA component to /src.
 '
-' Fixes vs. the original:
-'   - No longer skips document modules (ThisWorkbook, Sheet1-3)
-'   - Destination is a constant you set once, not a hardcoded
-'     C:\ path unrelated to your repo
+'   - Includes document modules (ThisWorkbook, Sheet1-3)
+'   - Destination is a constant you set once (DEST_ROOT)
 '   - One failing component logs an error and keeps going,
 '     instead of aborting the whole export
 '   - Groups output into subfolders read from each module's
@@ -44,7 +17,7 @@ End Sub
 ' the VBA project object model" must be enabled.
 '============================================================
 
-Public Sub ExportAllVBAModules2()
+Public Sub ExportAllVBAModules()
 
     ' Point this at your local clone's /src folder.
     Const DEST_ROOT As String = "C:\Users\srjoh\OneDrive\Documents\GitHub\TPD-Addin-XLAM\src\"

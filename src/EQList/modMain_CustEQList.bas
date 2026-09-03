@@ -5,7 +5,6 @@ Option Explicit
 
 ' Ribbon callback
 Public Sub CreateCustEQList(control As IRibbonControl)
-    'MsgBox "Ribbon callback fired"
     WithPerformance "CreateCustEQList_Internal"
 End Sub
 

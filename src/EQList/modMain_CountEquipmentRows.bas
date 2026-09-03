@@ -27,12 +27,7 @@ Sub CountNonParentOrIncludedRows(ws As Worksheet)
         MsgBox "The active sheet is not a worksheet. Please select a worksheet and try again.", vbCritical
         Exit Sub
     End If
-    
-    
-    ' -------------------------------
-    '
-    ' -------------------------------
-    
+
     Dim lastRow As Long
     Dim purchasedCol As Long
     Dim numberCol As Long

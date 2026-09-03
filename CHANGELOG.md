@@ -30,6 +30,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   and logo settings into saved defaults removes `CustEQListColumnPickerForm`, which
   subsumes both. Trimmed the now-resolved defect IDs out of the `CLAUDE.md` and
   `docs/ARCHITECTURE.md` "known defects" sections; no open `bug` issues remain.
+- Removed commented-out code across `/src` (a stale `CreateOrClearSheet` copy and
+  an old `GetLastRow` overload in `modHelpers_Workbook`, leftover
+  `'MsgBox "Ribbon callback fired"` debug lines, an empty comment banner in
+  `modMain_CountEquipmentRows`). Deleted the superseded `ExportAllVBAModules` v1
+  (hardcoded `C:\VBA_Export\` path, skipped document modules) and renamed
+  `ExportAllVBAModules2` to `ExportAllVBAModules`; docs updated to match.
 
 ### Fixed
 
