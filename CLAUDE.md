@@ -29,14 +29,14 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 4. Review the diff before committing — this is the code review step.
 
 **Rebuilding a testable `.xlam`:**
-1. Keep a known-good base file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies worksheets, ribbon, styles, embedded logo shape that live outside `/src`).
+1. Keep a known-good base file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies worksheets, ribbon, styles, embedded logo shape that live outside `/src`). Must be **stripped of standard modules + UserForms** (the builder can't re-import a form that already exists) — a full add-in `.xlam` is not a valid base. Rarely needs updating.
 2. Run the `BuildAddin` macro in `tools/TPD_Builder.xlsm` (a separate driver workbook, not the add-in itself) → copies the base, imports all of `/src`, writes `build/TPD_Addin.xlam`, logs to `build/build.log`. Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1`.
 3. Load it as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise it against the sample EQ List fixtures.
 4. If it checks out, it's a release candidate.
 
 A clean build is not a passing test — there's no compile step in the macro. For a headless compile check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`): VBA refuses to run any macro when the project has a compile error, so a clean return means the whole project compiled.
 
-**Cutting a release:** bump `ADDIN_VERSION` in `modStartup`, tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry. That release's `.xlam` becomes the next `build/_base/TPD_Addin_base.xlam`.
+**Cutting a release:** bump `ADDIN_VERSION` in `modStartup`, tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry. Refresh `build/_base/TPD_Addin_base.xlam` only if the release changed something outside `/src` (ribbon / sheets / logo) — and then from a code-stripped copy, not the release `.xlam` directly.
 
 ## Module organization convention
 

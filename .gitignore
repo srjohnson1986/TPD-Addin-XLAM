@@ -19,6 +19,9 @@
 /build/*.xls
 /build/*.log
 
+# Per-component import logs the builder drops next to /src files on error.
+src/**/*.log
+
 # ---- OS junk ----
 .DS_Store
 Thumbs.db
