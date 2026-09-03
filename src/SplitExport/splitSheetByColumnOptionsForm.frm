@@ -72,20 +72,19 @@ Public Sub LoadColumns(headingList As Variant)
     Set savedCols = LoadColumnList(PREF_SPLIT_COLUMNS)
     applyDefaults = (savedCols Is Nothing) Or (savedCols.Count = 0)
 
-    ' If no saved prefs ? apply defaults by caption
+    ' If there are no saved prefs, apply the defaults by caption
     If applyDefaults Then
         Dim ctrl As control
         For Each ctrl In fraColumns.Controls
             If TypeName(ctrl) = "CheckBox" Then
                 If IsInArray(ctrl.Caption, PreferredDefaultColumns) Then
-                    Debug.Print "MATCHED DEFAULT: " & ctrl.Caption
                     ctrl.value = True
                 End If
             End If
         Next ctrl
     End If
 
-    ' If saved prefs exist ? override defaults
+    ' If saved prefs exist, they override the defaults
     If Not (savedCols Is Nothing) Then
         If savedCols.Count > 0 Then
             AutoSelectColumns fraColumns, savedCols

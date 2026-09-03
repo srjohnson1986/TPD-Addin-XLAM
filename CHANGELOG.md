@@ -44,6 +44,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- Final legibility sweep: removed a stray `Debug.Print "MATCHED DEFAULT: …"`
+  from `splitSheetByColumnOptionsForm.LoadColumns`, replaced two `?`-for-arrow
+  comments in the same sub with plain English, and corrected the
+  `modHelpers_Image` banner / `ARCHITECTURE.md` row — both its functions do have
+  live callers (`SafeInsertLogoAtRight` from the EQ List flow, `PastePicture`
+  from `frmSetTPDDefaults`), they're just legacy of the file-path logo approach.
 - Stripped trailing whitespace from 5 whitespace-only blank lines
   ([#63](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/63), partial):
   `modMain_CustEQList`, `modHelpers_Columns` (×2), `splitSheetByColumnOptionsForm`
