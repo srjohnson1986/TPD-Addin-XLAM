@@ -44,9 +44,9 @@ Public Sub ExportSheets_Internal()
 
     If frm.IncludeDate Then
         If Len(suffix) > 0 Then
-            suffix = suffix & " - " & Format(Date, "mm-dd-yyyy")
+            suffix = suffix & " - " & GetTodaysDate()
         Else
-            suffix = Format(Date, "mm-dd-yyyy")
+            suffix = GetTodaysDate()
         End If
     End If
 
@@ -87,7 +87,9 @@ Public Sub ExportSheets_DoWork(wb As Workbook, suffix As String)
         End If
     Next ws
 
-    ReportExportOutcome exportCount, failures, exportFolder
+    ReportBatchOutcome exportCount & " sheet(s) exported to:" & vbCrLf & exportFolder, _
+                       failures, "sheet(s) could not be exported:", _
+                       "Export finished with errors", "Export complete"
 
 End Sub
 
@@ -107,20 +109,3 @@ Private Function ShouldExportSheet(ws As Worksheet) As Boolean
             ShouldExportSheet = False
     End Select
 End Function
-
-Private Sub ReportExportOutcome(ByVal exportCount As Long, ByVal failures As Collection, ByVal exportFolder As String)
-    Dim msg As String
-    Dim f As Variant
-
-    msg = exportCount & " sheet(s) exported to:" & vbCrLf & exportFolder
-
-    If failures.Count > 0 Then
-        msg = msg & vbCrLf & vbCrLf & failures.Count & " sheet(s) could not be exported:"
-        For Each f In failures
-            msg = msg & vbCrLf & "  " & f
-        Next f
-        MsgBox msg, vbExclamation, "Export finished with errors"
-    Else
-        MsgBox msg, vbInformation, "Export complete"
-    End If
-End Sub

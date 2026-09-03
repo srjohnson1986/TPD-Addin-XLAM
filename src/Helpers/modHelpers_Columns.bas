@@ -42,26 +42,14 @@ Public Function GetUniqueValuesInColumn(ws As Worksheet, colIndex As Long) As Co
     Dim lastRow As Long
     Dim i As Long
     Dim cellValue As String
-    Dim exists As Boolean
-    Dim v As Variant
 
     lastRow = ws.Cells(ws.Rows.Count, colIndex).End(xlUp).Row
 
     For i = 2 To lastRow   ' skip heading row
         cellValue = NormalizeCellText(ws.Cells(i, colIndex).value)
 
-
         If Len(cellValue) > 0 Then
-            exists = False
-
-            For Each v In result
-                If StrComp(v, cellValue, vbTextCompare) = 0 Then
-                    exists = True
-                    Exit For
-                End If
-            Next v
-
-            If Not exists Then
+            If Not CollectionContainsText(result, cellValue) Then
                 result.Add cellValue
             End If
         End If

@@ -123,12 +123,12 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
             newPic.Left = ws.Cells(anchorRow, 1).Left
 
         Case "right"
-            lastCol = ws.Cells(anchorRow, ws.Columns.Count).End(xlToLeft).Column
+            lastCol = GetLastCol(ws, anchorRow)
             Set targetCell = ws.Cells(anchorRow, lastCol)
             newPic.Left = targetCell.Left + (targetCell.Width - newPic.Width)
 
         Case "center"
-            lastCol = ws.Cells(anchorRow, ws.Columns.Count).End(xlToLeft).Column
+            lastCol = GetLastCol(ws, anchorRow)
             Set targetCell = ws.Range(ws.Cells(anchorRow, 1), ws.Cells(anchorRow, lastCol))
             newPic.Left = targetCell.Left + (targetCell.Width - newPic.Width) / 2
 
