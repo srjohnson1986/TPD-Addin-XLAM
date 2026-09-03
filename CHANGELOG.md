@@ -11,6 +11,19 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Preferences (column-picker selections, Split group column, logo path) now
+  persist across Excel sessions ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
+  They were stored in a hidden `_Preferences` sheet **inside `TPD_Addin.xlam`**,
+  but Excel never saves an add-in on exit, so every selection was discarded on
+  quit — it only appeared to stick within a session. `modPreferences` now uses
+  the Windows registry (`SaveSetting`/`GetSetting` under
+  `HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`): always
+  writable, written immediately, per Windows user, independent of which
+  workbook is open. A key that was never saved falls back to the caller's
+  default, and each picker to its built-in column list, so a fresh machine
+  still opens with sensible defaults. The `_Preferences` sheet, `PrefSheet` /
+  `GetPrefSheet`, and the default-value seeding in `modPreferences_Initializer`
+  are all gone; `SaveColumnList` no longer crashes on an empty selection.
 - Customer EQ List column picker now restores a saved non-default column
   selection instead of always reverting to the built-in defaults
   ([#79](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/79)) — `LoadColumns`

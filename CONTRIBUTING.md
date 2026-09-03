@@ -54,7 +54,7 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 
 ## Cutting a release
 
-1. Bump `ADDIN_VERSION` in `modStartup` (and the workbook's `docProps` if you keep those in sync). `modPreferences_Initializer` stamps `ADDIN_VERSION` into `_Preferences` as `PREF_VERSION` on the next run.
+1. Bump `ADDIN_VERSION` in `modStartup` (and the workbook's `docProps` if you keep those in sync). `modPreferences_Initializer` stamps `ADDIN_VERSION` into the registry as `PREF_VERSION` on the next run.
 2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — this is what the README's Download link points to.
 3. Add an entry to `CHANGELOG.md` describing what changed.
 4. Refresh the base **only if this release changed something outside `/src`** (ribbon XML, worksheets, styles, the `_Resources` logo shape). To do it, take a copy of the release `.xlam`, delete every standard module and UserForm from its VBA project (leaving the document modules), and save that as `build/_base/TPD_Addin_base.xlam`. If the release was `/src`-only, the existing base is still current — leave it.
