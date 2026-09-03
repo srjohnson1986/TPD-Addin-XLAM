@@ -11,6 +11,19 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Customer EQ List column picker now restores a saved non-default column
+  selection instead of always reverting to the built-in defaults
+  ([#79](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/79)) — `LoadColumns`
+  read the preference with a string literal instead of the `PREF_CUSTEQ_COLUMNS`
+  key constant, so it never found what OK had saved.
+- Routed duplicated code through the existing shared helpers
+  ([#80](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/80)): the EQ Count
+  "PURCHASED" lookup, the inline last-column scans in the formatting and logo
+  helpers, and the Split Sheet unique-value pass now use `FindHeadingIndex` /
+  `GetLastCol` / `CollectionContainsText` / `GetUniqueValuesInColumn`; the Split
+  and Export end-of-run summaries share one `ReportBatchOutcome`. No user-visible
+  change, except the "PURCHASED" heading match no longer trims surrounding
+  whitespace (it was already case-insensitive).
 - Merged `modHelpers_Image` into `modHelpers_Logo` ([#77](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/77)) — both its
   functions (`SafeInsertLogoAtRight`, `PastePicture`) were logo-only, so a
   separate module earned nothing. No behavior change; callers use unqualified
