@@ -97,9 +97,10 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 
 ## Known open items
 
-Defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). No open bug issues right now. The historical defect IDs EQC-10, GEN-04, EXP-07, SPL-11, CORE-01 and EXP-08 are resolved (see `CHANGELOG.md`); CEQ-06 and UI-01 were folded into the refactor below.
+Defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). No open bug issues right now. The historical defect IDs EQC-10, GEN-04, EXP-07, SPL-11, CORE-01 and EXP-08 are resolved, as is [#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29) (Split Sheet by Column logged a silent run-time 438 per group value — a stray-parens `AutoFitUsedColumns (ws)` call in `modHelpers_SheetFormatting.FormatSplitSheet`) — see `CHANGELOG.md`; CEQ-06 and UI-01 were folded into the refactor below.
 
 Non-issue guidance to keep in mind when working these areas:
 
 - **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7))** — fixed. When extending `modPerformance.WithPerformance`, keep the `CleanUp` handler: it must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those settings stay broken for the rest of the Excel session on any error.
+- **[#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)** — fixed. Never call a `Sub` as `MySub (obj)` — the parens make VBA evaluate `obj` by value (its default property), so a `Worksheet`/`Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop swallows such errors in its `LoopError`/`Resume Next` handler, so a regression here is silent apart from `Debug.Print` lines.
 - **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once "Create Customer EQ List" moves to saved defaults (in `frmSetTPDDefaults`) instead of a per-run picker. This subsumes the old CEQ-06 (picker had no min-column validation) and UI-01 (`modHelpers_CheckboxLayout` clips past ~30 headings — still relevant to `splitSheetByColumnOptionsForm` if it keeps a live checkbox grid).
