@@ -7,7 +7,13 @@
 
 # ---- Local build output ----
 # The built .xlam is a generated artifact (see /build workflow), not source.
-# It belongs on GitHub Releases, not in the repo history.
+# It belongs on GitHub Releases, not in the repo history. The /build/_base
+# base file (worksheets/ribbon/logo that live outside /src) is a local
+# prerequisite supplied per contributor - see CONTRIBUTING.md.
+/build/**/*.xlam
+/build/**/*.xlsm
+/build/**/*.xls
+/build/**/*.log
 /build/*.xlam
 /build/*.xlsm
 /build/*.xls
