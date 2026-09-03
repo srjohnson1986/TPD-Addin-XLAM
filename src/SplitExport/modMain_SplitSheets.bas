@@ -66,7 +66,7 @@ Public Function SplitSheetByColumn_DoWork( _
 
     ' Get headings and find the group column index
     headings = GetHeadingList(wsSource, 1)
-    groupColIndex = modHelpers_Headers.FindHeadingIndex(headings, groupColumn)
+    groupColIndex = modHelpers_Headers.FindHeadingIndex(headings, groupColumn, preferRightmost:=True)
 
     If groupColIndex = 0 Then
         MsgBox "Group column '" & groupColumn & "' not found.", vbExclamation

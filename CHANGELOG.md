@@ -50,6 +50,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   caller (`SplitOneGroup` → `FormatSplitSheet` + `SafeFreezePanes`) already did,
   so per group value the sheet was frozen and autofitted twice and left
   selected. Heading-row bold moved into `FormatSplitSheet`.
+- `FindHeadingIndex` ([#45](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/45)),
+  no behavior change: the right-to-left scan is now an explicit
+  `Optional preferRightmost As Boolean = True` parameter with a comment
+  explaining the duplicate-"Vendor"-column reason, instead of a silent default.
+  `SplitSheetByColumn_DoWork` passes `preferRightmost:=True` at the call site.
 - `WithPerformance` dispatch ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)),
   no behavior change: ribbon callbacks now pass a `PERF_*` string constant
   (declared in `modPerformance`) instead of a bare literal, and the `Select Case`
