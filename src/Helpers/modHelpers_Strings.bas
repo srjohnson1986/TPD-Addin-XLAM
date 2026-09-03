@@ -3,6 +3,12 @@ Attribute VB_Name = "modHelpers_Strings"
 
 Option Explicit
 
+' Makes a string usable as an Excel sheet name: strips characters Excel
+' forbids, trims, falls back to "Sheet" when empty, and truncates to 31.
+' KNOWN LIMITATION: the 31-char truncation happens here, before any caller
+' appends a " (2)" disambiguator, and two distinct source values that share
+' the first 31 characters collapse to the same name - in the Split Sheet
+' flow that means the second value's rows overwrite the first. See issue #37.
 Public Function SanitizeSheetName(ByVal name As String) As String
     Dim badChars As Variant
     Dim c As Variant
@@ -45,7 +51,7 @@ Public Function CleanValue(val As Variant) As String
 
     s = CStr(val)
 
-    ' Split on line breaks — keep only first line
+    ' Split on line breaks - keep only first line
     If InStr(s, vbLf) > 0 Then
         s = Split(s, vbLf)(0)
     End If

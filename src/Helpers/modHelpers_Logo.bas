@@ -1,6 +1,15 @@
 Attribute VB_Name = "modHelpers_Logo"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Places and sizes the logo shape on a generated sheet:
+'  the embedded default logo from _Resources (InsertDefaultLogo,
+'  with horizontal/vertical alignment keywords) and resizing a
+'  picture to fit a maximum row count. anchorRow is the row the
+'  logo is positioned against - a title-block row or a heading
+'  row depending on the caller.
+'===========================================================
+
 Option Explicit
 
 Public Sub InsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Long, dataHeaderRow As Long)

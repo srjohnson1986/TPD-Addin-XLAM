@@ -1,6 +1,14 @@
 Attribute VB_Name = "modHelpers_Columns"
 '@Folder("TPD_Addin.Helpers")
 
+'===========================================================
+'  Column-oriented helpers: case-insensitive collection
+'  membership, deleting columns whose heading isn't in a
+'  selected list, unique values in a column, and copying rows
+'  between sheets (all rows, or only rows matching a value in
+'  the group column) projected onto a chosen set of columns.
+'===========================================================
+
 Option Explicit
 
 Public Function CollectionContainsText(col As Collection, value As String) As Boolean
