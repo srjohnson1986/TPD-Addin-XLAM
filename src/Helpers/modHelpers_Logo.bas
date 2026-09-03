@@ -8,6 +8,11 @@ Attribute VB_Name = "modHelpers_Logo"
 '  picture to fit a maximum row count. anchorRow is the row the
 '  logo is positioned against - a title-block row or a heading
 '  row depending on the caller.
+'  PastePicture pulls an image off the clipboard as a StdPicture
+'  (used by frmSetTPDDefaults to preview the embedded logo).
+'  InsertLogoAtRight / SafeInsertLogoAtRight are legacy of the
+'  file-path logo approach - slated for removal with the
+'  one-click EQ List refactor (#25).
 '===========================================================
 
 Option Explicit
@@ -38,6 +43,18 @@ Public Sub InsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Lo
     pic.Height = naturalHeight
     pic.LockAspectRatio = msoTrue
     pic.Placement = xlFreeFloating
+End Sub
+
+Public Sub SafeInsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Long, dataHeaderRow As Long)
+    On Error GoTo LogoErr
+
+    If Len(Dir(imgPath)) = 0 Then Exit Sub
+
+    InsertLogoAtRight ws, imgPath, headerRow, dataHeaderRow
+    Exit Sub
+
+LogoErr:
+    MsgBox "Unable to insert logo image: " & imgPath, vbExclamation
 End Sub
 
 Public Sub ResizeImageToMaxRows(pic As Shape, ws As Worksheet, anchorRow As Long, maxRows As Long)
@@ -137,4 +154,10 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
     newPic.Placement = xlFreeFloating
 End Sub
 
-
+Public Function PastePicture() As StdPicture
+    ' Returns a picture object from the clipboard
+    Dim IData As Object
+    Set IData = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
+    IData.GetData 1
+    Set PastePicture = IData.GetData(1)
+End Function
