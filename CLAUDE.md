@@ -15,7 +15,7 @@ The repo tracks VBA **source** (`/src`), not the compiled `.xlam`. The built add
 /customUI   customUI14.xml (ribbon definition) + ribbon icons — lives outside /src, edited directly
 /build      Local build output — gitignored, never committed (holds the base .xlam and build artifacts)
 /docs       ARCHITECTURE.md (module-by-module map) and other dev docs
-/tools      TPD_Builder.xlsm — the driver workbook that runs BuildAddinFromSource
+/tools      TPD_Builder.xlsm — driver workbook whose BuildAddin macro rebuilds the add-in; Build-TPDAddin.ps1 runs it headlessly
 ```
 
 ## Development workflow (no CLI build/lint/test — everything happens in Excel/VBE)
@@ -29,10 +29,12 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 4. Review the diff before committing — this is the code review step.
 
 **Rebuilding a testable `.xlam`:**
-1. Keep a known-good base file at `build/TPD_Addin_base.xlam` (gitignored — supplies worksheets, ribbon, styles, embedded logo shape that live outside `/src`).
-2. From `tools/TPD_Builder.xlsm` (a separate driver workbook, not the add-in itself), run `BuildAddinFromSource` against `/src` and the base file → produces `build/TPD_Addin.xlam`.
+1. Keep a known-good base file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies worksheets, ribbon, styles, embedded logo shape that live outside `/src`).
+2. Run the `BuildAddin` macro in `tools/TPD_Builder.xlsm` (a separate driver workbook, not the add-in itself) → copies the base, imports all of `/src`, writes `build/TPD_Addin.xlam`, logs to `build/build.log`. Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1`.
 3. Load it as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise it against the sample EQ List fixtures.
 4. If it checks out, it's a release candidate.
+
+A clean build is not a passing test — there's no compile step in the macro. For a headless compile check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`): VBA refuses to run any macro when the project has a compile error, so a clean return means the whole project compiled.
 
 **Cutting a release:** bump the version (`PREF_VERSION` / `docProps`), tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry. That release's `.xlam` becomes the next `build/TPD_Addin_base.xlam`.
 
