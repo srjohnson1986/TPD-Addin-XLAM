@@ -20,22 +20,6 @@ Public Function CreateNewSheetAfterLast(wb As Workbook, sheetName As String) As 
     Set CreateNewSheetAfterLast = ws
 End Function
 
-'Public Function CreateOrClearSheet(wb As Workbook, sheetName As String) As Worksheet
-'    Dim ws As Worksheet
-'    On Error Resume Next
-'    Set ws = wb.Worksheets(sheetName)
-'    On Error GoTo 0
-'
-'    If ws Is Nothing Then
-'        Set ws = wb.Worksheets.Add(After:=wb.Worksheets(wb.Worksheets.Count))
-'        ws.name = sheetName
-'    Else
-'        ws.Cells.Clear
-'    End If
-'
-'    Set CreateOrClearSheet = ws
-'End Function
-
 Public Function CreateOrClearSheet(wb As Workbook, sheetName As String) As Worksheet
     Dim ws As Worksheet
 
@@ -86,10 +70,6 @@ Public Function GetNextAvailableSheetName(baseName As String) As String
 
     GetNextAvailableSheetName = nameToTry
 End Function
-
-'Public Function GetLastRow(ws As Worksheet, col As Long) As Long
-'    GetLastRow = ws.Cells(ws.Rows.Count, col).End(xlUp).Row
-'End Function
 
 Function GetLastRow(ws As Worksheet) As Long
     GetLastRow = ws.Cells.Find("*", , , , xlByRows, xlPrevious).Row
