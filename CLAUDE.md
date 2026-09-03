@@ -51,7 +51,7 @@ This groups modules in Rubberduck's Code Explorer, and the export tooling sorts 
 
 ## Architecture
 
-One custom ribbon tab ("TPD") with two groups — **EQ List Tools** and **Schedule Tools** — defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which own the global `gRibbon` reference and `RibbonOnLoad` (triggers `modStartup.InitializeAddIn`, ensuring the hidden `_Preferences` sheet exists; the `_Resources` sheet + embedded logo come from the base `.xlam`).
+One custom ribbon tab ("TPD") with two groups — **EQ List Tools** and **Schedule Tools** — defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which own the global `gRibbon` reference and `RibbonOnLoad` (triggers `modStartup.InitializeAddIn`, which stamps the running version into the registry-backed preference store; the `_Resources` sheet + embedded logo come from the base `.xlam`).
 
 Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-module map in `docs/ARCHITECTURE.md` — read it before touching a module you haven't seen):
 
@@ -59,21 +59,21 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **EQList** — "Create Customer EQ List" / "EQ Count" flows (`modMain_CustEQList`, `modMain_CountEquipmentRows`), plus the column-picker UserForm.
 - **Schedule** — schedule header insertion; the main schedule automation module is currently a placeholder.
 - **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows, plus their UserForms.
-- **Preferences** — key/value settings backed by a hidden `_Preferences` sheet. All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference.
+- **Preferences** — per-user key/value settings in the Windows registry (`SaveSetting`/`GetSetting` under `HKCU\…\TPD_Addin\Preferences`), via `modPreferences`. Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference. A missing key falls back to the caller's default (and the pickers to their built-in column lists).
 - **Helpers** — shared utilities used by more than one feature area (sheet/workbook ops, header lookup, column filtering, string sanitizing, layout/formatting, checkbox-grid building).
 - **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modStartup` (init sequencing), `modExport_VBAModules` (the export macro `ExportAllVBAModules`).
 - **Document** — code-behind for `ThisWorkbook`/`Sheet1`-`3`. These are document modules: unlike standard modules they can't be removed and re-imported normally — the build macro clears and re-pastes their code text instead of a plain `VBComponents.Import`.
 
 ## Design intent vs. bugs (don't "fix" these without asking)
 
-- **Global preferences are shared across workbooks, not per-workbook** — "set once, applies everywhere" is intentional.
+- **Global preferences are shared across workbooks, not per-workbook** — "set once, applies everywhere" is intentional. They persist per Windows user (registry), not per machine or per file.
 - **Re-running a command stacks its output** (e.g. running "Create Customer EQ List" twice adds a second sheet) — intentional.
 
 ## Known open work
 
 Tracked as GitHub Issues — no open `bug`-labelled issues. One open piece of work:
 
-- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — build out `frmSetTPDDefaults` (add a ribbon button; tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo) as the one place to configure each flow's settings. The feature commands then run from `_Preferences` (built-in lists as the fallback), no per-run modal for EQ List. Drops `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + the `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path pair in `modHelpers_Logo`. Future enhancement, not started.
+- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — build out `frmSetTPDDefaults` (add a ribbon button; tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo) as the one place to configure each flow's settings. The feature commands then run from the saved preferences (built-in lists as the fallback), no per-run modal for EQ List. Drops `CustEQListColumnPickerForm` + `PREF_CUSTEQ_IMAGE` + the `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path pair in `modHelpers_Logo`. Future enhancement, not started.
 
 ### Regressions to guard against (all fixed — don't undo them)
 

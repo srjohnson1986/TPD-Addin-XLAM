@@ -4,7 +4,7 @@ This is a module-level map of the add-in as of the `v2.3.0` release, organized b
 
 ## Overview
 
-The add-in exposes one custom ribbon tab ("TPD") with two groups: **EQ List Tools** and **Schedule Tools**, defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which delegate to the feature modules described below. Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and makes sure the hidden `_Preferences` sheet (saved settings) exists. The hidden `_Resources` sheet and its embedded default-logo shape come from the base `.xlam`, not from code.
+The add-in exposes one custom ribbon tab ("TPD") with two groups: **EQ List Tools** and **Schedule Tools**, defined in `customUI/customUI14.xml`. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which delegate to the feature modules described below. Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and stamps the running version into the registry-backed preference store. Saved settings live in the Windows registry per user (`modPreferences`), not in the workbook. The hidden `_Resources` sheet and its embedded default-logo shape come from the base `.xlam`, not from code.
 
 ## Naming: "header" vs. "heading"
 
@@ -52,9 +52,9 @@ The main Schedule-automation module doesn't exist yet — the empty `modMain_Cus
 
 | Module | Purpose |
 |---|---|
-| `modPreferences` | Key/value preference storage backed by a hidden `_Preferences` worksheet. Also handles saving/loading comma-separated column lists. |
+| `modPreferences` | Per-user key/value preference storage in the Windows registry via `SaveSetting`/`GetSetting` (`HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`). Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit, so in-workbook writes were silently lost on quit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). `SavePref`/`LoadPref`/`DeletePref` plus `SaveColumnList`/`LoadColumnList` for comma-separated column lists; a missing key returns the caller's default. |
 | `modPreferences_KeyMap` | Central list of every preference key (`PREF_CUSTEQ_IMAGE`, `PREF_SPLIT_GROUPCOL`, `PREF_EXPORT_APPEND`, etc.) so keys never float as loose string literals. |
-| `modPreferences_Initializer` | Seeds default preference values the first time the add-in initializes on a workbook. |
+| `modPreferences_Initializer` | `InitializePreferences` — stamps `PREF_VERSION` with `ADDIN_VERSION` when it changes (support/diagnostics). No value seeding: `LoadPref` returns the caller's default for any unset key, and each picker falls back to its own built-in column list. |
 | `frmSetTPDDefaults` | The intended "Set TPD Defaults" UserForm ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). **Currently unreachable** — no ribbon button opens it, and its only code is a `UserForm_Activate` that previews the embedded logo. To be built out with tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo. |
 
 ## TPD_Addin.Helpers
@@ -80,7 +80,7 @@ Add-in lifecycle and infrastructure — not directly user-facing.
 | Module | Purpose |
 |---|---|
 | `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. On an error inside the wrapped routine, `CleanUp` still restores all three settings and then surfaces `Err.Description` in a `MsgBox` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)). The routine is selected by a `PERF_*` string constant passed by the ribbon callback, so a mistyped name fails to compile rather than hitting the `Unknown action` branch at run time ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)). |
-| `modStartup` | `InitializeAddIn`, called from `RibbonOnLoad`; ensures `_Preferences` exists before anything else runs. (`_Resources` + the embedded logo come from the base `.xlam`; the code-side fallback `modResources` was removed in [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62).) |
+| `modStartup` | `ADDIN_VERSION` constant + `InitializeAddIn`, called from `RibbonOnLoad`; runs `InitializePreferences` (registry version stamp). (`_Resources` + the embedded logo come from the base `.xlam`; the code-side fallback `modResources` was removed in [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62).) |
 | `modExport_VBAModules` | The VBA export macro `ExportAllVBAModules` that supports the source-control workflow itself. |
 
 For "does this sheet exist in the add-in", use `SheetExists(ThisWorkbook, name)` from `modHelpers_Workbook` (the old single-purpose `modHelpers_Diagnostics.SheetExists2` was removed in [#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50) — no callers, and it did nothing `SheetExists` didn't).
