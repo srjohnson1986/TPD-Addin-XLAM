@@ -44,6 +44,16 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- Removed two more dead modules
+  ([#61](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/61),
+  [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62)):
+  `modHelpers_Forms` (all three "show a picker form" bridge functions had no
+  callers — every flow instantiates its own form) and `modResources` (its one
+  function only ever no-op'd, since the base `.xlam` always supplies the
+  `_Resources` sheet, and its fallback loaded a logo from a hardcoded
+  `C:\dev\` path). `modStartup.InitializeAddIn` no longer calls
+  `CreateResourcesSheetIfMissing`; `_Resources` + the embedded logo now come
+  purely from the base file.
 - Review loose ends ([#58](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/58)),
   no behavior change: `ExportSheets_Internal` uses the shared
   `RequireActiveWorkbook` guard instead of its own inline check; new

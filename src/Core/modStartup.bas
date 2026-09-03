@@ -4,17 +4,15 @@ Attribute VB_Name = "modStartup"
 '===========================================================
 '  Add-in startup sequencing. InitializeAddIn is called from
 '  modRibbonCallbacks.RibbonOnLoad and makes sure the hidden
-'  _Resources (embedded logo) and _Preferences (saved settings)
-'  sheets both exist before any ribbon command runs.
+'  _Preferences (saved settings) sheet exists before any ribbon
+'  command runs. The _Resources sheet + embedded logo shape
+'  come from the base .xlam, not from code.
 '===========================================================
 
 Option Explicit
 
 Public Sub InitializeAddIn()
-    ' Create embedded resources if needed
-    CreateResourcesSheetIfMissing
-
-    ' Initialize preferences (GetPrefSheet creates _Preferences on first call)
+    ' GetPrefSheet creates _Preferences on first call
     GetPrefSheet
     InitializePreferences
 
