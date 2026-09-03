@@ -43,7 +43,7 @@ Public Sub CreateCustEQList_DoWork( _
     newSheetName = GetNextAvailableSheetName("Customer EQ List")
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
 
-    CopyAllRowsPreserveGroups wsSource, wsNew
+    CopyEntireSheetRows wsSource, wsNew
     modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
 
     FormatEQSheet wsNew, 1

@@ -48,7 +48,7 @@ Public Function GetUniqueValuesInColumn(ws As Worksheet, colIndex As Long) As Co
     lastRow = ws.Cells(ws.Rows.Count, colIndex).End(xlUp).Row
 
     For i = 2 To lastRow   ' skip heading row
-        cellValue = CleanValue(ws.Cells(i, colIndex).value)
+        cellValue = NormalizeCellText(ws.Cells(i, colIndex).value)
 
 
         If Len(cellValue) > 0 Then
@@ -114,7 +114,7 @@ Public Sub CopyFilteredRowsByColumns( _
 
     For Each cell In wsSource.Range(wsSource.Cells(headingsRow + 1, groupColIndex), wsSource.Cells(lastRow, groupColIndex))
 
-        If StrComp(CleanValue(cell.value), CleanValue(matchValue), vbTextCompare) = 0 Then
+        If StrComp(NormalizeCellText(cell.value), NormalizeCellText(matchValue), vbTextCompare) = 0 Then
     
             destCol = 1
             For Each idx In colMap.Keys
@@ -129,7 +129,10 @@ Public Sub CopyFilteredRowsByColumns( _
 
 End Sub
 
-Public Sub CopyAllRowsPreserveGroups(wsSource As Worksheet, wsDest As Worksheet)
+' Copies every row of wsSource onto wsDest verbatim. A whole-row copy (rather
+' than a range copy) carries Excel's row grouping / outline levels across too,
+' which the Customer EQ List needs.
+Public Sub CopyEntireSheetRows(wsSource As Worksheet, wsDest As Worksheet)
     wsSource.Rows("1:" & wsSource.Rows.Count).Copy wsDest.Rows(1)
 End Sub
 

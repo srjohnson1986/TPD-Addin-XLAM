@@ -40,12 +40,17 @@ Public Function SanitizeFileText(ByVal txt As String) As String
     SanitizeFileText = txt
 End Function
 
-Public Function CleanValue(val As Variant) As String
+' Normalizes a cell value to a single comparable line of text: returns "" for
+' error/null/empty, otherwise the first physical line only (splits on CR/LF),
+' with non-breaking spaces converted to normal spaces, runs of spaces collapsed
+' to one, and the result trimmed. Used wherever cell values are compared or
+' deduped (Split Sheet group values, unique-value lists).
+Public Function NormalizeCellText(val As Variant) As String
     Dim s As String
     On Error Resume Next
 
     If IsError(val) Or IsNull(val) Or IsEmpty(val) Then
-        CleanValue = ""
+        NormalizeCellText = ""
         Exit Function
     End If
 
@@ -67,7 +72,7 @@ Public Function CleanValue(val As Variant) As String
         s = Replace(s, "  ", " ")
     Loop
 
-    CleanValue = Trim(s)
+    NormalizeCellText = Trim(s)
 End Function
 
 Public Function IsInArray(val As String, arr As Variant) As Boolean

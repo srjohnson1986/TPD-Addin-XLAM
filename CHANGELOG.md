@@ -44,6 +44,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- Helper renames ([#49](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/49)),
+  no behavior change: `modHelpers_Strings.CleanValue` → `NormalizeCellText` (the
+  old name badly undersold what it does), `modHelpers_Columns.CopyAllRowsPreserveGroups`
+  → `CopyEntireSheetRows` (with a comment noting the whole-row copy is what carries
+  row grouping across). Both got a summary comment.
 - `CopyFilteredRowsByColumns` ([#44](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/44)),
   no behavior change: the row-copy helper no longer bolds the heading row,
   activates/selects the sheet, freezes panes, or autofits — all of which its
