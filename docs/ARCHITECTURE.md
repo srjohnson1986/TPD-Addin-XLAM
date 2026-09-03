@@ -95,12 +95,15 @@ Document modules — code-behind tied to the workbook/sheet objects rather than 
 | `ThisWorkbook` | Workbook-level code-behind. Currently minimal. |
 | `Sheet1`, `Sheet2`, `Sheet3` | Sheet-level code-behind. `Sheet2` has an empty `Worksheet_SelectionChange` stub; the others are currently empty. |
 
-## Known open items
+## Known open work
 
-Defects are tracked as GitHub Issues — see the [`bug` label](https://github.com/srjohnson1986/TPD-Addin-XLAM/labels/bug). No open bug issues right now. The historical defect IDs EQC-10, GEN-04, EXP-07, SPL-11, CORE-01 and EXP-08 are resolved, as is [#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29) (Split Sheet by Column logged a silent run-time 438 per group value — a stray-parens `AutoFitUsedColumns (ws)` call in `modHelpers_SheetFormatting.FormatSplitSheet`). The second review pass [#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)–[#37](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/37) (Split Sheet failure reporting, empty-sheet guards, `WithPerformance` constants, EQ Count hardening, hygiene sweep) is also merged — see `CHANGELOG.md`. CEQ-06 and UI-01 were folded into the refactor below.
+Tracked as GitHub Issues — no open `bug`-labelled issues. One open piece of work:
 
-Non-issue guidance to keep in mind when working these areas:
+- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once "Create Customer EQ List" moves to saved defaults (in `frmSetTPDDefaults`) instead of a per-run picker.
 
-- **GEN-04 ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7))** — fixed. When extending `modPerformance.WithPerformance`, keep the `CleanUp` handler: it must always restore `ScreenUpdating`/`EnableEvents`/`Calculation`, or those settings stay broken for the rest of the Excel session on any error.
-- **[#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)** — fixed. Never call a `Sub` as `MySub (obj)` — the parens make VBA evaluate `obj` by value (its default property), so a `Worksheet`/`Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`. Since [#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32) the `Split Sheet by Column` loop runs each group value through `SplitOneGroup` under inline error handling and reports failures in the final summary, so a regression there surfaces to the user rather than only in `Debug.Print`.
-- **One-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — `CustEQListColumnPickerForm`, `PREF_CUSTEQ_IMAGE`, and `modHelpers_Image` are slated for removal once "Create Customer EQ List" moves to saved defaults (in `frmSetTPDDefaults`) instead of a per-run picker. This subsumes the old CEQ-06 (picker had no min-column validation) and UI-01 (`modHelpers_CheckboxLayout` clips past ~30 headings — still relevant to `splitSheetByColumnOptionsForm` if it keeps a live checkbox grid).
+### Regressions to guard against (all fixed — don't undo them)
+
+- **`modPerformance.WithPerformance` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) / [#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36))** — the `CleanUp` handler must **always** restore `ScreenUpdating` / `EnableEvents` / `Calculation`, or they stay broken for the Excel session on any error. Callers pass a `PERF_*` constant, not a bare string.
+- **Never call a `Sub` as `MySub (obj)` ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29))** — the parens force by-value evaluation (the default property), so a `Worksheet`/`Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop ([#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)) now reports per-value failures in its summary, so a regression there is at least visible.
+
+For the full history of fixed defects (EQC-10, GEN-04, EXP-07, SPL-11, CORE-01, EXP-08, CEQ-06, UI-01, #29–#68), see `CHANGELOG.md`.
