@@ -15,10 +15,11 @@ Public Const PREF_CUSTEQ_COLUMNS As String = "CustEQ_SelectedColumns"
 Public Const PREF_SPLIT_GROUPCOL As String = "Split_GroupColumn"
 Public Const PREF_SPLIT_COLUMNS As String = "Split_SelectedColumns"
 
-' ---- Export Sheets ----
-Public Const PREF_EXPORT_APPEND As String = "Export_AppendText"
-Public Const PREF_EXPORT_INCLUDEDATE As String = "Export_IncludeDate"
-
-' ---- Versioning (optional) ----
+' ---- Versioning ----
 Public Const PREF_VERSION As String = "AddIn_Version"
+
+' "Save Each Sheet to XLSX" (frmFilenameOptions) does not persist its
+' append-text / include-date inputs - it asks every run. If that ever
+' becomes desired it should be workbook-scoped (per file), not a global
+' user preference, so no PREF_* key lives here for it.
 

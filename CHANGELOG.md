@@ -11,6 +11,10 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
+  preference keys — nothing read or wrote them (the "Save Each Sheet to
+  XLSX" dialog asks for its inputs every run and has never persisted them).
+
 ## [2.3.1] - 2026-09-04
 
 A hardening-and-cleanup patch on top of 2.3.0. The headline fix is that
