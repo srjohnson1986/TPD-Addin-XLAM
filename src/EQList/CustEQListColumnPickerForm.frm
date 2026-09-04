@@ -14,15 +14,11 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
 '@Folder("TPD_Addin.EQList")
 
 Option Explicit
 
-' NOTE: the logo is now always the embedded default (#82), so the picker no
-' longer has any image-selection code. The txtImgPath textbox / cmdBrowse
-' button / "Logo Image" label are now vestigial controls with no handlers -
-' delete them in the VBE designer and re-export, or let #25 (which removes
-' this whole form) sweep them.
 
 Private Const ROWS_PER_COLUMN As Long = 10
 Private CancelPressed As Boolean
