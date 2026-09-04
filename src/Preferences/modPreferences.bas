@@ -122,3 +122,119 @@ Public Sub ClearAllPrefs()
     DeleteSetting PREF_APP, PREF_SECTION
     On Error GoTo 0
 End Sub
+
+
+'===========================================================
+'  Set TPD Defaults dialog support
+'===========================================================
+
+'-----------------------------------------------------------
+' Canonical stored form of a column list is comma-separated.
+' Tabs, carriage returns and new lines are all delimiters, so
+' a heading row pasted straight out of Excel normalizes
+' cleanly. Duplicates are kept; empty entries are dropped.
+'-----------------------------------------------------------
+Public Function NormalizeColumnList(ByVal rawText As String) As String
+    Dim working As String
+    Dim parts() As String
+    Dim kept As Collection
+    Dim entry As String
+    Dim i As Long
+
+    working = rawText
+    working = Replace$(working, vbCrLf, ",")
+    working = Replace$(working, vbCr, ",")
+    working = Replace$(working, vbLf, ",")
+    working = Replace$(working, vbTab, ",")
+
+    parts = Split(working, ",")
+    Set kept = New Collection
+
+    For i = LBound(parts) To UBound(parts)
+        entry = CollapseWhitespace(parts(i))
+        If Len(entry) > 0 Then kept.Add entry
+    Next i
+
+    If kept.Count = 0 Then
+        NormalizeColumnList = vbNullString
+        Exit Function
+    End If
+
+    Dim result() As String
+    ReDim result(1 To kept.Count)
+    For i = 1 To kept.Count
+        result(i) = kept(i)
+    Next i
+
+    NormalizeColumnList = Join(result, ", ")
+End Function
+
+
+'-----------------------------------------------------------
+' Trims both ends and collapses internal whitespace runs to a
+' single space, so a stored / typed name compares cleanly.
+'-----------------------------------------------------------
+Public Function CollapseWhitespace(ByVal someText As String) As String
+    Dim working As String
+
+    working = Replace$(Trim$(someText), vbTab, " ")
+    Do While InStr(working, "  ") > 0
+        working = Replace$(working, "  ", " ")
+    Loop
+
+    CollapseWhitespace = working
+End Function
+
+
+'-----------------------------------------------------------
+' True when none of the dialog's four keys has ever been
+' saved for the current user - drives the first-run notice.
+' (Can't test "any pref exists": modPreferences_Initializer
+' always stamps PREF_VERSION.)
+'-----------------------------------------------------------
+Public Function DefaultsNeverSaved() As Boolean
+    DefaultsNeverSaved = _
+        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, vbNullString)) = 0 And _
+        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, vbNullString)) = 0 And _
+        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, vbNullString)) = 0 And _
+        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, vbNullString)) = 0
+End Function
+
+
+'-----------------------------------------------------------
+' Writes all four dialog keys together, rolling back to the
+' prior values on any failure so the store never holds a
+' half-applied set. Returns True on success. Unlike SavePref,
+' this surfaces a write failure to the caller.
+'-----------------------------------------------------------
+Public Function SaveAllDefaults(ByVal eqListColumns As String, _
+                                ByVal scheduleColumns As String, _
+                                ByVal splitColumns As String, _
+                                ByVal splitGroupColumn As String) As Boolean
+    Dim priorEqList As String, priorSchedule As String
+    Dim priorSplit As String, priorGroup As String
+
+    priorEqList = GetSetting(PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, vbNullString)
+    priorSchedule = GetSetting(PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, vbNullString)
+    priorSplit = GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, vbNullString)
+    priorGroup = GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, vbNullString)
+
+    On Error GoTo WriteFailed
+    SaveSetting PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, eqListColumns
+    SaveSetting PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, scheduleColumns
+    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, splitColumns
+    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, splitGroupColumn
+    On Error GoTo 0
+
+    SaveAllDefaults = True
+    Exit Function
+
+WriteFailed:
+    On Error Resume Next
+    SaveSetting PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, priorEqList
+    SaveSetting PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, priorSchedule
+    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, priorSplit
+    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, priorGroup
+    On Error GoTo 0
+    SaveAllDefaults = False
+End Function

@@ -16,6 +16,8 @@
 *.png binary
 *.ico binary
 *.bmp binary
+*.jpg binary
+*.jpeg binary
 
 # ---- Office files kept as build artifacts, not source ----
 # These generally shouldn't be committed at all (see .gitignore), but if one

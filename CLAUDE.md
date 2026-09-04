@@ -13,6 +13,9 @@ The repo tracks VBA **source** (`/src`), not the compiled `.xlam`. The built add
 ```
 /src        VBA source of truth (.bas / .cls / .frm / .frx), organized into subfolders matching Rubberduck @Folder tags
 /customUI   customUI14.xml (ribbon definition) + ribbon icons — lives outside /src, edited directly
+/assets     Source brand/logo images (e.g. tpdAddinLogo.png/.jpg) not read by the build — a UserForm's
+            Picture property embeds the bytes straight into its .frx when set in the VBE, so these are
+            kept only so the original art is in version control for future edits
 /build      Local build output — gitignored, never committed (holds the base .xlam and build artifacts)
 /docs       ARCHITECTURE.md (module-by-module map) and other dev docs
 /tools      TPD_Builder.xlsm — driver workbook whose BuildAddin macro rebuilds the add-in; Build-TPDAddin.ps1 runs it headlessly
@@ -59,7 +62,7 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **EQList** — "Create Customer EQ List" / "EQ Count" flows (`modMain_CustEQList`, `modMain_CountEquipmentRows`), plus the column-picker UserForm.
 - **Schedule** — schedule header insertion; the main schedule automation module is currently a placeholder.
 - **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows, plus their UserForms.
-- **Preferences** — per-user key/value settings in the Windows registry (`SaveSetting`/`GetSetting` under `HKCU\…\TPD_Addin\Preferences`), via `modPreferences`. Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference. A missing key falls back to the caller's default (and the pickers to their built-in column lists).
+- **Preferences** — per-user key/value settings in the Windows registry (`SaveSetting`/`GetSetting` under `HKCU\…\TPD_Addin\Preferences`), via `modPreferences`. Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference. A missing key falls back to the caller's default; the built-in column lists live in `modPreferences_Defaults`. The four `DefaultUser*` column keys are one shared set — `frmSetTPDDefaults` (the Set TPD Defaults dialog, `modMain_SetTPDDefaults`) sets them, the per-run pickers pre-fill from them and write the user's choice back.
 - **Helpers** — shared utilities used by more than one feature area (sheet/workbook ops, header lookup, column filtering, string sanitizing, layout/formatting, checkbox-grid building).
 - **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modStartup` (init sequencing), `modExport_VBAModules` (the export macro `ExportAllVBAModules`).
 - **Document** — code-behind for `ThisWorkbook`/`Sheet1`-`3`. These are document modules: unlike standard modules they can't be removed and re-imported normally — the build macro clears and re-pastes their code text instead of a plain `VBComponents.Import`.
@@ -71,9 +74,9 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 ## Known open work
 
-Tracked as GitHub Issues — no open `bug`-labelled issues. One open piece of work:
+Tracked as GitHub Issues — no open `bug`-labelled issues.
 
-- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — build out `frmSetTPDDefaults` (add a ribbon button; tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo) as the one place to configure each flow's settings. The feature commands then run from the saved preferences (built-in lists as the fallback), no per-run modal for EQ List. Drops `CustEQListColumnPickerForm` (whose `txtImgPath` / `cmdBrowse` controls are already vestigial after [#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82)). Future enhancement, not started.
+- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — **partially delivered.** `frmSetTPDDefaults` is now a working modal (ribbon: TPD → Settings → Set TPD Defaults) with EQ List / Schedule / Split Sheets / Logo tabs. Each column tab is a plain comma-separated MultiLine TextBox (paste a heading row; tabs/newlines → commas), normalized on paste + on exit; per-tab Restore defaults; OK → `SaveAllDefaults` + status-bar confirm; Cancel/Esc/X discard. It writes the shared `DefaultUser*` keys the pickers pre-fill from — the pickers stay as the in-the-moment override (single-key model, no `_CUSTOM` keys, no "save as default" checkbox). Logo tab is a read-only preview of the embedded `_Resources` logo. Open follow-ups: user-settable logo (Browse → embed); headless one-click feature buttons; wiring the EQ List behaviour toggles sketched on the form; moving the pickers' inline default arrays onto `modPreferences_Defaults`; the `txtImgPath` / `cmdBrowse` vestige on `CustEQListColumnPickerForm` from [#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82).
 
 ### Regressions to guard against (all fixed — don't undo them)
 
