@@ -53,7 +53,7 @@ The main Schedule-automation module doesn't exist yet — the empty `modMain_Cus
 | Module | Purpose |
 |---|---|
 | `modPreferences` | Per-user key/value preference storage in the Windows registry via `SaveSetting`/`GetSetting` (`HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`). Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit, so in-workbook writes were silently lost on quit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). `SavePref`/`LoadPref`/`DeletePref` plus `SaveColumnList`/`LoadColumnList` for comma-separated column lists; a missing key returns the caller's default. |
-| `modPreferences_KeyMap` | Central list of every preference key (`PREF_CUSTEQ_COLUMNS`, `PREF_SPLIT_GROUPCOL`, `PREF_EXPORT_APPEND`, etc.) so keys never float as loose string literals. |
+| `modPreferences_KeyMap` | Central list of every preference key (`PREF_CUSTEQ_COLUMNS`, `PREF_SPLIT_GROUPCOL`, `PREF_SPLIT_COLUMNS`, `PREF_VERSION`) so keys never float as loose string literals. |
 | `modPreferences_Initializer` | `InitializePreferences` — stamps `PREF_VERSION` with `ADDIN_VERSION` when it changes (support/diagnostics). No value seeding: `LoadPref` returns the caller's default for any unset key, and each picker falls back to its own built-in column list. |
 | `frmSetTPDDefaults` | The intended "Set TPD Defaults" UserForm ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)). **Currently unreachable** — no ribbon button opens it, and its only code is a `UserForm_Activate` that previews the embedded logo. To be built out with tabs for Customer EQ List / Split Sheet / Customer Schedule / Header Logo. |
 
