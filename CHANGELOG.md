@@ -11,10 +11,30 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
-- Renamed the EQ List column-list preference from `CustEQ_SelectedColumns`
-  to `EQList_SelectedColumns` (constant `PREF_CUSTEQ_COLUMNS` →
-  `PREF_EQLIST_COLUMNS`). A column set saved under 2.3.1 won't carry over —
-  the picker falls back to its built-in defaults until you save once more.
+### Added
+
+- **Set TPD Defaults dialog**
+  ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25),
+  [#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)). A new
+  **TPD → Settings → Set TPD Defaults** ribbon button opens a modal dialog
+  with tabs for EQ List, Schedule, and Split Sheets. Each tab holds the
+  default column list as plain comma-separated text — paste a heading row
+  straight out of Excel and tabs/newlines normalize to commas. "Restore
+  defaults" per tab reverts to the built-in list; OK writes all settings and
+  confirms in the status bar; Cancel discards. The column pickers pre-fill
+  from these same settings, so this is the one place to set "my usual
+  columns" without a per-run pick. The Logo tab previews the embedded
+  add-in logo (read-only for now). The add-in version shows in the corner.
+
+### Changed
+
+- Renamed the shared column-list preference keys to match the dialog:
+  `EQList_SelectedColumns` → `DefaultUserEqListColumns`,
+  `Split_SelectedColumns` → `DefaultUserSplitSheetsColumns`,
+  `Split_GroupColumn` → `DefaultUserSplitSheetsGroupColumn`, plus a new
+  `DefaultUserScheduleColumns`. Column sets saved under 2.3.1 won't carry
+  over — the pickers fall back to their built-in defaults until you save
+  once more (from either the dialog or a picker).
 - Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
   preference keys — nothing read or wrote them (the "Save Each Sheet to
   XLSX" dialog asks for its inputs every run and has never persisted them).

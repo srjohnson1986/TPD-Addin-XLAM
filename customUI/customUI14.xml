@@ -38,6 +38,13 @@
 					imageMso="TableInsertRowsAbove"
 					size="large"/>
 		</group>
+        <group id="grpTPDSettings" label="Settings">
+			<button id="btnSetTPDDefaults"
+					label="Set TPD Defaults"
+					onAction="RunSetTPDDefaults"
+					imageMso="TablePropertiesDialog"
+					size="large"/>
+		</group>
       </tab>
     </tabs>
   </ribbon>
