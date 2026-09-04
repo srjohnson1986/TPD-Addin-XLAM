@@ -30,11 +30,8 @@ End Property
 ' Load columns into checkboxes + ComboBox
 '===========================================================
 Public Sub LoadColumns(headingList As Variant)
-    Dim savedCols As Collection
     Dim i As Long
-    Dim applyDefaults As Boolean
 
-    ' Initialize defaults here
     PreferredDefaultColumns = Array( _
         "INTERNAL ID", _
         "CUSTOMER ID", _
@@ -48,90 +45,40 @@ Public Sub LoadColumns(headingList As Variant)
         "Details" _
     )
 
-    ' Build checkboxes
-    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkSplit", PreferredDefaultColumns, applyDefaults
+    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkSplit"
+    ApplyColumnSelection fraColumns, PREF_SPLIT_COLUMNS, PreferredDefaultColumns
 
-    ' Populate group column dropdown
     cboGroupColumn.Clear
     For i = LBound(headingList) To UBound(headingList)
         cboGroupColumn.AddItem headingList(i)
-
     Next i
 
-    '-----------------------------------------------------------
-    ' Auto-select "Vendor" in cboGroupColumn if available
-    '-----------------------------------------------------------
+    SelectGroupColumn LoadPref(PREF_SPLIT_GROUPCOL, "")
+End Sub
+
+' Picks the group-by column after the dropdown is populated: the saved
+' preference if it's still one of the columns on this sheet, otherwise
+' "Vendor" if present, otherwise the first column.
+Private Sub SelectGroupColumn(ByVal savedGroup As String)
+    Dim i As Long
+
+    If Len(savedGroup) > 0 Then
+        For i = 0 To cboGroupColumn.ListCount - 1
+            If StrComp(cboGroupColumn.List(i), savedGroup, vbTextCompare) = 0 Then
+                cboGroupColumn.ListIndex = i
+                Exit Sub
+            End If
+        Next i
+    End If
+
     For i = 0 To cboGroupColumn.ListCount - 1
         If StrComp(cboGroupColumn.List(i), "Vendor", vbTextCompare) = 0 Then
             cboGroupColumn.ListIndex = i
-            Exit For
+            Exit Sub
         End If
     Next i
 
-    ' Load saved preferences
-    Set savedCols = LoadColumnList(PREF_SPLIT_COLUMNS)
-    applyDefaults = (savedCols Is Nothing) Or (savedCols.Count = 0)
-
-    ' If there are no saved prefs, apply the defaults by caption
-    If applyDefaults Then
-        Dim ctrl As control
-        For Each ctrl In fraColumns.Controls
-            If TypeName(ctrl) = "CheckBox" Then
-                If IsInArray(ctrl.Caption, PreferredDefaultColumns) Then
-                    ctrl.value = True
-                End If
-            End If
-        Next ctrl
-    End If
-
-    ' If saved prefs exist, they override the defaults
-    If Not (savedCols Is Nothing) Then
-        If savedCols.Count > 0 Then
-            AutoSelectColumns fraColumns, savedCols
-        End If
-    End If
-End Sub
-
-'===========================================================
-' Initialize form
-'===========================================================
-Private Sub UserForm_Initialize()
-
-    Dim savedGroup As String
-    Dim savedCols As Collection
-    Dim i As Long
-    Dim vendorIndex As Long
-
-    savedGroup = LoadPref(PREF_SPLIT_GROUPCOL, "")
-    Set savedCols = LoadColumnList(PREF_SPLIT_COLUMNS)
-
-    AutoSelectColumns fraColumns, savedCols
-
-    ' 1. Try saved preference
-    If Len(savedGroup) > 0 Then
-        cboGroupColumn.value = savedGroup
-    End If
-    If cboGroupColumn.ListIndex <> -1 Then Exit Sub
-
-    ' 2. Try Vendor
-    vendorIndex = -1
-    For i = 0 To cboGroupColumn.ListCount - 1
-        If StrComp(cboGroupColumn.List(i), "Vendor", vbTextCompare) = 0 Then
-            vendorIndex = i
-            Exit For
-        End If
-    Next i
-
-    If vendorIndex <> -1 Then
-        cboGroupColumn.ListIndex = vendorIndex
-        Exit Sub
-    End If
-
-    ' 3. Default to first column
-    If cboGroupColumn.ListCount > 0 Then
-        cboGroupColumn.ListIndex = 0
-    End If
-
+    If cboGroupColumn.ListCount > 0 Then cboGroupColumn.ListIndex = 0
 End Sub
 
 '===========================================================
