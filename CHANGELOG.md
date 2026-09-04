@@ -11,77 +11,82 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
-- `FormatSplitSheet` and `FormatEQSheet` now agree on where the data table
-  ends ([#89](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/89)):
-  both take it from `GetLastRow` (last row with content in any column) rather
-  than one using `GetLastRow` and the other a column-A `.End(xlUp)` that
-  missed a trailing row with a blank first cell. `FormatEQSheet`'s
-  fill-clearing loop dropped its separate column-A recompute for the same
-  reason. `GetLastRow` now pins every `.Find` argument so its result can't
-  drift with the last-used Find settings. Convention: "end of the data table"
-  → `GetLastRow`; "last row with a value in column X" → `.End(xlUp)` on X.
-- The Customer EQ List logo is now the embedded TPD logo, top-right of the
-  heading row and scaled to the header block — the same
-  `InsertDefaultLogo … "right-top"` call the "Default EQ List Header" command
-  already uses ([#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82)).
-  Previously "Create Customer EQ List" inserted a user-chosen image file at its
-  natural size (or nothing, if no path was set). The picker's logo-path field
-  and Browse button are now unused controls with no code behind them — delete
-  them in the VBE, or let #25 (which removes the whole form) take them. Removed
-  the `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path pair (their
-  right-align math was already duplicated inside `InsertDefaultLogo`) and the
-  `PREF_CUSTEQ_IMAGE` preference key.
-- Consolidated the two column-picker forms ([#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81)),
-  no behavior change: the "check the user's saved list, else the built-in
-  defaults" step is now one shared `modHelpers_CheckboxSelection.ApplyColumnSelection`
-  instead of a copy in each `LoadColumns`. Dropped the two unused optional
-  parameters on `LayoutCheckboxes`, and removed a wasted `AutoSelectColumns`
-  call each form made from `UserForm_Initialize` before its checkboxes existed.
-  The split picker's group-column default (saved → "Vendor" → first) moved
-  into one `SelectGroupColumn` helper that runs after the dropdown is filled,
-  instead of being split across `UserForm_Initialize` and `LoadColumns`.
-- Preferences (column-picker selections, Split group column, logo path) now
-  persist across Excel sessions ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)).
-  They were stored in a hidden `_Preferences` sheet **inside `TPD_Addin.xlam`**,
-  but Excel never saves an add-in on exit, so every selection was discarded on
-  quit — it only appeared to stick within a session. `modPreferences` now uses
-  the Windows registry (`SaveSetting`/`GetSetting` under
-  `HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`): always
-  writable, written immediately, per Windows user, independent of which
-  workbook is open. A key that was never saved falls back to the caller's
-  default, and each picker to its built-in column list, so a fresh machine
-  still opens with sensible defaults. The `_Preferences` sheet, `PrefSheet` /
-  `GetPrefSheet`, and the default-value seeding in `modPreferences_Initializer`
-  are all gone; `SaveColumnList` no longer crashes on an empty selection.
-- Customer EQ List column picker now restores a saved non-default column
-  selection instead of always reverting to the built-in defaults
-  ([#79](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/79)) — `LoadColumns`
-  read the preference with a string literal instead of the `PREF_CUSTEQ_COLUMNS`
-  key constant, so it never found what OK had saved.
-- Routed duplicated code through the existing shared helpers
-  ([#80](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/80)): the EQ Count
-  "PURCHASED" lookup, the inline last-column scans in the formatting and logo
-  helpers, and the Split Sheet unique-value pass now use `FindHeadingIndex` /
-  `GetLastCol` / `CollectionContainsText` / `GetUniqueValuesInColumn`; the Split
-  and Export end-of-run summaries share one `ReportBatchOutcome`. No user-visible
-  change, except the "PURCHASED" heading match no longer trims surrounding
-  whitespace (it was already case-insensitive).
-- Merged `modHelpers_Image` into `modHelpers_Logo` ([#77](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/77)) — both its
-  functions (`SafeInsertLogoAtRight`, `PastePicture`) were logo-only, so a
-  separate module earned nothing. No behavior change; callers use unqualified
-  names. Retiring the `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path
-  pair itself stays with the one-click EQ List refactor ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25)).
+## [2.3.1] - 2026-09-04
+
+A hardening-and-cleanup patch on top of 2.3.0. The headline fix is that
+preferences finally persist across Excel sessions; there's also a fixed EQ
+List column picker, a single logo path, and a round of helper consolidation.
+Two user-visible changes are under **Changed**.
+
+### Fixed
+
+- **Preferences now persist across Excel sessions**
+  ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). Column
+  selections and the Split group column were kept in a hidden `_Preferences`
+  sheet inside `TPD_Addin.xlam`, which Excel never saves on exit — so every
+  choice was discarded on quit and only appeared to stick within a session.
+  `modPreferences` now uses the Windows registry (`SaveSetting` / `GetSetting`
+  under `HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`):
+  written immediately, per Windows user, independent of the open workbook. A
+  key that was never saved falls back to the built-in defaults, so a fresh
+  machine still opens sensibly.
+- The Customer EQ List column picker restores a saved non-default column set
+  instead of always reverting to the built-in defaults
+  ([#79](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/79)) — it was
+  reading the saved list under a wrong key (a string literal instead of the
+  `PREF_CUSTEQ_COLUMNS` constant).
+- `FormatEQSheet` and `FormatSplitSheet` now agree on where the data table
+  ends ([#89](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/89)) — a
+  split sheet whose first column had a blank trailing cell was formatted one
+  row short. Both use `GetLastRow` (last row with content in any column) now,
+  which also pins all its `Range.Find` arguments so its result can't drift
+  with the last-used Find & Replace settings.
+- `SaveColumnList` no longer raises on an empty column selection.
+
+### Changed
+
+- **The "Create Customer EQ List" logo is now the embedded TPD logo**
+  ([#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82)) — placed
+  top-right of the heading row and scaled to the header block, the same call
+  the "Default EQ List Header" command makes. It was previously a
+  user-selected image file inserted at its natural size (or nothing, if no
+  path was set).
+- The EQ Count `PURCHASED` heading lookup no longer trims surrounding
+  whitespace (it was already case-insensitive), matching the other heading
+  lookups ([#80](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/80)).
+- Internal consolidation, no behaviour change: the two column pickers share
+  one `ApplyColumnSelection` helper
+  ([#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81)); the split
+  picker's group-column default (saved → "Vendor" → first) is one
+  `SelectGroupColumn` helper; inline re-implementations routed through their
+  canonical helpers — `FindHeadingIndex`, `GetLastCol`, `CollectionContainsText`
+  ([#80](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/80)); the Split
+  and Export end-of-run summaries share one `ReportBatchOutcome`;
+  `modHelpers_Image` merged into `modHelpers_Logo`
+  ([#77](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/77)).
+
+### Removed
+
+- The `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path logo pair and
+  the `PREF_CUSTEQ_IMAGE` key
+  ([#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82)); the
+  `_Preferences` sheet with `PrefSheet` / `GetPrefSheet` and the value-seeding
+  in `modPreferences_Initializer`
+  ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)); the
+  `modHelpers_Image` module
+  ([#77](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/77)); two
+  unused optional parameters on `LayoutCheckboxes`
+  ([#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81)). The EQ
+  List picker's now-vestigial logo-path textbox and Browse button were deleted
+  from the form.
+
+### Repo
+
 - `build/_base/TPD_Addin_base.xlam` is no longer tracked — the `.gitignore`
-  `/build/*.xlam` rule missed the `_base/` subdir, so it had been committed
-  since the initial `/build` setup despite the docs saying otherwise. Now
-  `git rm --cached`'d and covered by `/build/**/*.xlam`; the base is a local
-  per-contributor prerequisite (see CONTRIBUTING.md).
-- Corrected the "cutting a release" docs (`CONTRIBUTING.md`, `CLAUDE.md`): the
-  base file must be **stripped of standard modules and UserForms** — the
-  builder can't re-import a form that already exists, so a full add-in `.xlam`
-  is not a valid base. The old "that release's `.xlam` becomes the next base"
-  line was wrong. Also ignore the per-component `.log` files the builder drops
-  in `/src` on an import error.
+  `/build/*.xlam` rule missed the `_base/` subdir. It's a local
+  per-contributor prerequisite (see `CONTRIBUTING.md`), and the release docs
+  were corrected: the base must be **stripped of standard modules and
+  UserForms** or the builder chokes re-importing an existing form.
 
 ## [2.3.0] - 2026-09-03
 

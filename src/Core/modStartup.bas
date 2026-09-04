@@ -13,7 +13,7 @@ Option Explicit
 
 ' The add-in's own version. Bump this on every release (see CONTRIBUTING.md);
 ' modPreferences_Initializer stamps it into the registry as PREF_VERSION.
-Public Const ADDIN_VERSION As String = "2.3.0"
+Public Const ADDIN_VERSION As String = "2.3.1"
 
 Public Sub InitializeAddIn()
     InitializePreferences
