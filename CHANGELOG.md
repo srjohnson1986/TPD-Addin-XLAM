@@ -11,6 +11,10 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- Renamed the EQ List column-list preference from `CustEQ_SelectedColumns`
+  to `EQList_SelectedColumns` (constant `PREF_CUSTEQ_COLUMNS` →
+  `PREF_EQLIST_COLUMNS`). A column set saved under 2.3.1 won't carry over —
+  the picker falls back to its built-in defaults until you save once more.
 - Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
   preference keys — nothing read or wrote them (the "Save Each Sheet to
   XLSX" dialog asks for its inputs every run and has never persisted them).
