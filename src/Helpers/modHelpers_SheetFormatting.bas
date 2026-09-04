@@ -44,14 +44,14 @@ Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
         .Color = RGB(0, 0, 0)
     End With
 
+    ' Clear any stray fill on populated rows. Uses the table lastRow from
+    ' above; rows with a blank column A just fall through the guard (#89).
     Dim r As Long
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
     For r = headingsRow To lastRow
         If Trim(CStr(ws.Cells(r, 1).value)) <> "" Then
             ws.Rows(r).Interior.ColorIndex = xlNone
         End If
     Next r
-
 
 End Sub
 
@@ -60,7 +60,7 @@ Public Sub FormatSplitSheet(ws As Worksheet, headingsRow As Long)
     Dim lastCol As Long
     Dim dataRange As Range
 
-    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    lastRow = GetLastRow(ws)
     lastCol = GetLastCol(ws, headingsRow)
 
     Set dataRange = ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol))

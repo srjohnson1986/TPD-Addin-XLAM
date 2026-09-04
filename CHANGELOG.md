@@ -11,6 +11,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- `FormatSplitSheet` and `FormatEQSheet` now agree on where the data table
+  ends ([#89](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/89)):
+  both take it from `GetLastRow` (last row with content in any column) rather
+  than one using `GetLastRow` and the other a column-A `.End(xlUp)` that
+  missed a trailing row with a blank first cell. `FormatEQSheet`'s
+  fill-clearing loop dropped its separate column-A recompute for the same
+  reason. `GetLastRow` now pins every `.Find` argument so its result can't
+  drift with the last-used Find settings. Convention: "end of the data table"
+  → `GetLastRow`; "last row with a value in column X" → `.End(xlUp)` on X.
 - The Customer EQ List logo is now the embedded TPD logo, top-right of the
   heading row and scaled to the header block — the same
   `InsertDefaultLogo … "right-top"` call the "Default EQ List Header" command

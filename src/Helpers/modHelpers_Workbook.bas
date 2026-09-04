@@ -100,11 +100,19 @@ Public Function GetNextAvailableSheetName(baseName As String) As String
     GetNextAvailableSheetName = nameToTry
 End Function
 
+' Last row with content anywhere on the sheet (any column). Use this for
+' "end of the data table"; use .End(xlUp) on a specific column only when you
+' deliberately mean that one column (#89).
 Public Function GetLastRow(ws As Worksheet) As Long
+    ' All Find arguments are pinned: the unspecified ones otherwise inherit
+    ' whatever the last Find call - or the user's Find & Replace dialog - left
+    ' set, so results would vary between runs.
     ' Find returns Nothing on a completely empty sheet - treat that as row 1
     ' rather than letting .Row raise error 91 (see issue #33).
     Dim found As Range
-    Set found = ws.Cells.Find("*", , , , xlByRows, xlPrevious)
+    Set found = ws.Cells.Find(What:="*", LookIn:=xlFormulas, LookAt:=xlPart, _
+                              SearchOrder:=xlByRows, SearchDirection:=xlPrevious, _
+                              MatchCase:=False)
     If found Is Nothing Then
         GetLastRow = 1
     Else
