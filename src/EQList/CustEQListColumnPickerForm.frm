@@ -51,7 +51,7 @@ Public Sub LoadColumns(headingList As Variant)
     )
 
     LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkCustEQ"
-    ApplyColumnSelection fraColumns, PREF_CUSTEQ_COLUMNS, PreferredDefaultColumns
+    ApplyColumnSelection fraColumns, PREF_EQLIST_COLUMNS, PreferredDefaultColumns
 
 End Sub
 
@@ -59,7 +59,7 @@ End Sub
 ' OK / Cancel
 '===========================================================
 Private Sub cmdOK_Click()
-    SaveColumnList PREF_CUSTEQ_COLUMNS, GetSelectedColumns(fraColumns)
+    SaveColumnList PREF_EQLIST_COLUMNS, GetSelectedColumns(fraColumns)
 
     CancelPressed = False
     Me.Hide

@@ -9,7 +9,7 @@ Option Explicit
 '===========================================================
 
 ' ---- Customer EQ List ----
-Public Const PREF_CUSTEQ_COLUMNS As String = "CustEQ_SelectedColumns"
+Public Const PREF_EQLIST_COLUMNS As String = "EQList_SelectedColumns"
 
 ' ---- Split Sheet By Column ----
 Public Const PREF_SPLIT_GROUPCOL As String = "Split_GroupColumn"
