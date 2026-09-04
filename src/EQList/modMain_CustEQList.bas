@@ -4,8 +4,9 @@ Attribute VB_Name = "modMain_CustEQList"
 '===========================================================
 '  "Create Customer EQ List" flow: shows the column picker,
 '  copies every row to a new sheet, drops the unselected
-'  columns, formats it, and adds the EQ header block + logo +
-'  frozen panes. _DoWork is the testable core (no UI).
+'  columns, formats it, and adds the EQ header block + the
+'  embedded default logo + frozen panes. _DoWork is the
+'  testable core (no UI).
 '===========================================================
 
 Option Explicit
@@ -21,7 +22,6 @@ Public Sub CreateCustEQList_Internal()
     Dim headings As Variant
     Dim frm As CustEQListColumnPickerForm
     Dim selectedCols As Collection
-    Dim imgPath As String
 
     Set wsSource = GetFirstVisibleSheet()
     If wsSource Is Nothing Then Exit Sub
@@ -34,15 +34,13 @@ Public Sub CreateCustEQList_Internal()
     If frm.Cancelled Then Exit Sub
 
     Set selectedCols = GetSelectedColumns(frm.fraColumns)
-    imgPath = frm.imgPath
 
-    CreateCustEQList_DoWork wsSource, selectedCols, imgPath
+    CreateCustEQList_DoWork wsSource, selectedCols
 End Sub
 
 Public Sub CreateCustEQList_DoWork( _
         ByVal wsSource As Worksheet, _
-        ByVal selectedCols As Collection, _
-        ByVal imgPath As String)
+        ByVal selectedCols As Collection)
 
     Dim wsNew As Worksheet
     Dim newSheetName As String
@@ -57,7 +55,9 @@ Public Sub CreateCustEQList_DoWork( _
     AutoFitUsedColumns wsNew
 
     InsertEQHeaderBlock wsNew
-    SafeInsertLogoAtRight wsNew, imgPath, 1, EQ_HEADER_ROW_COUNT + 1
+    ' Embedded default logo, top-right of the heading row, scaled to the
+    ' header block - same call the "Default EQ List Header" command uses.
+    InsertDefaultLogo wsNew, EQ_HEADER_ROW_COUNT + 1, "right-top", EQ_HEADER_ROW_COUNT
 
     SafeFreezePanes wsNew, EQ_HEADER_ROW_COUNT + 1
 End Sub
