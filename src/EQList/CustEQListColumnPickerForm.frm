@@ -14,22 +14,19 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
 '@Folder("TPD_Addin.EQList")
 
 Option Explicit
 
+
 Private Const ROWS_PER_COLUMN As Long = 10
 Private CancelPressed As Boolean
-Private SelectedImgPath As String
 Private PreferredDefaultColumns As Variant
 
 
 Public Property Get Cancelled() As Boolean
     Cancelled = CancelPressed
-End Property
-
-Public Property Get imgPath() As String
-    imgPath = SelectedImgPath
 End Property
 
 '===========================================================
@@ -58,43 +55,10 @@ Public Sub LoadColumns(headingList As Variant)
 
 End Sub
 
-
-
-'===========================================================
-' Initialize form
-'===========================================================
-Private Sub UserForm_Initialize()
-    ' Column checkboxes don't exist yet - LoadColumns (called right after New)
-    ' builds them and applies the saved / default selection.
-    SelectedImgPath = LoadPref(PREF_CUSTEQ_IMAGE, "")
-    txtImgPath.Text = SelectedImgPath
-End Sub
-
-'===========================================================
-' Browse for image
-'===========================================================
-Private Sub cmdBrowse_Click()
-    Dim fd As FileDialog
-    Set fd = Application.FileDialog(msoFileDialogFilePicker)
-
-    With fd
-        .Title = "Select Logo Image"
-        .Filters.Clear
-        .Filters.Add "Images", "*.png;*.jpg;*.jpeg;*.bmp;*.gif"
-        .AllowMultiSelect = False
-
-        If .Show = -1 Then
-            SelectedImgPath = .SelectedItems(1)
-            txtImgPath.Text = SelectedImgPath
-        End If
-    End With
-End Sub
-
 '===========================================================
 ' OK / Cancel
 '===========================================================
 Private Sub cmdOK_Click()
-    SavePref PREF_CUSTEQ_IMAGE, SelectedImgPath
     SaveColumnList PREF_CUSTEQ_COLUMNS, GetSelectedColumns(fraColumns)
 
     CancelPressed = False

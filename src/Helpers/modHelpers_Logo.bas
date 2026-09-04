@@ -2,60 +2,17 @@ Attribute VB_Name = "modHelpers_Logo"
 '@Folder("TPD_Addin.Helpers")
 
 '===========================================================
-'  Places and sizes the logo shape on a generated sheet:
-'  the embedded default logo from _Resources (InsertDefaultLogo,
-'  with horizontal/vertical alignment keywords) and resizing a
-'  picture to fit a maximum row count. anchorRow is the row the
-'  logo is positioned against - a title-block row or a heading
-'  row depending on the caller.
-'  PastePicture pulls an image off the clipboard as a StdPicture
-'  (used by frmSetTPDDefaults to preview the embedded logo).
-'  InsertLogoAtRight / SafeInsertLogoAtRight are legacy of the
-'  file-path logo approach - slated for removal with the
-'  one-click EQ List refactor (#25).
+'  Places and sizes the embedded default logo (from the
+'  _Resources sheet) on a generated sheet: InsertDefaultLogo
+'  takes horizontal/vertical alignment keywords and an optional
+'  max row count to scale into. anchorRow is the row the logo
+'  is positioned against - a title-block row or a heading row
+'  depending on the caller. ResizeImageToMaxRows is the scaling
+'  helper. PastePicture pulls an image off the clipboard as a
+'  StdPicture (used by frmSetTPDDefaults to preview the logo).
 '===========================================================
 
 Option Explicit
-
-Public Sub InsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Long, dataHeaderRow As Long)
-    Dim pic As Shape
-    Dim lastUsedCol As Long
-    Dim naturalWidth As Single, naturalHeight As Single
-
-    If Len(Dir(imgPath)) = 0 Then Exit Sub
-
-    Set pic = ws.Shapes.AddPicture( _
-        Filename:=imgPath, _
-        LinkToFile:=msoFalse, _
-        SaveWithDocument:=msoTrue, _
-        Left:=0, Top:=0, Width:=-1, Height:=-1)
-
-    naturalWidth = pic.Width
-    naturalHeight = pic.Height
-
-    lastUsedCol = ws.Cells(dataHeaderRow, ws.Columns.Count).End(xlToLeft).Column
-
-    pic.Left = ws.Cells(headerRow, lastUsedCol).Left + _
-               (ws.Cells(headerRow, lastUsedCol).Width - naturalWidth)
-    pic.Top = ws.Cells(headerRow, lastUsedCol).Top
-
-    pic.Width = naturalWidth
-    pic.Height = naturalHeight
-    pic.LockAspectRatio = msoTrue
-    pic.Placement = xlFreeFloating
-End Sub
-
-Public Sub SafeInsertLogoAtRight(ws As Worksheet, imgPath As String, headerRow As Long, dataHeaderRow As Long)
-    On Error GoTo LogoErr
-
-    If Len(Dir(imgPath)) = 0 Then Exit Sub
-
-    InsertLogoAtRight ws, imgPath, headerRow, dataHeaderRow
-    Exit Sub
-
-LogoErr:
-    MsgBox "Unable to insert logo image: " & imgPath, vbExclamation
-End Sub
 
 Public Sub ResizeImageToMaxRows(pic As Shape, ws As Worksheet, anchorRow As Long, maxRows As Long)
     Dim maxHeight As Double

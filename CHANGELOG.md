@@ -11,6 +11,17 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+- The Customer EQ List logo is now the embedded TPD logo, top-right of the
+  heading row and scaled to the header block — the same
+  `InsertDefaultLogo … "right-top"` call the "Default EQ List Header" command
+  already uses ([#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82)).
+  Previously "Create Customer EQ List" inserted a user-chosen image file at its
+  natural size (or nothing, if no path was set). The picker's logo-path field
+  and Browse button are now unused controls with no code behind them — delete
+  them in the VBE, or let #25 (which removes the whole form) take them. Removed
+  the `InsertLogoAtRight` / `SafeInsertLogoAtRight` file-path pair (their
+  right-align math was already duplicated inside `InsertDefaultLogo`) and the
+  `PREF_CUSTEQ_IMAGE` preference key.
 - Consolidated the two column-picker forms ([#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81)),
   no behavior change: the "check the user's saved list, else the built-in
   defaults" step is now one shared `modHelpers_CheckboxSelection.ApplyColumnSelection`

@@ -9,7 +9,6 @@ Option Explicit
 '===========================================================
 
 ' ---- Customer EQ List ----
-Public Const PREF_CUSTEQ_IMAGE As String = "CustEQ_ImgPath"
 Public Const PREF_CUSTEQ_COLUMNS As String = "CustEQ_SelectedColumns"
 
 ' ---- Split Sheet By Column ----
