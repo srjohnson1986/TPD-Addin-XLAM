@@ -34,6 +34,14 @@ Private Const STATUS_CLEAR_SECONDS As Long = 4
 ' Ctrl bit in a KeyUp Shift argument.
 Private Const CTRL_MASK As Integer = 2
 
+' First-run notice (#99): gap in points between the brand band and the
+' notice, and between the notice and the page control below it.
+Private Const NOTICE_GAP As Single = 6
+
+' True while UserForm_Initialize runs, so setting mpgPages.Value from the
+' saved tab (#135) doesn't bounce straight back through mpgPages_Change.
+Private mInitializing As Boolean
+
 ' Logo tab: which change is staged for OK (Cancel discards it).
 Private Const LOGO_NONE As Long = 0
 Private Const LOGO_CHOOSE As Long = 1
@@ -49,6 +57,7 @@ Private mBuiltInLogoPic As stdole.IPictureDisp
 '--- Lifecycle -------------------------------------------------------------
 
 Private Sub UserForm_Initialize()
+    mInitializing = True
     Me.Caption = "Set Defaults"
 
     ' TPD grey #64665D - VBA BackColor is BGR, not RGB.
@@ -65,12 +74,62 @@ Private Sub UserForm_Initialize()
     InitAboutLinks
 
     LoadValues
-    mpgPages.value = 0
-    lblFirstRunNotice.Visible = modPreferences.DefaultsNeverSaved()
+    mpgPages.value = SavedTabIndex()
+    ApplyFirstRunNoticeLayout
 
     Set mBuiltInLogoPic = imgLogoPreview.Picture   ' before RefreshLogoTab overrides it
     imgLogoPreview.PictureSizeMode = fmPictureSizeModeZoom
     RefreshLogoTab
+
+    mInitializing = False
+End Sub
+
+'--- Last-used tab (#135) ---------------------------------------------
+'
+' Reopen on whichever tab was showing last. UI state only - stored
+' outside the dialog's default keys so it can't affect the first-run
+' notice. An unset or out-of-range value falls back to the first tab,
+' which also keeps the #99 notice on EQ List where it's designed to be.
+
+Private Function SavedTabIndex() As Long
+    Dim idx As Long
+
+    idx = Val(LoadPref(PREF_SETDEFAULTS_LAST_TAB, "0"))
+    If idx < 0 Or idx > mpgPages.Pages.Count - 1 Then idx = 0
+    SavedTabIndex = idx
+End Function
+
+Private Sub mpgPages_Change()
+    If mInitializing Then Exit Sub
+    SavePref PREF_SETDEFAULTS_LAST_TAB, CStr(mpgPages.value)
+End Sub
+
+'--- First-run notice layout (#99) -------------------------------------
+'
+' lblFirstRunNotice is a form-level control - a sibling of mpgPages, not
+' a child of pgEqList - so it can't push one page's fields out of line
+' with the others (issue #99, solution b). It only ever shows on a
+' machine that has never saved defaults. When it does, drop it just
+' below the brand band and push mpgPages down by the height it takes,
+' shrinking the page control by the same amount so the OK / Cancel row
+' and the About links (both below mpgPages) keep their place. When it's
+' hidden - every run after the first save - the design-time layout is
+' already correct and nothing moves.
+
+Private Sub ApplyFirstRunNoticeLayout()
+    Dim shift As Single
+
+    If Not modPreferences.DefaultsNeverSaved() Then
+        lblFirstRunNotice.Visible = False
+        Exit Sub
+    End If
+
+    lblFirstRunNotice.Top = lblBrandBar.Top + lblBrandBar.Height + NOTICE_GAP
+    lblFirstRunNotice.Visible = True
+
+    shift = lblFirstRunNotice.Height + NOTICE_GAP
+    mpgPages.Top = mpgPages.Top + shift
+    mpgPages.Height = mpgPages.Height - shift
 End Sub
 
 '--- About links (#94) --------------------------------------------------

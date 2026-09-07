@@ -13,6 +13,10 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Added
 
+- **Set Defaults dialog reopens on the last tab you used**
+  ([#135](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/135)).
+  Previously it always opened on **EQ List**. The chosen tab is remembered per
+  Windows user; a fresh install still opens on **EQ List**.
 - **Links on the Set Defaults dialog**
   ([#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)). The
   version in the bottom corner is now a link to that version's GitHub release
@@ -31,7 +35,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
-- **One-click EQ List no longer leaves stray row shading**
+- **Set Defaults dialog: tabs no longer jump vertically**
+  ([#99](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/99)). The
+  first-run "these are the built-in defaults" notice used to live inside the
+  **EQ List** tab, so that tab's fields sat lower than the other tabs' and
+  switching tabs showed a visible jump. The notice is now a form-level banner
+  above the tab strip that only appears until you first save defaults, and the
+  **Schedule** tab's column-list label now matches the font of the others.
   ([#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130)). The
   source sheet's background fill is now stripped the same way whether you use
   the **Create Customer EQ List** picker or the one-click **EQ List** button:
