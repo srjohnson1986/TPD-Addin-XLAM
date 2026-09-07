@@ -6,8 +6,10 @@ This is a module-level map of the add-in as of the `v2.3.0` release, organized b
 
 The add-in exposes one custom ribbon tab ("TPD") with two groups, defined in `customUI/customUI14.xml`:
 
-- **Sheet Tools** — EQ Count, and the picker (custom) paths: "Create Customer EQ List", "Create Customer Schedule", "Split Sheet by Column", plus "Save Each Sheet to XLSX".
-- **Defaults** — the one-click paths ("EQ List", "Schedule", "Split Sheets" — run a flow straight from saved defaults, no picker) beside the large "Set TPD Defaults" button.
+- **Sheet Tools** — the picker (custom) paths: "Create Customer EQ List", "Create Customer Schedule", "Split Sheet by Column", plus "Save Each Sheet to XLSX".
+- **One-click** — the one-click paths ("EQ List", "Schedule", "Split Sheets" — run a flow straight from saved defaults, no picker) beside the large "Set Defaults" button.
+
+The "EQ Count" flow (`modMain_CountEquipmentRows`) has no ribbon button — it was removed for [#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120) — but the module and its `RunCountEquipmentRows` callback are retained.
 
 Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which delegate to the feature modules described below. Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and stamps the running version into the registry-backed preference store. Saved settings live in the Windows registry per user (`modPreferences`), not in the workbook. The default header logo is the embedded `_Resources` / `DefaultLogo` shape from the base `.xlam`; a user can replace it in Set TPD Defaults with their own image, which is copied to `%APPDATA%\TPD_Addin\` and used by every flow ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95)).
 
