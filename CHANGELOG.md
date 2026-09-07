@@ -11,6 +11,8 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-09-07
+
 ### Added
 
 - **Set Defaults dialog reopens on the last tab you used**
