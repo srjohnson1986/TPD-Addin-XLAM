@@ -23,8 +23,9 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   defaults" per tab reverts to the built-in list; OK writes all settings and
   confirms in the status bar; Cancel discards. The column pickers pre-fill
   from these same settings, so this is the one place to set "my usual
-  columns" without a per-run pick. The Logo tab previews the embedded
-  add-in logo (read-only for now). The add-in version shows in the corner.
+  columns" without a per-run pick. The Logo tab is an informational note
+  that the header logo is embedded in the add-in. The add-in version shows
+  in the corner.
 
 ### Changed
 
@@ -38,6 +39,21 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
   preference keys — nothing read or wrote them (the "Save Each Sheet to
   XLSX" dialog asks for its inputs every run and has never persisted them).
+- Removed the Set TPD Defaults logo preview
+  ([#105](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/105)). It
+  never actually rendered — the `PastePicture` helper it relied on was a
+  stub that made an empty text-only clipboard object and never read the
+  Windows clipboard — and it re-copied the logo shape to the clipboard
+  (clobbering whatever the user had copied) on every `UserForm_Activate`.
+  The Logo tab is now just the "this logo is embedded in the add-in" note;
+  a working preview is folded into the user-settable-logo work
+  ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95),
+  [#109](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109)). The
+  `_Resources` / `DefaultLogo` lookup that both the preview and
+  `InsertDefaultLogo` hard-coded now lives once in
+  `modHelpers_Logo.DefaultLogoShape`, and `InsertDefaultLogo` raises a
+  clear message instead of a cryptic "subscript out of range" if the base
+  file is missing the shape.
 - Set TPD Defaults now blocks OK if any of the three column-list fields is
   empty, pointing at "Restore defaults"
   ([#104](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/104)). An
