@@ -32,3 +32,6 @@
 
 # ---- Dev tooling (Windows-only repo) ----
 *.ps1 text eol=crlf
+# Shell scripts must stay LF even on a Windows checkout (autocrlf=true) or
+# the shebang line breaks when the hook / CI runs them through bash.
+*.sh text eol=lf

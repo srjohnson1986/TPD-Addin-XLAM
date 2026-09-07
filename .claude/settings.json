@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q 'modStartup\\.bas' && bash \"$CLAUDE_PROJECT_DIR/tools/sync-readme-version.sh\" || true",
+            "statusMessage": "Syncing README version"
+          }
+        ]
+      }
+    ]
+  }
+}

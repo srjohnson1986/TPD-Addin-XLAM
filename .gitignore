@@ -30,3 +30,9 @@ desktop.ini
 # ---- Editor/backup junk ----
 *.bak
 *~
+
+# ---- Claude Code ----
+# .claude/settings.json IS tracked (team-wide hooks). Personal overrides and
+# the scheduler lock are not.
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
