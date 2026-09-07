@@ -14,6 +14,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -172,7 +173,7 @@ End Sub
 ' and that pasting a heading row straight out of Excel works. Captions
 ' live here rather than as design-time .frx properties so the copy stays
 ' in source and reviewable (same reason as InitAboutLinks). The labels
-' themselves are placed in the VBE - lblEqListHelp / lblScheduleHelp /
+' themselves are placed in the VBE - lblEQListHelp / lblScheduleHelp /
 ' lblSplitColsHelp / lblSplitGroupHelp / lblLogoHelp, all WordWrap, no
 ' TabStop.
 
@@ -181,14 +182,14 @@ Private Sub SetHelperText()
         "Header names from row 1, in output order. " & _
         "Paste a row from Excel - tabs become commas."
 
-    lblEqListHelp.Caption = PASTE_HINT
+    lblEQListHelp.Caption = PASTE_HINT
     lblScheduleHelp.Caption = PASTE_HINT
     lblSplitColsHelp.Caption = "Header names from row 1, in output order."
     lblSplitGroupHelp.Caption = "One header name. A sheet is created per unique value."
     lblLogoHelp.Caption = "PNG, JPG, GIF or BMP. The file is copied into the " & _
                           "add-in, so it applies to every workbook."
 
-    MuteHelperLabel lblEqListHelp
+    MuteHelperLabel lblEQListHelp
     MuteHelperLabel lblScheduleHelp
     MuteHelperLabel lblSplitColsHelp
     MuteHelperLabel lblSplitGroupHelp
