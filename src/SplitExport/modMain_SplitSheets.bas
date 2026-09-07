@@ -27,7 +27,7 @@ Public Sub SplitSheetByColumn_Internal()
 
     Dim wsSource As Worksheet
     Dim headings As Variant
-    Dim frm As splitSheetByColumnOptionsForm
+    Dim frm As frmSplitSheetOptions
     Dim selectedCols As Collection
     Dim groupCol As String
 
@@ -35,7 +35,7 @@ Public Sub SplitSheetByColumn_Internal()
     If wsSource Is Nothing Then Exit Sub
     headings = GetHeadingList(wsSource, 1)
 
-    Set frm = New splitSheetByColumnOptionsForm
+    Set frm = New frmSplitSheetOptions
     frm.LoadColumns headings
     frm.Show
 

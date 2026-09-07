@@ -21,14 +21,14 @@ Option Explicit
 
 '===========================================================
 '  Column picker for the "Create Customer Schedule" flow -
-'  the schedule twin of CustEQListColumnPickerForm. LoadColumns
+'  the schedule twin of frmCustEQListColumnPicker. LoadColumns
 '  builds the checkbox grid then applies the resolved selection
 '  (this picker's own last-used, else the Set TPD Defaults
 '  value, else the shipped default list); OK saves the ticked
 '  set to the picker-only PREF_SCHEDULE_PICKER_COLUMNS key after
 '  checking at least one column is ticked.
 '
-'  The .frx started as a byte-clone of CustEQListColumnPickerForm.frx
+'  The .frx started as a byte-clone of frmCustEQListColumnPicker.frx
 '  (#113); lblCustScheduleTitle was renamed from the EQ control
 '  name, and its "Customer EQ List Generator" design-time caption
 '  is overridden in UserForm_Initialize (#114).

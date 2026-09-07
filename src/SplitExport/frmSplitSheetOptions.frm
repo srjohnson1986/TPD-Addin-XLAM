@@ -1,18 +1,19 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} splitSheetByColumnOptionsForm 
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmSplitSheetOptions 
    Caption         =   "Split Sheet By Column"
    ClientHeight    =   6684
    ClientLeft      =   108
    ClientTop       =   456
    ClientWidth     =   12264
-   OleObjectBlob   =   "splitSheetByColumnOptionsForm.frx":0000
+   OleObjectBlob   =   "frmSplitSheetOptions.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
-Attribute VB_Name = "splitSheetByColumnOptionsForm"
+Attribute VB_Name = "frmSplitSheetOptions"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 
 '@Folder("TPD_Addin.SplitExport")
 
@@ -107,5 +108,3 @@ Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
         Me.Hide
     End If
 End Sub
-
-
