@@ -49,6 +49,13 @@ Public Const PREF_SPLIT_PICKER_COLUMNS As String = "LastUsedSplitSheetsColumns"
 ' set - the logo is applied on its own in cmdOk_Click, not via SaveAllDefaults.
 Public Const PREF_LOGO_PATH As String = "UserLogoPath"
 
+' ---- Set Defaults dialog UI state ----
+' The tab (mpgPages.Value) frmSetTPDDefaults was last showing, so it
+' reopens where you left off (#135). UI state, not a default - kept out
+' of DefaultsPrefKeys so it never trips DefaultsNeverSaved() / the
+' first-run notice.
+Public Const PREF_SETDEFAULTS_LAST_TAB As String = "SetDefaults_LastTab"
+
 ' ---- Versioning ----
 Public Const PREF_VERSION As String = "AddIn_Version"
 
