@@ -58,7 +58,12 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — this is what the README's Download link points to.
 3. Add an entry to `CHANGELOG.md` describing what changed.
 4. Refresh the base **only if this release changed something outside `/src`** (ribbon XML, worksheets, styles, the `_Resources` logo shape). To do it, take a copy of the release `.xlam`, delete every standard module and UserForm from its VBA project (leaving the document modules), and save that as `build/_base/TPD_Addin_base.xlam`. If the release was `/src`-only, the existing base is still current — leave it.
-5. **Update the user guide and re-sync the wiki.** Bring [docs/USER_GUIDE.md](docs/USER_GUIDE.md) in line with anything user-visible in this release (ribbon, dialogs, behaviour). Then mirror it to the [wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki): `git clone https://github.com/srjohnson1986/TPD-Addin-XLAM.wiki.git`, copy `docs/USER_GUIDE.md` over the wiki's `Home.md` (keeping the "this page mirrors…" note at the top), commit, push. The wiki repo only exists once its first page has been created via the GitHub web UI.
+5. **Update the user guide and re-sync the wiki.** Bring [docs/USER_GUIDE.md](docs/USER_GUIDE.md) in line with anything user-visible in this release (ribbon, dialogs, behaviour). Then regenerate the wiki's `Home.md` from it:
+   - `git clone https://github.com/srjohnson1986/TPD-Addin-XLAM.wiki.git`
+   - Rebuild `Home.md` as: the `# TPD Add-in — User Guide` H1, then the existing **"Do not edit this page in the wiki editor"** blockquote (copy it from the current `Home.md`), then the rest of `docs/USER_GUIDE.md` from its first paragraph on (i.e. drop the repo file's H1 and the blank line under it).
+   - Commit and push.
+
+   Only `Home.md` is generated this way. `_Sidebar.md` and any other wiki pages are hand-maintained — don't touch them. (The wiki repo exists only after its first page has been created via the GitHub web UI.)
 
 ## Known constraints to keep in mind
 
