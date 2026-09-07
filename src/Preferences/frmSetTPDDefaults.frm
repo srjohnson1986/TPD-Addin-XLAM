@@ -13,10 +13,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
-
-
-
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -66,7 +62,7 @@ Private Sub UserForm_Initialize()
     txtSplitColumns.Multiline = True
     txtSplitColumns.ScrollBars = fmScrollBarsVertical
 
-    lblVersion.Caption = "v" & ADDIN_VERSION
+    InitAboutLinks
 
     LoadValues
     mpgPages.value = 0
@@ -77,13 +73,44 @@ Private Sub UserForm_Initialize()
     RefreshLogoTab
 End Sub
 
+'--- About links (#94) --------------------------------------------------
+'
+' lblVersion and lblUserGuide are plain labels sitting in the bottom
+' corner of the form (outside mpgPages, so they show on every tab). Their
+' link look - blue, underlined - is applied here rather than as design-
+' time properties so it stays in source; the URLs live in modAbout.
+'   lblVersion   -> this version's GitHub release page
+'   lblUserGuide -> the user guide (wiki)
+
+Private Sub InitAboutLinks()
+    lblVersion.Caption = "v" & ADDIN_VERSION
+    StyleAsLink lblVersion
+    lblVersion.ControlTipText = AboutReleaseUrl()
+
+    lblUserGuide.Caption = "User guide"
+    StyleAsLink lblUserGuide
+    lblUserGuide.ControlTipText = modAbout.ABOUT_USER_GUIDE_URL
+End Sub
+
+Private Sub StyleAsLink(ByVal lbl As MSForms.Label)
+    lbl.ForeColor = RGB(0, 102, 204)   ' hyperlink blue (RGB() handles BGR)
+    lbl.Font.Underline = True
+End Sub
+
+Private Sub lblVersion_Click()
+    modAbout.OpenReleasePage
+End Sub
+
+Private Sub lblUserGuide_Click()
+    modAbout.OpenUserGuide
+End Sub
+
 Private Sub LoadValues()
     txtEqListColumns.Text = LoadPref(PREF_EQLIST_COLUMNS, DefaultEqListColumns())
     txtScheduleColumns.Text = LoadPref(PREF_SCHEDULE_COLUMNS, DefaultScheduleColumns())
     txtSplitColumns.Text = LoadPref(PREF_SPLIT_COLUMNS, DefaultSplitColumns())
     txtSplitGroupColumn.Text = LoadPref(PREF_SPLIT_GROUPCOL, DefaultSplitGroupColumn())
 End Sub
-
 
 '--- Column boxes: normalize on paste and on losing focus (spec 2) --------
 
@@ -142,7 +169,6 @@ Private Sub cmdRestoreSplitSheets_Click()
     txtSplitColumns.Text = DefaultSplitColumns()
     txtSplitGroupColumn.Text = DefaultSplitGroupColumn()
 End Sub
-
 
 '--- Logo tab (#95 / #109) -------------------------------------------------
 '
@@ -238,7 +264,6 @@ Private Function ApplyPendingLogo() As String
             modHelpers_Logo.ClearUserLogo
     End Select
 End Function
-
 
 '--- OK / Cancel (spec 6, 7) -------------------------------------------------
 

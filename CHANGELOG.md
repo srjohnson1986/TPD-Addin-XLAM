@@ -11,6 +11,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Added
+
+- **Links on the Set Defaults dialog**
+  ([#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)). The
+  version in the bottom corner is now a link to that version's GitHub release
+  page, and a new **User guide** link beside it opens the project wiki. Both
+  open in your default browser; the add-in still makes no network calls of its
+  own. URLs live in one place (`modAbout`).
+
 ### Changed
 
 - **Ribbon tidy-up.** The **Defaults** group is now called **One-click**, and
