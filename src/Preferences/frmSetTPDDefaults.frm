@@ -78,6 +78,7 @@ Private Sub UserForm_Initialize()
     LoadValues
     SetHelperText
     mpgPages.value = SavedTabIndex()
+    SyncSaveRunVisibility          ' dialog reopens on the last-used tab (#135)
     ApplyFirstRunNoticeLayout
 
     Set mBuiltInLogoPic = imgLogoPreview.Picture   ' before RefreshLogoTab overrides it
@@ -105,6 +106,7 @@ End Function
 Private Sub mpgPages_Change()
     If mInitializing Then Exit Sub
     SavePref PREF_SETDEFAULTS_LAST_TAB, CStr(mpgPages.value)
+    SyncSaveRunVisibility
 End Sub
 
 '--- First-run notice layout (#99) -------------------------------------
@@ -362,9 +364,33 @@ Private Function ApplyPendingLogo() As String
     End Select
 End Function
 
-'--- OK / Cancel (spec 6, 7) -------------------------------------------------
+'--- Save / Save & Run / Cancel (spec 6, 7; #100) --------------------------
+'
+' The footer is Save (cmdOK, relabelled) / Save & Run (cmdSaveRun) / Cancel.
+' Both Save buttons run CommitDefaults - normalize, block empty column lists,
+' apply the staged logo, write all four keys - and on success hide + confirm
+' in the status bar. Save & Run additionally hands modMain_SetTPDDefaults the
+' PERF_* flow for the open tab; RunSetTPDDefaults runs it after the form
+' unloads, so the perf wrapper toggles screen updating with no modal form in
+' memory. Save & Run is hidden on the Logo tab (nothing to run there).
 
-Private Sub cmdOK_Click()
+Private Sub cmdOK_Click()               ' the "Save" button
+    If Not CommitDefaults() Then Exit Sub
+    Me.Hide
+    ShowSavedInStatusBar
+End Sub
+
+Private Sub cmdSaveRun_Click()
+    If Not CommitDefaults() Then Exit Sub
+    modMain_SetTPDDefaults.gPendingDefaultsFlow = PerfConstForActivePage()
+    Me.Hide
+    ShowSavedInStatusBar
+End Sub
+
+' True only when every field normalized, no column list was left empty, the
+' staged logo applied, and all four keys saved. On False it has already shown
+' the reason and the caller leaves the form open (spec 7).
+Private Function CommitDefaults() As Boolean
     Dim eqList As String, scheduleCols As String
     Dim splitCols As String, groupColumn As String
     Dim emptyFields As String
@@ -385,7 +411,7 @@ Private Sub cmdOK_Click()
         MsgBox "These column lists can't be left empty: " & emptyFields & "." & vbCrLf & vbCrLf & _
                "Type the columns you want, or use Restore defaults on that tab for " & _
                "the built-in list.", vbExclamation, "TPD Add-in"
-        Exit Sub
+        Exit Function
     End If
 
     ' Apply a staged logo change first - a bad image must not leave columns
@@ -393,18 +419,33 @@ Private Sub cmdOK_Click()
     logoErr = ApplyPendingLogo()
     If Len(logoErr) > 0 Then
         MsgBox logoErr, vbExclamation, "TPD Add-in"
-        Exit Sub
+        Exit Function
     End If
 
     If Not SaveAllDefaults(eqList, scheduleCols, splitCols, groupColumn) Then
         MsgBox "Couldn't save your defaults. Your changes are still open behind " & _
                "this message - choose OK to return to the form and try again.", _
                vbCritical, "TPD Add-in"
-        Exit Sub
+        Exit Function
     End If
 
-    Me.Hide
-    ShowSavedInStatusBar
+    CommitDefaults = True
+End Function
+
+' The one-click PERF_* flow for the tab that's open, or "" for the Logo tab
+' (Save & Run is hidden there, so this is belt-and-braces).
+Private Function PerfConstForActivePage() As String
+    Select Case mpgPages.SelectedItem.name
+        Case "pgEqList":      PerfConstForActivePage = PERF_CREATE_CUST_EQ_LIST_DEFAULTS
+        Case "pgSchedule":    PerfConstForActivePage = PERF_CREATE_CUST_SCHEDULE_DEFAULTS
+        Case "pgSplitSheets": PerfConstForActivePage = PERF_SPLIT_SHEET_BY_COLUMN_DEFAULTS
+    End Select
+End Function
+
+' Save & Run has nothing to run on the Logo tab - hide it there entirely
+' rather than disable it in place (#100). Called on load and on tab change.
+Private Sub SyncSaveRunVisibility()
+    cmdSaveRun.Visible = (mpgPages.SelectedItem.name <> "pgLogo")
 End Sub
 
 ' Names (comma-joined) of the column-list fields that normalized to empty,

@@ -135,15 +135,20 @@ Each tab shows a short hint under its field as a reminder of what to type.
 - **Restore defaults** (per tab) resets that list to the built-in one.
 - A column list can't be left empty — if you want the built-in list, use
   **Restore defaults**. (The Split group-column field *may* be left empty.)
-- **OK** saves everything and confirms in the status bar. **Cancel**, **Esc**, or
-  the **X** discard your changes.
+- **Save** saves everything and confirms in the status bar. **Cancel**, **Esc**,
+  or the **X** discard your changes.
+- **Save & Run** saves, closes the dialog, and immediately runs the one-click
+  flow for the tab you're on — EQ List, Schedule or Split Sheets — against the
+  active sheet, so you can tweak a list and generate in one step. It's hidden on
+  the **Logo** tab (nothing to run). Both **Save** and **Save & Run** write all
+  four tabs, not just the one you're looking at.
 - The dialog reopens on whichever tab you had open last, so you don't have to
   click back to it each time.
 
 **Logo tab:** **Choose image…** or **Use built-in logo** stages a change — you see
 it in the preview and a note saying what will happen. It is applied when you click
-**OK** (along with the column changes) and used on every generated header from then
-on. Your image is copied into `%APPDATA%\TPD_Addin\`, so it survives an Excel
+**Save** (along with the column changes) and used on every generated header from
+then on. Your image is copied into `%APPDATA%\TPD_Addin\`, so it survives an Excel
 restart and a version update.
 
 Built-in column defaults, for reference:
