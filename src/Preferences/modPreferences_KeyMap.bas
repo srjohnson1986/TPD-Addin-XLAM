@@ -42,6 +42,13 @@ Public Const PREF_SPLIT_COLUMNS As String = "DefaultUserSplitSheetsColumns"
 Public Const PREF_SPLIT_PICKER_GROUPCOL As String = "LastUsedSplitSheetsGroupColumn"
 Public Const PREF_SPLIT_PICKER_COLUMNS As String = "LastUsedSplitSheetsColumns"
 
+' ---- Header logo ----
+' Path to the user's chosen logo image, copied into %APPDATA%\TPD_Addin\ by
+' the Set TPD Defaults dialog. Unset (or the file missing) => the embedded
+' _Resources / DefaultLogo shape is used. Not one of the DefaultsPrefKeys
+' set - the logo is applied on its own in cmdOk_Click, not via SaveAllDefaults.
+Public Const PREF_LOGO_PATH As String = "UserLogoPath"
+
 ' ---- Versioning ----
 Public Const PREF_VERSION As String = "AddIn_Version"
 
