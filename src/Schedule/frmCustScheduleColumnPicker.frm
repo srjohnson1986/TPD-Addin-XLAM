@@ -28,11 +28,10 @@ Option Explicit
 '  set to the picker-only PREF_SCHEDULE_PICKER_COLUMNS key after
 '  checking at least one column is ticked.
 '
-'  The .frx is a byte-clone of CustEQListColumnPickerForm.frx,
-'  so the title label (lblCustEQListTitle) still carries the EQ
-'  caption in the binary - UserForm_Initialize overrides it at
-'  run time (#114). Rename the control / retext it in the VBE
-'  when the two pickers next get a real cleanup.
+'  The .frx started as a byte-clone of CustEQListColumnPickerForm.frx
+'  (#113); lblCustScheduleTitle was renamed from the EQ control
+'  name, and its "Customer EQ List Generator" design-time caption
+'  is overridden in UserForm_Initialize (#114).
 '===========================================================
 
 Private Const ROWS_PER_COLUMN As Long = 10
@@ -44,8 +43,8 @@ Public Property Get Cancelled() As Boolean
 End Property
 
 Private Sub UserForm_Initialize()
-    ' The cloned .frx label reads "Customer EQ List Generator" (#114).
-    lblCustEQListTitle.Caption = "Customer Schedule Generator"
+    ' The .frx still holds the cloned "Customer EQ List Generator" caption (#114).
+    lblCustScheduleTitle.Caption = "Customer Schedule Generator"
 End Sub
 
 '===========================================================
@@ -90,3 +89,4 @@ Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
         Me.Hide
     End If
 End Sub
+
