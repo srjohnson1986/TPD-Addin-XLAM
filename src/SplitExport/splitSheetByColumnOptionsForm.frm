@@ -61,10 +61,15 @@ End Sub
 ' "Vendor" if present, otherwise the first column.
 Private Sub SelectGroupColumn(ByVal savedGroup As String)
     Dim i As Long
+    Dim wantGroup As String
 
-    If Len(savedGroup) > 0 Then
+    ' Normalize both sides - a saved preference can carry stray whitespace
+    ' (older builds, a paste with a leading tab) that a raw StrComp against
+    ' the real header would miss.
+    wantGroup = NormalizeCellText(savedGroup)
+    If Len(wantGroup) > 0 Then
         For i = 0 To cboGroupColumn.ListCount - 1
-            If StrComp(cboGroupColumn.List(i), savedGroup, vbTextCompare) = 0 Then
+            If StrComp(NormalizeCellText(cboGroupColumn.List(i)), wantGroup, vbTextCompare) = 0 Then
                 cboGroupColumn.ListIndex = i
                 Exit Sub
             End If

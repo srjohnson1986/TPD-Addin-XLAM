@@ -38,6 +38,18 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
   preference keys — nothing read or wrote them (the "Save Each Sheet to
   XLSX" dialog asks for its inputs every run and has never persisted them).
+- Fixed `CollapseWhitespace` (the header-name compare form used by the Set
+  TPD Defaults dialog)
+  ([#103](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/103)). It
+  trimmed *before* converting tabs to spaces, so a leading/trailing tab —
+  e.g. pasting `⇥Vendor` into the Split Sheets group-column box — was left
+  as a stray leading space and the saved default then failed to pre-select
+  in the picker. It now converts tabs first and delegates the rest to
+  `modHelpers_Strings.NormalizeCellText` (one implementation instead of two,
+  and picks up its non-breaking-space handling). The Split picker's
+  `SelectGroupColumn` also now matches on the normalized form of both the
+  saved value and each dropdown entry, so a preference saved dirty by an
+  older build still resolves.
 - Reworked the Set TPD Defaults save path
   ([#102](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/102)).
   `SaveAllDefaults` and `DefaultsNeverSaved` are now thin callers of new

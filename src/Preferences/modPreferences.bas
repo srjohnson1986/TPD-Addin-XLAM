@@ -171,18 +171,15 @@ End Function
 
 
 '-----------------------------------------------------------
-' Trims both ends and collapses internal whitespace runs to a
-' single space, so a stored / typed name compares cleanly.
+' Trims and collapses internal whitespace so a stored / typed
+' header name compares cleanly. Tabs (a heading pasted straight
+' out of Excel) become spaces first - modHelpers_Strings.
+' NormalizeCellText, which every header/value comparison in the
+' add-in already goes through, does the rest: NBSP -> space,
+' first physical line only, runs of spaces collapsed, trimmed.
 '-----------------------------------------------------------
 Public Function CollapseWhitespace(ByVal someText As String) As String
-    Dim working As String
-
-    working = Replace$(Trim$(someText), vbTab, " ")
-    Do While InStr(working, "  ") > 0
-        working = Replace$(working, "  ", " ")
-    Loop
-
-    CollapseWhitespace = working
+    CollapseWhitespace = NormalizeCellText(Replace$(someText, vbTab, " "))
 End Function
 
 
