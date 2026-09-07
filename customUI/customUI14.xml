@@ -3,13 +3,6 @@
     <tabs>
       <tab id="tabTPD" label="TPD">
         <group id="grpTPDSheetTools" label="Sheet Tools">
-          <button id="btnCountEquipmentRows"
-                  label="EQ Count"
-                  onAction="RunCountEquipmentRows"
-                  imageMso="ActiveXCheckBox"
-                  size="normal"
-                  screentip="Equipment Counter"
-                  supertip="Inserts a row called EQ count on the left and counts every row where purchased is not PARENT or INCLUDED"/>
           <button id="btnInsertCustEQList"
                   label="Create Customer EQ List"
                   onAction="RunCreateCustEQList"
@@ -37,7 +30,7 @@
                   imageMso="ExportExcel"
                   size="large"/>
         </group>
-        <group id="grpTPDDefaults" label="Defaults">
+        <group id="grpTPDDefaults" label="One-click">
           <button id="btnQuickEqList"
                   label="EQ List"
                   onAction="RunQuickEqList"
@@ -60,11 +53,11 @@
                   screentip="Split Sheets (one-click)"
                   supertip="Splits the active sheet straight from your saved TPD defaults - no options picker."/>
           <button id="btnSetTPDDefaults"
-                  label="Set TPD Defaults"
+                  label="Set Defaults"
                   onAction="RunSetTPDDefaults"
                   imageMso="TablePropertiesDialog"
                   size="large"
-                  screentip="Set TPD Defaults"
+                  screentip="Set Defaults"
                   supertip="Configure the default column lists the one-click buttons and the pickers fall back to."/>
         </group>
       </tab>

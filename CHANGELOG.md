@@ -11,6 +11,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Changed
+
+- **Ribbon tidy-up.** The **Defaults** group is now called **One-click**, and
+  its **Set TPD Defaults** button is now **Set Defaults**. The **EQ Count**
+  button has been removed from the Sheet Tools group
+  ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)); the
+  underlying flow (`modMain_CountEquipmentRows` / `RunCountEquipmentRows`) is
+  untouched.
+
 ### Fixed
 
 - **Column order from Set TPD Defaults is now honoured**

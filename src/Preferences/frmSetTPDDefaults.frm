@@ -1,6 +1,6 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmSetTPDDefaults 
-   Caption         =   "Set TPD Defaults"
+   Caption         =   "Set Defaults"
    ClientHeight    =   8232.001
    ClientLeft      =   108
    ClientTop       =   456
@@ -16,10 +16,11 @@ Attribute VB_Exposed = False
 
 
 
+
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
-'  "Set TPD Defaults" - the one place to configure the default
+'  "Set Defaults" - the one place to configure the default
 '  column lists the per-run pickers fall back to. Storage,
 '  parsing and the hard-coded fallback lists live in
 '  modPreferences / modPreferences_Defaults; the ribbon entry
@@ -49,11 +50,10 @@ Private mLogoChosenPath As String
 ' Initialize, before any override, so "Use built-in logo" can restore it.
 Private mBuiltInLogoPic As stdole.IPictureDisp
 
-
 '--- Lifecycle -------------------------------------------------------------
 
 Private Sub UserForm_Initialize()
-    Me.Caption = "Set TPD Defaults"
+    Me.Caption = "Set Defaults"
 
     ' TPD grey #64665D - VBA BackColor is BGR, not RGB.
     lblBrandBar.BackColor = &H5D6664
