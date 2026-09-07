@@ -38,6 +38,16 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
   preference keys — nothing read or wrote them (the "Save Each Sheet to
   XLSX" dialog asks for its inputs every run and has never persisted them).
+- Reworked the Set TPD Defaults save path
+  ([#102](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/102)).
+  `SaveAllDefaults` and `DefaultsNeverSaved` are now thin callers of new
+  generic `SavePrefs` / `AllPrefsUnset` helpers over one shared list of the
+  dialog's four keys, instead of hand-repeating that list three times. The
+  best-effort rollback on a registry write failure is gone — it used the
+  same `SaveSetting` that had just failed and could itself fail silently.
+  On the (very rare) HKCU write failure the dialog now leaves whatever was
+  written in place, still reports the failure, and keeps its form open so a
+  retry rewrites the whole set.
 
 ## [2.3.1] - 2026-09-04
 
