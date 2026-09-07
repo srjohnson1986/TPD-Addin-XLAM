@@ -22,7 +22,6 @@ Option Explicit
 
 Private Const ROWS_PER_COLUMN As Long = 10
 Private CancelPressed As Boolean
-Private PreferredDefaultColumns As Variant
 
 
 Public Property Get Cancelled() As Boolean
@@ -34,24 +33,13 @@ End Property
 '===========================================================
 Public Sub LoadColumns(headingList As Variant)
 
-    PreferredDefaultColumns = Array( _
-        "INTERNAL ID", _
-        "CUSTOMER ID", _
-        "Location", _
-        "TYPE1", _
-        "TYPE2", _
-        "SIZE", _
-        "RATING", _
-        "CONNECTION TYPE", _
-        "Description", _
-        "Manufacturer", _
-        "Vendor", _
-        "Model", _
-        "Details" _
-    )
-
     LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkCustEQ"
-    ApplyColumnSelection fraColumns, PREF_EQLIST_COLUMNS, PreferredDefaultColumns
+
+    ' Pre-fill: this picker's own last-used selection, else the Set TPD
+    ' Defaults value, else the shipped default list (#96, #98).
+    ApplyColumnSelection fraColumns, _
+        ResolveColumnList(Array(PREF_EQLIST_PICKER_COLUMNS, PREF_EQLIST_COLUMNS), _
+                          DefaultEqListColumns())
 
 End Sub
 
@@ -64,7 +52,7 @@ Private Sub cmdOK_Click()
         Exit Sub
     End If
 
-    SaveColumnList PREF_EQLIST_COLUMNS, GetSelectedColumns(fraColumns)
+    SaveColumnList PREF_EQLIST_PICKER_COLUMNS, GetSelectedColumns(fraColumns)
 
     CancelPressed = False
     Me.Hide

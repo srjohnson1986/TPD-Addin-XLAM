@@ -17,6 +17,10 @@ Option Explicit
 Public Const EQ_HEADER_ROW_COUNT As Long = 6
 
 ' Rows InsertDefaultCustScheduleHeader inserts above the schedule heading row.
+' InsertDefaultCustScheduleHeader (below) currently has no caller - the
+' "Default Schedule Header" ribbon button was removed in #96. It is kept
+' as the header builder the pending Customer Schedule one-click flow will
+' call (mirroring how CreateCustEQList_DoWork builds the EQ header).
 Public Const SCHEDULE_HEADER_ROW_COUNT As Long = 5
 
 Public Sub InsertEQHeaderBlock(ws As Worksheet)
@@ -97,32 +101,5 @@ Public Sub InsertDefaultCustScheduleHeader(ws As Worksheet)
 
     ' Insert logo on this worksheet on row 1, left-aligned, scaled to the number of rows we inserted
     InsertDefaultLogo ws, 1, "left", numberOfRows
-
-End Sub
-
-Public Sub InsertDefaultCustEQHeader(ws As Worksheet)
-
-    Dim headingsRow As Long
-    ' Assume the column headings are on row 1 to start.
-    headingsRow = 1
-
-    ' On the active worksheet, get the last column that is populated in the row of headings
-    Dim lastColumn As Long
-    lastColumn = GetLastCol(ws, headingsRow)
-
-    ' Formats the sheet for equipment lists using assuming that row 1 is the header.
-    FormatEQSheet ws, headingsRow
-    AutoFitUsedColumns ws
-
-    ' Inserts the EQ header block (EQ_HEADER_ROW_COUNT rows) and its text
-    InsertEQHeaderBlock ws
-
-    ' headingsRow moves down by the number of rows the block inserted
-    headingsRow = EQ_HEADER_ROW_COUNT + headingsRow
-
-    ' Insert logo on this worksheet on the headingsRow, right-top aligned, scaled to the number of rows we inserted
-    InsertDefaultLogo ws, headingsRow, "right-top", EQ_HEADER_ROW_COUNT
-
-    SafeFreezePanes ws, headingsRow
 
 End Sub

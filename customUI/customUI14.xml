@@ -3,48 +3,64 @@
     <tabs>
       <tab id="tabTPD" label="TPD">
         <group id="grpTPDEQListTools" label="EQ List Tools">
-          <button id="btnCountEquipmentRows" 
-                  label="EQ Count" 
-                  onAction="RunCountEquipmentRows" 
-                  imageMso="ActiveXCheckBox" 
+          <button id="btnCountEquipmentRows"
+                  label="EQ Count"
+                  onAction="RunCountEquipmentRows"
+                  imageMso="ActiveXCheckBox"
                   size="normal"
                   screentip="Equipment Counter"
                   supertip="Inserts a row called EQ count on the left and counts every row where purchased is not PARENT or INCLUDED"/>
-          <button id="btnInsertCustEQList" 
-                  label="Create Customer EQ List" 
-                  onAction="RunCreateCustEQList" 
-                  imageMso="NewTableStyle2" 
-                  size="large"/>
-          <button id="btnInsertCustEQListHeader" 
-                  label="Default EQ List Header" 
-                  onAction="RunInsertDefaultCustEQHeader" 
-                  imageMso="TableInsertRowsAbove" 
-                  size="large"/>
-          <button id="btnSplitSheetByColumn" 
-                  label="Split Sheet by Column" 
-                  onAction="SplitSheetByColumn" 
-                  imageMso="TableSplitTable" 
-                  size="large"/>
-          <button id="btnExportSheetsToXLSX" 
-                  label="Save Each Sheet to XLSX" 
-                  onAction="RunExportSheetsToXLSX" 
-                  imageMso="ExportExcel" 
+          <button id="btnInsertCustEQList"
+                  label="Create Customer EQ List"
+                  onAction="RunCreateCustEQList"
+                  imageMso="NewTableStyle2"
+                  size="large"
+                  screentip="Create Customer EQ List"
+                  supertip="Opens the column picker, then copies the data to a new Customer EQ List sheet and formats it."/>
+          <button id="btnSplitSheetByColumn"
+                  label="Split Sheet by Column"
+                  onAction="SplitSheetByColumn"
+                  imageMso="TableSplitTable"
+                  size="large"
+                  screentip="Split Sheet by Column"
+                  supertip="Opens the options picker, then creates one sheet per unique value in the chosen group column."/>
+          <button id="btnExportSheetsToXLSX"
+                  label="Save Each Sheet to XLSX"
+                  onAction="RunExportSheetsToXLSX"
+                  imageMso="ExportExcel"
                   size="large"/>
         </group>
-        <group id="grpTPDScheduleTools" label="Schedule Tools">
-			<button id="btnInsertSchedHeader"
-					label="Default Schedule Header"
-					onAction="RunInsertDefaultScheduleHeader"
-					imageMso="TableInsertRowsAbove"
-					size="large"/>
-		</group>
-        <group id="grpTPDSettings" label="Settings">
-			<button id="btnSetTPDDefaults"
-					label="Set TPD Defaults"
-					onAction="RunSetTPDDefaults"
-					imageMso="TablePropertiesDialog"
-					size="large"/>
-		</group>
+        <group id="grpTPDDefaults" label="Defaults">
+          <button id="btnQuickEqList"
+                  label="EQ List"
+                  onAction="RunQuickEqList"
+                  imageMso="NewTableStyle2"
+                  size="normal"
+                  screentip="EQ List (one-click)"
+                  supertip="Creates a Customer EQ List straight from your saved TPD defaults - no column picker."/>
+          <button id="btnQuickSchedule"
+                  label="Schedule"
+                  onAction="RunQuickSchedule"
+                  getEnabled="QuickScheduleEnabled"
+                  imageMso="TableInsertRowsAbove"
+                  size="normal"
+                  screentip="Schedule (one-click)"
+                  supertip="Coming soon - the Customer Schedule automation flow isn't built yet."/>
+          <button id="btnQuickSplitSheets"
+                  label="Split Sheets"
+                  onAction="RunQuickSplitSheets"
+                  imageMso="TableSplitTable"
+                  size="normal"
+                  screentip="Split Sheets (one-click)"
+                  supertip="Splits the active sheet straight from your saved TPD defaults - no options picker."/>
+          <button id="btnSetTPDDefaults"
+                  label="Set TPD Defaults"
+                  onAction="RunSetTPDDefaults"
+                  imageMso="TablePropertiesDialog"
+                  size="large"
+                  screentip="Set TPD Defaults"
+                  supertip="Configure the default column lists the one-click buttons and the pickers fall back to."/>
+        </group>
       </tab>
     </tabs>
   </ribbon>
