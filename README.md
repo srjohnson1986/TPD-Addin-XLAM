@@ -8,7 +8,7 @@ The latest built add-in (`TPD_Addin.xlam`) is published on the **[Releases page]
 
 ## Documentation
 
-For the install guide, usage instructions, and troubleshooting: [TPD Add-in documentation](https://docs.google.com/document/d/1OaWXSklF3Ry4mUrTqPOSVHrjU-0SlxQ_mZ4MlydHqO8/edit?usp=sharing)
+For the install guide, usage instructions, and troubleshooting: **[User Guide](docs/USER_GUIDE.md)** (also on the [wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki)).
 
 ## About this repo
 
