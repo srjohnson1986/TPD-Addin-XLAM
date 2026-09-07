@@ -10,9 +10,16 @@ Attribute VB_Name = "modMain_SplitSheets"
 
 Option Explicit
 
-' Ribbon callback
+' Ribbon callback - "Split Sheet by Column" (opens the options picker)
 Public Sub SplitSheetByColumn(control As IRibbonControl)
     WithPerformance PERF_SPLIT_SHEET_BY_COLUMN
+End Sub
+
+' Ribbon callback - "Split Sheets" one-click: no picker, the group column
+' and kept columns come straight from the saved Set TPD Defaults values
+' (or the shipped defaults) (#96).
+Public Sub SplitSheetByColumnFromDefaults(control As IRibbonControl)
+    WithPerformance PERF_SPLIT_SHEET_BY_COLUMN_DEFAULTS
 End Sub
 
 
@@ -41,6 +48,34 @@ Public Sub SplitSheetByColumn_Internal()
     Dim failures As Collection
     Set failures = New Collection
 
+    createdCount = SplitSheetByColumn_DoWork(wsSource, groupCol, selectedCols, failures)
+
+    ReportBatchOutcome createdCount & " sheet(s) created.", failures, _
+                       "value(s) could not be split out:", _
+                       "Split finished with errors", "Split complete"
+
+End Sub
+
+
+Public Sub SplitSheetByColumnFromDefaults_Internal()
+
+    Dim wsSource As Worksheet
+    Dim groupCol As String
+    Dim selectedCols As Collection
+
+    Set wsSource = GetFirstVisibleSheet()
+    If wsSource Is Nothing Then Exit Sub
+
+    ' One-click precedence: Set TPD Defaults value -> shipped default.
+    groupCol = ResolveGroupColumn(Array(PREF_SPLIT_GROUPCOL), DefaultSplitGroupColumn())
+    Set selectedCols = ResolveColumnList(Array(PREF_SPLIT_COLUMNS), DefaultSplitColumns())
+
+    Dim createdCount As Long
+    Dim failures As Collection
+    Set failures = New Collection
+
+    ' SplitSheetByColumn_DoWork already messages and bails if groupCol
+    ' isn't a heading on wsSource.
     createdCount = SplitSheetByColumn_DoWork(wsSource, groupCol, selectedCols, failures)
 
     ReportBatchOutcome createdCount & " sheet(s) created.", failures, _

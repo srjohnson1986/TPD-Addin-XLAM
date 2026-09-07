@@ -36,6 +36,34 @@ Public Sub DeleteUnselectedColumnsByHeading(ws As Worksheet, selectedHeadings As
     Next c
 End Sub
 
+' Returns the subset of `wanted` heading names that actually appear on
+' headingsRow of ws, preserving `wanted` order and its (possibly dirty)
+' spelling. The one-click flows use this to avoid handing
+' DeleteUnselectedColumnsByHeading a selection that matches nothing on
+' the source sheet - which would delete every column (#96).
+Public Function HeadingsPresentOnSheet( _
+        ByVal ws As Worksheet, _
+        ByVal headingsRow As Long, _
+        ByVal wanted As Collection) As Collection
+
+    Dim present As New Collection
+    Dim headings As Variant
+    Dim onSheet As New Collection
+    Dim i As Long
+    Dim w As Variant
+
+    headings = modHelpers_Headers.GetHeadingList(ws, headingsRow)
+    For i = LBound(headings) To UBound(headings)
+        onSheet.Add CStr(headings(i))
+    Next i
+
+    For Each w In wanted
+        If CollectionContainsText(onSheet, CStr(w)) Then present.Add CStr(w)
+    Next w
+
+    Set HeadingsPresentOnSheet = present
+End Function
+
 Public Function GetUniqueValuesInColumn(ws As Worksheet, colIndex As Long) As Collection
 
     Dim result As New Collection

@@ -20,7 +20,6 @@ Option Explicit
 
 Private Const ROWS_PER_COLUMN As Long = 10
 Private CancelPressed As Boolean
-Private PreferredDefaultColumns As Variant
 
 Public Property Get Cancelled() As Boolean
     Cancelled = CancelPressed
@@ -32,56 +31,44 @@ End Property
 Public Sub LoadColumns(headingList As Variant)
     Dim i As Long
 
-    PreferredDefaultColumns = Array( _
-        "INTERNAL ID", _
-        "CUSTOMER ID", _
-        "SIZE", _
-        "RATING", _
-        "CONNECTION TYPE", _
-        "Description", _
-        "Manufacturer", _
-        "Vendor", _
-        "Model", _
-        "Details" _
-    )
-
     LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkSplit"
-    ApplyColumnSelection fraColumns, PREF_SPLIT_COLUMNS, PreferredDefaultColumns
+
+    ' Pre-fill: this picker's own last-used selection, else the Set TPD
+    ' Defaults value, else the shipped default list (#96, #98).
+    ApplyColumnSelection fraColumns, _
+        ResolveColumnList(Array(PREF_SPLIT_PICKER_COLUMNS, PREF_SPLIT_COLUMNS), _
+                          DefaultSplitColumns())
 
     cboGroupColumn.Clear
     For i = LBound(headingList) To UBound(headingList)
         cboGroupColumn.AddItem headingList(i)
     Next i
 
-    SelectGroupColumn LoadPref(PREF_SPLIT_GROUPCOL, "")
+    SelectGroupColumn ResolveGroupColumn( _
+        Array(PREF_SPLIT_PICKER_GROUPCOL, PREF_SPLIT_GROUPCOL), _
+        DefaultSplitGroupColumn())
 End Sub
 
-' Picks the group-by column after the dropdown is populated: the saved
-' preference if it's still one of the columns on this sheet, otherwise
-' "Vendor" if present, otherwise the first column.
-Private Sub SelectGroupColumn(ByVal savedGroup As String)
+' Picks the group-by column after the dropdown is populated: wantGroup
+' (already resolved through the LastUsed* -> DefaultUser* -> shipped
+' "Vendor" chain) if it's one of the columns on this sheet, otherwise
+' the first column.
+Private Sub SelectGroupColumn(ByVal wantGroup As String)
     Dim i As Long
-    Dim wantGroup As String
+    Dim want As String
 
     ' Normalize both sides - a saved preference can carry stray whitespace
     ' (older builds, a paste with a leading tab) that a raw StrComp against
     ' the real header would miss.
-    wantGroup = NormalizeCellText(savedGroup)
-    If Len(wantGroup) > 0 Then
+    want = NormalizeCellText(wantGroup)
+    If Len(want) > 0 Then
         For i = 0 To cboGroupColumn.ListCount - 1
-            If StrComp(NormalizeCellText(cboGroupColumn.List(i)), wantGroup, vbTextCompare) = 0 Then
+            If StrComp(NormalizeCellText(cboGroupColumn.List(i)), want, vbTextCompare) = 0 Then
                 cboGroupColumn.ListIndex = i
                 Exit Sub
             End If
         Next i
     End If
-
-    For i = 0 To cboGroupColumn.ListCount - 1
-        If StrComp(cboGroupColumn.List(i), "Vendor", vbTextCompare) = 0 Then
-            cboGroupColumn.ListIndex = i
-            Exit Sub
-        End If
-    Next i
 
     If cboGroupColumn.ListCount > 0 Then cboGroupColumn.ListIndex = 0
 End Sub
@@ -101,8 +88,8 @@ Private Sub cmdOK_Click()
         Exit Sub
     End If
 
-    SavePref PREF_SPLIT_GROUPCOL, cboGroupColumn.value
-    SaveColumnList PREF_SPLIT_COLUMNS, GetSelectedColumns(fraColumns)
+    SavePref PREF_SPLIT_PICKER_GROUPCOL, cboGroupColumn.value
+    SaveColumnList PREF_SPLIT_PICKER_COLUMNS, GetSelectedColumns(fraColumns)
 
     CancelPressed = False
     Me.Hide

@@ -61,29 +61,14 @@ Public Sub AutoSelectColumns(fra As MSForms.Frame, savedCols As Collection)
 End Sub
 
 '===========================================================
-'  Set every checkbox in fra from the user's saved preference:
-'  if prefKey holds a non-empty saved column list, check
-'  exactly those; otherwise check the ones whose caption is in
-'  the built-in `defaults` array. Call after the checkboxes are
-'  built. Both column pickers share this (#81).
+'  Check exactly the checkboxes whose caption is in `resolved`
+'  (a column list already run through
+'  modPreferences.ResolveColumnList, so the LastUsed* ->
+'  DefaultUser* -> shipped fallback chain is applied). Call
+'  after the checkboxes are built. Both column pickers share
+'  this (#81, #96).
 '===========================================================
-Public Sub ApplyColumnSelection(fra As MSForms.Frame, prefKey As String, defaults As Variant)
-    Dim savedCols As Collection
-    Dim ctrl As control
-
-    Set savedCols = LoadColumnList(prefKey)
-
-    If Not savedCols Is Nothing Then
-        If savedCols.Count > 0 Then
-            AutoSelectColumns fra, savedCols
-            Exit Sub
-        End If
-    End If
-
-    For Each ctrl In fra.Controls
-        If TypeName(ctrl) = "CheckBox" Then
-            ctrl.value = IsInArray(ctrl.Caption, defaults)
-        End If
-    Next ctrl
+Public Sub ApplyColumnSelection(fra As MSForms.Frame, resolved As Collection)
+    AutoSelectColumns fra, resolved
 End Sub
 

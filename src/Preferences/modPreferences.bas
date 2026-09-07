@@ -92,24 +92,70 @@ End Sub
 ' an empty Collection (never Nothing) when the key is unset, so
 ' a caller can read "no saved list" as "apply my defaults".
 Public Function LoadColumnList(key As String) As Collection
-    Dim raw As String
-    Dim parts As Variant
+    Set LoadColumnList = ParseColumnCsv(LoadPref(key, ""))
+End Function
+
+
+' Split a comma-separated column list into a Collection, dropping
+' empty entries and trimming each name. Always returns a Collection,
+' never Nothing.
+Private Function ParseColumnCsv(ByVal raw As String) As Collection
     Dim col As New Collection
     Dim p As Variant
 
-    raw = LoadPref(key, "")
-
-    If Len(raw) = 0 Then
-        Set LoadColumnList = col
-        Exit Function
+    If Len(raw) > 0 Then
+        For Each p In Split(raw, ",")
+            If Len(Trim$(CStr(p))) > 0 Then col.Add Trim$(CStr(p))
+        Next p
     End If
 
-    parts = Split(raw, ",")
-    For Each p In parts
-        If Len(Trim$(CStr(p))) > 0 Then col.Add Trim$(CStr(p))
-    Next p
+    Set ParseColumnCsv = col
+End Function
 
-    Set LoadColumnList = col
+
+'-----------------------------------------------------------
+' Walk keys (an Array() of PREF_* constants) in order and
+' return the first one that holds a non-empty saved column
+' list; if none is set, parse fallbackCsv (a shipped default
+' from modPreferences_Defaults). Always returns a Collection.
+'
+' Callers pass the keys highest-priority first:
+'   one-click  -> Array(PREF_EQLIST_COLUMNS)
+'   picker     -> Array(PREF_EQLIST_PICKER_COLUMNS, PREF_EQLIST_COLUMNS)
+'-----------------------------------------------------------
+Public Function ResolveColumnList(keys As Variant, ByVal fallbackCsv As String) As Collection
+    Dim i As Long
+    Dim col As Collection
+
+    For i = LBound(keys) To UBound(keys)
+        Set col = LoadColumnList(CStr(keys(i)))
+        If col.Count > 0 Then
+            Set ResolveColumnList = col
+            Exit Function
+        End If
+    Next i
+
+    Set ResolveColumnList = ParseColumnCsv(fallbackCsv)
+End Function
+
+
+'-----------------------------------------------------------
+' Scalar equivalent of ResolveColumnList for the Split group
+' column: first non-empty saved value among keys, else fallback.
+'-----------------------------------------------------------
+Public Function ResolveGroupColumn(keys As Variant, ByVal fallback As String) As String
+    Dim i As Long
+    Dim v As String
+
+    For i = LBound(keys) To UBound(keys)
+        v = Trim$(LoadPref(CStr(keys(i)), ""))
+        If Len(v) > 0 Then
+            ResolveGroupColumn = v
+            Exit Function
+        End If
+    Next i
+
+    ResolveGroupColumn = fallback
 End Function
 
 

@@ -3,9 +3,8 @@ Attribute VB_Name = "modHelpers_Strings"
 
 '===========================================================
 '  String sanitizing / normalizing helpers used across the
-'  feature areas: SanitizeSheetName, SanitizeFileText,
-'  NormalizeCellText (compare/dedupe form of a cell value),
-'  and IsInArray.
+'  feature areas: SanitizeSheetName, SanitizeFileText, and
+'  NormalizeCellText (compare/dedupe form of a cell value).
 '===========================================================
 
 Option Explicit
@@ -81,15 +80,3 @@ Public Function NormalizeCellText(val As Variant) As String
 
     NormalizeCellText = Trim(s)
 End Function
-
-Public Function IsInArray(val As String, arr As Variant) As Boolean
-    Dim v As Variant
-    For Each v In arr
-        If StrComp(Trim(val), Trim(v), vbTextCompare) = 0 Then
-            IsInArray = True
-            Exit Function
-        End If
-    Next v
-End Function
-
-

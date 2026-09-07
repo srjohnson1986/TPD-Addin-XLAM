@@ -19,7 +19,9 @@ Attribute VB_Name = "modPerformance"
 Option Explicit
 
 Public Const PERF_CREATE_CUST_EQ_LIST As String = "CreateCustEQList_Internal"
+Public Const PERF_CREATE_CUST_EQ_LIST_DEFAULTS As String = "CreateCustEQListFromDefaults_Internal"
 Public Const PERF_SPLIT_SHEET_BY_COLUMN As String = "SplitSheetByColumn_Internal"
+Public Const PERF_SPLIT_SHEET_BY_COLUMN_DEFAULTS As String = "SplitSheetByColumnFromDefaults_Internal"
 Public Const PERF_EXPORT_SHEETS As String = "ExportSheets_Internal"
 Public Const PERF_COUNT_EQ_ROWS As String = "CountEquipmentRows_Internal"
 
@@ -39,8 +41,14 @@ Public Sub WithPerformance(workProcName As String)
         Case PERF_CREATE_CUST_EQ_LIST
             CreateCustEQList_Internal
 
+        Case PERF_CREATE_CUST_EQ_LIST_DEFAULTS
+            CreateCustEQListFromDefaults_Internal
+
         Case PERF_SPLIT_SHEET_BY_COLUMN
             SplitSheetByColumn_Internal
+
+        Case PERF_SPLIT_SHEET_BY_COLUMN_DEFAULTS
+            SplitSheetByColumnFromDefaults_Internal
 
         Case PERF_EXPORT_SHEETS
             ExportSheets_Internal
