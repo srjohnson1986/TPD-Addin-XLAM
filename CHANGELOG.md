@@ -11,6 +11,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Added
+
+- **Set Defaults dialog: a hint under each field**
+  ([#143](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/143)). Every tab
+  now shows a short line under its entry field - what counts as a "column",
+  that pasting a heading row from Excel works, and which image formats the Logo
+  tab accepts. No behaviour change.
+
 ## [2.4.1] - 2026-09-07
 
 ### Added
