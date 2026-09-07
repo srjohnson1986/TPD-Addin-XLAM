@@ -1,14 +1,14 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} CustEQListColumnPickerForm 
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmCustEQListColumnPicker 
    Caption         =   "Customer EQ List Generator"
    ClientHeight    =   7260
    ClientLeft      =   108
    ClientTop       =   456
    ClientWidth     =   12552
-   OleObjectBlob   =   "CustEQListColumnPickerForm.frx":0000
+   OleObjectBlob   =   "frmCustEQListColumnPicker.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
-Attribute VB_Name = "CustEQListColumnPickerForm"
+Attribute VB_Name = "frmCustEQListColumnPicker"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
@@ -70,5 +70,3 @@ Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
         Me.Hide
     End If
 End Sub
-
-
