@@ -4,7 +4,10 @@ A macro-enabled add-in supporting various business functions at TPD.
 
 ## Download
 
-The latest built add-in (`TPD_Addin.xlam`) is published on the **[Releases page](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases)** — grab the `.xlam` attached to the most recent release and install it per the guide below.
+<!-- download-link: version managed by tools/sync-readme-version.sh -->
+**[Download `TPD_Addin.xlam` — v2.4.1](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases/download/v2.4.1/TPD_Addin.xlam)**
+
+Older builds are on the **[Releases page](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases)**. Install the `.xlam` per the guide below.
 
 ## Documentation
 

@@ -54,8 +54,8 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 
 ## Cutting a release
 
-1. Bump `ADDIN_VERSION` in `modStartup` (and the workbook's `docProps` if you keep those in sync). `modPreferences_Initializer` stamps `ADDIN_VERSION` into the registry as `PREF_VERSION` on the next run.
-2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — this is what the README's Download link points to.
+1. Bump `ADDIN_VERSION` in `modStartup` (and the workbook's `docProps` if you keep those in sync). `modPreferences_Initializer` stamps `ADDIN_VERSION` into the registry as `PREF_VERSION` on the next run. The README's pinned download link tracks this automatically — a Claude Code `PostToolUse` hook (`.claude/settings.json`) runs `tools/sync-readme-version.sh` whenever `modStartup.bas` changes; if you edit the version another way, run that script yourself and commit the README change.
+2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — the README's pinned link points at `releases/download/vX.Y.Z/TPD_Addin.xlam`, so the tag name and asset name must match exactly.
 3. Add an entry to `CHANGELOG.md` describing what changed.
 4. Refresh the base **only if this release changed something outside `/src`** (ribbon XML, worksheets, styles, the `_Resources` logo shape). To do it, take a copy of the release `.xlam`, delete every standard module and UserForm from its VBA project (leaving the document modules), and save that as `build/_base/TPD_Addin_base.xlam`. If the release was `/src`-only, the existing base is still current — leave it.
 5. **Update the user guide and re-sync the wiki.** Bring [docs/USER_GUIDE.md](docs/USER_GUIDE.md) in line with anything user-visible in this release (ribbon, dialogs, behaviour). Then regenerate the wiki's `Home.md` from it:
