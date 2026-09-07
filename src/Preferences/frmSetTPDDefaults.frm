@@ -142,8 +142,9 @@ End Sub
 ' Choosing an image or restoring the built-in one is STAGED - it updates the
 ' preview but nothing is written until OK (Cancel discards it), like the
 ' column-list fields. ApplyPendingLogo runs in cmdOk_Click before the column
-' save. The built-in logo has no file, so its preview is left blank - the
-' user's own image previews via GDI+ (modGdiPlus.LoadPictureGDIP).
+' save. Both the chosen image and the built-in logo preview via GDI+
+' (modHelpers_Logo.LogoPreviewPicture); the built-in preview is blank only
+' when its one-time file extraction can't run (e.g. headless).
 
 Private Sub cmdChooseLogo_Click()
     Dim fd As FileDialog
