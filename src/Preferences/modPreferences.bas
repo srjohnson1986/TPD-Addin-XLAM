@@ -187,54 +187,87 @@ End Function
 
 
 '-----------------------------------------------------------
-' True when none of the dialog's four keys has ever been
-' saved for the current user - drives the first-run notice.
-' (Can't test "any pref exists": modPreferences_Initializer
-' always stamps PREF_VERSION.)
+' Which registry keys the Set TPD Defaults dialog owns. One
+' list so SaveAllDefaults and DefaultsNeverSaved can't drift
+' apart; the order here is the order SaveAllDefaults passes
+' its values in.
 '-----------------------------------------------------------
-Public Function DefaultsNeverSaved() As Boolean
-    DefaultsNeverSaved = _
-        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, vbNullString)) = 0 And _
-        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, vbNullString)) = 0 And _
-        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, vbNullString)) = 0 And _
-        Len(GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, vbNullString)) = 0
+Private Function DefaultsPrefKeys() As Variant
+    DefaultsPrefKeys = Array(PREF_EQLIST_COLUMNS, PREF_SCHEDULE_COLUMNS, _
+                             PREF_SPLIT_COLUMNS, PREF_SPLIT_GROUPCOL)
 End Function
 
 
 '-----------------------------------------------------------
-' Writes all four dialog keys together, rolling back to the
-' prior values on any failure so the store never holds a
-' half-applied set. Returns True on success. Unlike SavePref,
-' this surfaces a write failure to the caller.
+' Write several preferences in one call. keys and values are
+' equal-length arrays (as returned by Array()); each pair is
+' written and the function returns False if any single write
+' failed, so the caller can react (frmSetTPDDefaults keeps its
+' form open on False so the user can retry, which rewrites the
+' whole set). No rollback: a half-written set on the very rare
+' HKCU write failure is corrected by the next successful save,
+' and the rollback it replaced used the same SaveSetting that
+' had just failed anyway.
+'-----------------------------------------------------------
+Public Function SavePrefs(keys As Variant, values As Variant) As Boolean
+    Dim i As Long
+
+    If LBound(keys) <> LBound(values) Or UBound(keys) <> UBound(values) Then
+        SavePrefs = False
+        Exit Function
+    End If
+
+    SavePrefs = True
+    On Error Resume Next
+    For i = LBound(keys) To UBound(keys)
+        Err.Clear
+        SaveSetting PREF_APP, PREF_SECTION, CStr(keys(i)), CStr(values(i))
+        If Err.Number <> 0 Then SavePrefs = False
+    Next i
+    On Error GoTo 0
+End Function
+
+
+'-----------------------------------------------------------
+' True when every one of the given keys reads back empty for
+' the current user - i.e. none has ever been saved. A value
+' explicitly saved as "" also reads as empty here; that
+' ambiguity is tracked in issue #104.
+'-----------------------------------------------------------
+Public Function AllPrefsUnset(keys As Variant) As Boolean
+    Dim i As Long
+
+    AllPrefsUnset = True
+    For i = LBound(keys) To UBound(keys)
+        If Len(LoadPref(CStr(keys(i)), "")) > 0 Then
+            AllPrefsUnset = False
+            Exit Function
+        End If
+    Next i
+End Function
+
+
+'-----------------------------------------------------------
+' True when none of the dialog's keys has ever been saved for
+' the current user - drives the first-run notice. (Can't test
+' "any pref exists": modPreferences_Initializer always stamps
+' PREF_VERSION.)
+'-----------------------------------------------------------
+Public Function DefaultsNeverSaved() As Boolean
+    DefaultsNeverSaved = AllPrefsUnset(DefaultsPrefKeys())
+End Function
+
+
+'-----------------------------------------------------------
+' Writes all four Set TPD Defaults keys. Returns True only if
+' every write succeeded; on False the caller (frmSetTPDDefaults)
+' keeps its form open so the user's edits aren't lost and a
+' retry rewrites the whole set. No rollback - see SavePrefs.
 '-----------------------------------------------------------
 Public Function SaveAllDefaults(ByVal eqListColumns As String, _
                                 ByVal scheduleColumns As String, _
                                 ByVal splitColumns As String, _
                                 ByVal splitGroupColumn As String) As Boolean
-    Dim priorEqList As String, priorSchedule As String
-    Dim priorSplit As String, priorGroup As String
-
-    priorEqList = GetSetting(PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, vbNullString)
-    priorSchedule = GetSetting(PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, vbNullString)
-    priorSplit = GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, vbNullString)
-    priorGroup = GetSetting(PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, vbNullString)
-
-    On Error GoTo WriteFailed
-    SaveSetting PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, eqListColumns
-    SaveSetting PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, scheduleColumns
-    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, splitColumns
-    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, splitGroupColumn
-    On Error GoTo 0
-
-    SaveAllDefaults = True
-    Exit Function
-
-WriteFailed:
-    On Error Resume Next
-    SaveSetting PREF_APP, PREF_SECTION, PREF_EQLIST_COLUMNS, priorEqList
-    SaveSetting PREF_APP, PREF_SECTION, PREF_SCHEDULE_COLUMNS, priorSchedule
-    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_COLUMNS, priorSplit
-    SaveSetting PREF_APP, PREF_SECTION, PREF_SPLIT_GROUPCOL, priorGroup
-    On Error GoTo 0
-    SaveAllDefaults = False
+    SaveAllDefaults = SavePrefs(DefaultsPrefKeys(), _
+        Array(eqListColumns, scheduleColumns, splitColumns, splitGroupColumn))
 End Function
