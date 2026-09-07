@@ -40,8 +40,8 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   first-run "these are the built-in defaults" notice used to live inside the
   **EQ List** tab, so that tab's fields sat lower than the other tabs' and
   switching tabs showed a visible jump. The notice is now a form-level banner
-  above the tab strip that only appears until you first save defaults, and the
-  **Schedule** tab's column-list label now matches the font of the others.
+  above the tab strip that only appears until you first save defaults, so every
+  tab lines up.
   ([#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130)). The
   source sheet's background fill is now stripped the same way whether you use
   the **Create Customer EQ List** picker or the one-click **EQ List** button:
