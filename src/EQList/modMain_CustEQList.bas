@@ -80,6 +80,11 @@ Public Sub CreateCustEQList_DoWork( _
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
 
     CopyEntireSheetRows wsSource, wsNew
+    ' Drop the source row fill now, while every source column is still here for
+    ' the PURCHASED / INTERNAL ID / CUSTOMER ID lookup - keep it only on PARENT
+    ' rows and rows with no IDs at all (#130). Same call, same result whether we
+    ' got here from the picker or the one-click button.
+    modHelpers_SheetFormatting.StripDataRowFill wsNew, 1, preserveStructuralRows:=True
     modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
     ' DeleteUnselectedColumnsByHeading keeps the survivors in source order;
     ' reorder them to match the chosen column order (#127).

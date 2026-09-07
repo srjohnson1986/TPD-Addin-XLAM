@@ -22,6 +22,17 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- **One-click EQ List no longer leaves stray row shading**
+  ([#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130)). The
+  source sheet's background fill is now stripped the same way whether you use
+  the **Create Customer EQ List** picker or the one-click **EQ List** button:
+  fill is kept only on `PURCHASED = PARENT` rows and rows with no `INTERNAL ID`
+  and no `CUSTOMER ID`. Previously the shared formatting step decided row by
+  row from whichever column happened to land in column A, so the one-click
+  flow — which reorders columns to the Set TPD Defaults order — kept fill on
+  every row whose first column was blank. The Customer Schedule flow now
+  strips all carried-over fill.
+
 - **Column order from Set TPD Defaults is now honoured**
   ([#127](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/127)).
   Reordering the columns on the **EQ List**, **Schedule**, or **Split Sheets**

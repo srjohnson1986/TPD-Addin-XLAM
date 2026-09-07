@@ -50,13 +50,56 @@ Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long, _
         .Color = RGB(0, 0, 0)
     End With
 
-    ' Clear any stray fill on populated rows. Uses the table lastRow from
-    ' above; rows with a blank column A just fall through the guard (#89).
+End Sub
+
+' Strips the background fill carried over from the source sheet by a
+' row-for-row copy. Call BEFORE any columns are dropped, so the heading
+' lookups below still see the full source column set (the picker and the
+' one-click flows would otherwise disagree - the old column-A guard here
+' kept fill wherever the leftmost *kept* column was blank, and the two
+' flows order their columns differently, #130).
+'
+' preserveStructuralRows:=True (the Customer EQ List) keeps the fill on
+' rows that act as a visual grouping cue:
+'   - PURCHASED = "PARENT", or
+'   - INTERNAL ID and CUSTOMER ID both blank.
+' All three headings are looked up case-insensitively and are optional: no
+' PURCHASED column falls back to the both-IDs-blank test, and with none of
+' the three present every data row is cleared. The Customer Schedule flow
+' takes the default (False) and clears every row.
+Public Sub StripDataRowFill(ws As Worksheet, headingsRow As Long, _
+                            Optional ByVal preserveStructuralRows As Boolean = False)
+    Dim headings As Variant
+    Dim purchasedCol As Long, internalIdCol As Long, customerIdCol As Long
+    Dim lastRow As Long
     Dim r As Long
+    Dim keepFill As Boolean
+
+    If preserveStructuralRows Then
+        headings = modHelpers_Headers.GetHeadingList(ws, headingsRow)
+        purchasedCol = modHelpers_Headers.FindHeadingIndex(headings, "PURCHASED", preferRightmost:=False)
+        internalIdCol = modHelpers_Headers.FindHeadingIndex(headings, "INTERNAL ID", preferRightmost:=False)
+        customerIdCol = modHelpers_Headers.FindHeadingIndex(headings, "CUSTOMER ID", preferRightmost:=False)
+    End If
+
+    lastRow = GetLastRow(ws)
+
     For r = headingsRow To lastRow
-        If Trim(CStr(ws.Cells(r, 1).value)) <> "" Then
-            ws.Rows(r).Interior.ColorIndex = xlNone
+        keepFill = False
+
+        If preserveStructuralRows And r > headingsRow Then
+            If purchasedCol > 0 Then
+                If UCase$(Trim$(CStr(ws.Cells(r, purchasedCol).value))) = "PARENT" Then keepFill = True
+            End If
+            If Not keepFill Then
+                If internalIdCol > 0 And customerIdCol > 0 Then
+                    If Trim$(CStr(ws.Cells(r, internalIdCol).value)) = "" _
+                       And Trim$(CStr(ws.Cells(r, customerIdCol).value)) = "" Then keepFill = True
+                End If
+            End If
         End If
+
+        If Not keepFill Then ws.Rows(r).Interior.ColorIndex = xlNone
     Next r
 
 End Sub

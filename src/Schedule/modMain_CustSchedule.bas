@@ -84,6 +84,8 @@ Public Sub CreateCustSchedule_DoWork( _
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
 
     CopyEntireSheetRows wsSource, wsNew
+    ' Schedule keeps no structural rows - strip every carried-over fill (#130).
+    modHelpers_SheetFormatting.StripDataRowFill wsNew, 1
     modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
     ' DeleteUnselectedColumnsByHeading keeps the survivors in source order;
     ' reorder them to match the chosen column order (#127).
