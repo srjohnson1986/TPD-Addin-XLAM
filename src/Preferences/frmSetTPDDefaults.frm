@@ -178,8 +178,6 @@ End Sub
 ' TabStop. Width is forced here too: the design-time boxes were narrow
 ' enough to wrap the one-line hints to three cramped lines.
 
-Private Const HELPER_WIDTH As Single = 500
-
 Private Sub SetHelperText()
     Const PASTE_HINT As String = _
         "Header names from row 1, in output order. " & _
@@ -201,7 +199,7 @@ End Sub
 
 Private Sub StyleHelperLabel(ByVal lbl As MSForms.Label)
     lbl.ForeColor = RGB(90, 90, 90)   ' grey #5A5A5A (RGB() handles BGR)
-    lbl.Width = HELPER_WIDTH
+    lbl.Width = 500                   ' points - wide enough to keep each hint on one line
 End Sub
 
 Private Sub LoadValues()
