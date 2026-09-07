@@ -12,11 +12,9 @@ Attribute VB_Name = "modHelpers_Logo"
 '  The logo is the user's chosen image when one has been set
 '  in Set TPD Defaults (EffectiveLogoPath -> a file under
 '  %APPDATA%\TPD_Addin\, [#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95)),
-'  otherwise the built-in logo. The built-in lives as the
-'  _Resources / DefaultLogo shape in the base .xlam
-'  (DefaultLogoShape); BuiltInLogoFile extracts it once to a
-'  PNG next to the user copy so it too can be previewed and
-'  AddPicture'd. SetUserLogo / ClearUserLogo manage the user
+'  otherwise the embedded _Resources / DefaultLogo shape from
+'  the base .xlam (DefaultLogoShape, the one place those names
+'  are resolved). SetUserLogo / ClearUserLogo manage the user
 '  copy; LogoPreviewPicture backs the dialog's preview ([#109]).
 '===========================================================
 
@@ -31,11 +29,6 @@ Private Const LOGO_SHAPE_NAME As String = "DefaultLogo"
 ' Where a user-chosen logo is copied to, and the name it's stored under
 ' (the extension varies). Per Windows user, alongside the registry prefs.
 Private Const USER_LOGO_BASENAME As String = "user_logo"
-
-' A file copy of the embedded DefaultLogo shape, kept in the same folder so
-' the dialog can preview the built-in logo and callers can AddPicture it
-' (see BuiltInLogoFile).
-Private Const BUILTIN_LOGO_FILE As String = "builtin_logo.png"
 
 ' The embedded default-logo shape, or Nothing when the _Resources sheet
 ' or the shape is missing (a base-file build mistake - see CONTRIBUTING.md).
@@ -68,63 +61,6 @@ Public Function UserLogoDir() As String
     End If
 
     UserLogoDir = base
-End Function
-
-' A PNG copy of the embedded DefaultLogo shape in %APPDATA%\TPD_Addin\, so
-' the dialog can preview the built-in logo and InsertDefaultLogo can
-' AddPicture it. The only way to get a Shape to a file is a throwaway chart,
-' so this is extracted once and refreshed whenever the add-in is newer than
-' the copy. Returns "" when the extraction isn't possible - a non-interactive
-' Excel (build / automation, where Chart.Export hangs), or an export failure
-' - and the callers fall back to copying the shape / a blank preview.
-Public Function BuiltInLogoFile() As String
-    Dim folder As String
-    Dim dest As String
-
-    folder = UserLogoDir()
-    If Len(folder) = 0 Then Exit Function
-    dest = folder & "\" & BUILTIN_LOGO_FILE
-
-    On Error Resume Next
-    If Len(Dir$(dest)) > 0 Then
-        If FileDateTime(dest) >= FileDateTime(ThisWorkbook.FullName) Then
-            BuiltInLogoFile = dest
-            Exit Function
-        End If
-    End If
-    On Error GoTo 0
-
-    ' Chart.Export needs a real display context - never attempt it headless.
-    If Not Application.Visible Then Exit Function
-
-    If ExportDefaultLogoShape(dest) Then BuiltInLogoFile = dest
-End Function
-
-' Pastes the DefaultLogo shape onto a throwaway chart and exports it to dest
-' as PNG. Best-effort - the chart is always removed. Returns True only if a
-' file landed.
-Private Function ExportDefaultLogoShape(ByVal dest As String) As Boolean
-    Dim src As Shape
-    Dim host As Worksheet
-    Dim co As ChartObject
-
-    Set src = DefaultLogoShape()
-    If src Is Nothing Then Exit Function
-    Set host = src.Parent
-
-    On Error GoTo CleanUp
-    On Error Resume Next: Kill dest: On Error GoTo CleanUp
-
-    Set co = host.ChartObjects.Add(0, 0, src.Width + 4, src.Height + 4)
-    src.Copy
-    co.Chart.Paste
-    co.Chart.Export dest, "PNG"
-
-CleanUp:
-    On Error Resume Next
-    If Not co Is Nothing Then co.Delete
-    On Error GoTo 0
-    ExportDefaultLogoShape = (Len(Dir$(dest)) > 0)
 End Function
 
 ' The user's chosen logo file, or "" when none is set (or the saved copy
@@ -219,22 +155,22 @@ Public Sub ClearUserLogo()
     On Error GoTo 0
 End Sub
 
-' Picture for the Set TPD Defaults logo preview, loaded via GDI+: the staged
-' file the user just picked (pendingPath), else the saved user logo, else the
-' built-in logo (a file copy - BuiltInLogoFile). Returns Nothing only when
-' even the built-in can't be rendered (headless, or the extraction failed) -
-' the dialog then just clears the preview.
+' Picture for the Set TPD Defaults logo preview: the staged file the user
+' just picked (pendingPath), else the saved user logo, loaded via GDI+.
+' Returns Nothing when the built-in logo should show - a restore is staged,
+' or nothing is set - and the dialog then previews its own brand-bar logo
+' instead (there's no reliable Shape-to-Picture path for the _Resources
+' shape - #109).
 Public Function LogoPreviewPicture(ByVal pendingPath As String, _
                                    ByVal pendingRestore As Boolean) As stdole.IPictureDisp
     Dim imgPath As String
 
-    If pendingRestore Then
-        imgPath = BuiltInLogoFile()
-    ElseIf Len(pendingPath) > 0 Then
+    If pendingRestore Then Exit Function
+
+    If Len(pendingPath) > 0 Then
         imgPath = pendingPath
     Else
         imgPath = EffectiveLogoPath()
-        If Len(imgPath) = 0 Then imgPath = BuiltInLogoFile()
     End If
 
     If Len(imgPath) = 0 Then Exit Function
@@ -279,14 +215,11 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
         vert = "anchor"   ' default vertical alignment
     End If
 
-    ' The logo to stamp on ws, in preference order: the user's chosen image,
-    ' the extracted PNG copy of the built-in logo, then a straight copy of the
-    ' embedded shape. Either way newPic is a picture shape on ws for the
-    ' sizing/alignment below; fail loud only if none are available (the caller
-    ' is building a sheet around it).
+    ' User-chosen image if one is set, otherwise the embedded shape. Either
+    ' way newPic ends up as a picture shape on ws for the sizing/alignment
+    ' below - fail loud if neither is available, the caller is building a
+    ' sheet around it.
     userPath = EffectiveLogoPath()
-    If Len(userPath) = 0 Then userPath = BuiltInLogoFile()
-
     If Len(userPath) > 0 Then
         Set newPic = ws.Shapes.AddPicture(userPath, msoFalse, msoTrue, 0, 0, -1, -1)
     Else

@@ -142,9 +142,10 @@ End Sub
 ' Choosing an image or restoring the built-in one is STAGED - it updates the
 ' preview but nothing is written until OK (Cancel discards it), like the
 ' column-list fields. ApplyPendingLogo runs in cmdOk_Click before the column
-' save. Both the chosen image and the built-in logo preview via GDI+
-' (modHelpers_Logo.LogoPreviewPicture); the built-in preview is blank only
-' when its one-time file extraction can't run (e.g. headless).
+' save. A chosen image previews via GDI+ (modHelpers_Logo.LogoPreviewPicture);
+' the built-in preview reuses imgBrandLogo's picture - the same logo already
+' shown on this dialog's brand bar - since there's no reliable way to render
+' the _Resources shape into an Image control (#109).
 
 Private Sub cmdChooseLogo_Click()
     Dim fd As FileDialog
@@ -188,7 +189,11 @@ Private Sub RefreshLogoTab()
     Set pic = modHelpers_Logo.LogoPreviewPicture(pendingPath, mLogoAction = LOGO_RESTORE)
 
     On Error Resume Next
-    Set imgLogoPreview.Picture = pic          ' pic Is Nothing => cleared
+    If pic Is Nothing Then
+        Set imgLogoPreview.Picture = imgBrandLogo.Picture   ' the built-in logo
+    Else
+        Set imgLogoPreview.Picture = pic
+    End If
     On Error GoTo 0
 
     Select Case mLogoAction
