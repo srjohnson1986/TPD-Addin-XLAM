@@ -1,6 +1,6 @@
 # Contributing to TPD-Addin-XLAM
 
-This document covers the developer workflow: how the VBA source is organized, how to make and export changes, and how to build and release a testable `.xlam`. For install/usage/troubleshooting help as an end user of the add-in, see the [TPD Add-in documentation](https://docs.google.com/document/d/1OaWXSklF3Ry4mUrTqPOSVHrjU-0SlxQ_mZ4MlydHqO8/edit?usp=sharing) instead.
+This document covers the developer workflow: how the VBA source is organized, how to make and export changes, and how to build and release a testable `.xlam`. For install/usage/troubleshooting help as an end user of the add-in, see [docs/USER_GUIDE.md](docs/USER_GUIDE.md) (mirrored to the [GitHub wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki)) instead.
 
 ## Prerequisites
 
@@ -58,6 +58,7 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 2. Tag the commit (`vX.Y.Z`) and publish a GitHub Release with the built `.xlam` attached as an asset — this is what the README's Download link points to.
 3. Add an entry to `CHANGELOG.md` describing what changed.
 4. Refresh the base **only if this release changed something outside `/src`** (ribbon XML, worksheets, styles, the `_Resources` logo shape). To do it, take a copy of the release `.xlam`, delete every standard module and UserForm from its VBA project (leaving the document modules), and save that as `build/_base/TPD_Addin_base.xlam`. If the release was `/src`-only, the existing base is still current — leave it.
+5. **Update the user guide and re-sync the wiki.** Bring [docs/USER_GUIDE.md](docs/USER_GUIDE.md) in line with anything user-visible in this release (ribbon, dialogs, behaviour). Then mirror it to the [wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki): `git clone https://github.com/srjohnson1986/TPD-Addin-XLAM.wiki.git`, copy `docs/USER_GUIDE.md` over the wiki's `Home.md` (keeping the "this page mirrors…" note at the top), commit, push. The wiki repo only exists once its first page has been created via the GitHub web UI.
 
 ## Known constraints to keep in mind
 
