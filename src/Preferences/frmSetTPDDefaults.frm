@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -94,8 +95,8 @@ End Sub
 Private Function SavedTabIndex() As Long
     Dim idx As Long
 
-    idx = Val(LoadPref(PREF_SETDEFAULTS_LAST_TAB, "0"))
-    If idx < 0 Or idx > mpgPages.Pages.Count - 1 Then idx = 0
+    idx = val(LoadPref(PREF_SETDEFAULTS_LAST_TAB, "0"))
+    If idx < 0 Or idx > mpgPages.Pages.count - 1 Then idx = 0
     SavedTabIndex = idx
 End Function
 
@@ -117,7 +118,7 @@ End Sub
 ' already correct and nothing moves.
 
 Private Sub ApplyFirstRunNoticeLayout()
-    Dim shift As Single
+    Dim Shift As Single
 
     If Not modPreferences.DefaultsNeverSaved() Then
         lblFirstRunNotice.Visible = False
@@ -127,9 +128,9 @@ Private Sub ApplyFirstRunNoticeLayout()
     lblFirstRunNotice.Top = lblBrandBar.Top + lblBrandBar.Height + NOTICE_GAP
     lblFirstRunNotice.Visible = True
 
-    shift = lblFirstRunNotice.Height + NOTICE_GAP
-    mpgPages.Top = mpgPages.Top + shift
-    mpgPages.Height = mpgPages.Height - shift
+    Shift = lblFirstRunNotice.Height + NOTICE_GAP
+    mpgPages.Top = mpgPages.Top + Shift
+    mpgPages.Height = mpgPages.Height - Shift
 End Sub
 
 '--- About links (#94) --------------------------------------------------
