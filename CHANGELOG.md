@@ -11,6 +11,8 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-09-07
+
 ### Added
 
 - **Your own header logo**
@@ -45,16 +47,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - **Set TPD Defaults dialog**
   ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25),
   [#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)). A new
-  **TPD → Settings → Set TPD Defaults** ribbon button opens a modal dialog
-  with tabs for EQ List, Schedule, and Split Sheets. Each tab holds the
-  default column list as plain comma-separated text — paste a heading row
-  straight out of Excel and tabs/newlines normalize to commas. "Restore
-  defaults" per tab reverts to the built-in list; OK writes all settings and
-  confirms in the status bar; Cancel discards. The column pickers pre-fill
-  from these same settings, so this is the one place to set "my usual
-  columns" without a per-run pick. The Logo tab is an informational note
-  that the header logo is embedded in the add-in. The add-in version shows
-  in the corner.
+  **TPD → Defaults → Set TPD Defaults** ribbon button opens a modal dialog
+  with tabs for EQ List, Schedule, Split Sheets, and Logo. Each column tab
+  holds the default column list as plain comma-separated text — paste a
+  heading row straight out of Excel and tabs/newlines normalize to commas.
+  "Restore defaults" per tab reverts to the built-in list; OK writes all
+  settings and confirms in the status bar; Cancel discards. The column
+  pickers pre-fill from these same settings, so this is the one place to set
+  "my usual columns" without a per-run pick. The Logo tab is where you set
+  your own header logo (see above). The add-in version shows in the corner.
 
 ### Removed
 
