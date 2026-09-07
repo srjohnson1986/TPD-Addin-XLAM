@@ -42,6 +42,8 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   switching tabs showed a visible jump. The notice is now a form-level banner
   above the tab strip that only appears until you first save defaults, so every
   tab lines up.
+
+- **One-click EQ List no longer leaves stray row shading**
   ([#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130)). The
   source sheet's background fill is now stripped the same way whether you use
   the **Create Customer EQ List** picker or the one-click **EQ List** button:
@@ -60,6 +62,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   emitted the source sheet's column order regardless of the order you set.
   (The checkbox pickers still follow the source-sheet order; making them
   orderable is separate UI work.)
+
+### Docs
+
+- `docs/USER_GUIDE.md` and the wiki `Home.md` updated for the last-used-tab
+  behaviour ([#135](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/135)) —
+  wiki already re-synced, no action needed at release.
 
 ## [2.4.0] - 2026-09-07
 
