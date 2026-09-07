@@ -28,10 +28,11 @@ Option Explicit
 '  set to the picker-only PREF_SCHEDULE_PICKER_COLUMNS key after
 '  checking at least one column is ticked.
 '
-'  Cloned from CustEQListColumnPickerForm, so it carries the
-'  same vestigial txtImgPath / cmdBrowse / lblSelectLogo
-'  controls (#82) - no handlers, harmless, safe to delete in
-'  the VBE.
+'  The .frx is a byte-clone of CustEQListColumnPickerForm.frx,
+'  so the title label (lblCustEQListTitle) still carries the EQ
+'  caption in the binary - UserForm_Initialize overrides it at
+'  run time (#114). Rename the control / retext it in the VBE
+'  when the two pickers next get a real cleanup.
 '===========================================================
 
 Private Const ROWS_PER_COLUMN As Long = 10
@@ -41,6 +42,11 @@ Private CancelPressed As Boolean
 Public Property Get Cancelled() As Boolean
     Cancelled = CancelPressed
 End Property
+
+Private Sub UserForm_Initialize()
+    ' The cloned .frx label reads "Customer EQ List Generator" (#114).
+    lblCustEQListTitle.Caption = "Customer Schedule Generator"
+End Sub
 
 '===========================================================
 ' Load columns into checkboxes
