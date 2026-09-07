@@ -81,6 +81,9 @@ Public Sub CreateCustEQList_DoWork( _
 
     CopyEntireSheetRows wsSource, wsNew
     modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
+    ' DeleteUnselectedColumnsByHeading keeps the survivors in source order;
+    ' reorder them to match the chosen column order (#127).
+    modHelpers_Columns.ReorderColumnsByHeading wsNew, selectedCols, 1
 
     FormatEQSheet wsNew, 1
     AutoFitUsedColumns wsNew
