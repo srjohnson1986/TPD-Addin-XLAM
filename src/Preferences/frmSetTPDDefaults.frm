@@ -15,6 +15,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
+
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -241,7 +242,7 @@ End Function
 
 '--- OK / Cancel (spec 6, 7) -------------------------------------------------
 
-Private Sub cmdOk_Click()
+Private Sub cmdOK_Click()
     Dim eqList As String, scheduleCols As String
     Dim splitCols As String, groupColumn As String
     Dim emptyFields As String
