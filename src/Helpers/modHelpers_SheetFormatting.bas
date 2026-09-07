@@ -2,14 +2,20 @@ Attribute VB_Name = "modHelpers_SheetFormatting"
 '@Folder("TPD_Addin.Helpers")
 
 '===========================================================
-'  Visual formatting for generated EQ / split sheets: fonts,
-'  alignment, borders, autofit, and freeze panes. Pure
-'  presentation - no data is moved here.
+'  Visual formatting for generated EQ / schedule / split
+'  sheets: fonts, alignment, borders, autofit, and freeze
+'  panes. Pure presentation - no data is moved here.
 '===========================================================
 
 Option Explicit
 
-Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
+' Formats a generated data table: Arial 10, thin borders, and every column
+' centre-aligned EXCEPT leftAlignHeading (the sheet's one long-text column),
+' which keeps its natural left alignment. The EQ List flow leaves the default
+' "Description"; the Customer Schedule flow passes "Tasks". If that heading
+' isn't on the row, every column is centred.
+Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long, _
+                         Optional ByVal leftAlignHeading As String = "Description")
     Dim lastRow As Long
     Dim lastCol As Long
     Dim dataRange As Range
@@ -25,7 +31,7 @@ Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long)
         .Font.Size = 10
     End With
 
-    descCol = Application.Match("Description", ws.Rows(headingsRow), 0)
+    descCol = Application.Match(leftAlignHeading, ws.Rows(headingsRow), 0)
 
     If Not IsError(descCol) Then
         If descCol > 1 Then

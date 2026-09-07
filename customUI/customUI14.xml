@@ -2,7 +2,7 @@
   <ribbon>
     <tabs>
       <tab id="tabTPD" label="TPD">
-        <group id="grpTPDEQListTools" label="EQ List Tools">
+        <group id="grpTPDSheetTools" label="Sheet Tools">
           <button id="btnCountEquipmentRows"
                   label="EQ Count"
                   onAction="RunCountEquipmentRows"
@@ -17,6 +17,13 @@
                   size="large"
                   screentip="Create Customer EQ List"
                   supertip="Opens the column picker, then copies the data to a new Customer EQ List sheet and formats it."/>
+          <button id="btnInsertCustSchedule"
+                  label="Create Customer Schedule"
+                  onAction="RunCreateCustSchedule"
+                  imageMso="TableInsertRowsAbove"
+                  size="large"
+                  screentip="Create Customer Schedule"
+                  supertip="Opens the column picker, then copies the data to a new Customer Schedule sheet and formats it."/>
           <button id="btnSplitSheetByColumn"
                   label="Split Sheet by Column"
                   onAction="SplitSheetByColumn"
@@ -41,11 +48,10 @@
           <button id="btnQuickSchedule"
                   label="Schedule"
                   onAction="RunQuickSchedule"
-                  getEnabled="QuickScheduleEnabled"
                   imageMso="TableInsertRowsAbove"
                   size="normal"
                   screentip="Schedule (one-click)"
-                  supertip="Coming soon - the Customer Schedule automation flow isn't built yet."/>
+                  supertip="Creates a Customer Schedule straight from your saved TPD defaults - no column picker."/>
           <button id="btnQuickSplitSheets"
                   label="Split Sheets"
                   onAction="RunQuickSplitSheets"
