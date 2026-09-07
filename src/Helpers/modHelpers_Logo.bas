@@ -158,9 +158,9 @@ End Sub
 ' Picture for the Set TPD Defaults logo preview: the staged file the user
 ' just picked (pendingPath), else the saved user logo, loaded via GDI+.
 ' Returns Nothing when the built-in logo should show - a restore is staged,
-' or nothing is set - and the dialog then previews its own brand-bar logo
-' instead (there's no reliable Shape-to-Picture path for the _Resources
-' shape - #109).
+' or nothing is set - and the dialog then falls back to its own cached
+' design-time preview picture (there's no reliable Shape-to-Picture path for
+' the _Resources shape - #109).
 Public Function LogoPreviewPicture(ByVal pendingPath As String, _
                                    ByVal pendingRestore As Boolean) As stdole.IPictureDisp
     Dim imgPath As String

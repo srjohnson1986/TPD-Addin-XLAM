@@ -43,6 +43,11 @@ Private Const LOGO_RESTORE As Long = 2
 Private mLogoAction As Long
 Private mLogoChosenPath As String
 
+' imgLogoPreview's design-time picture (set in the VBE from
+' assets/tpdHeaderLogo.jpg) is the built-in header logo. Cached here on
+' Initialize, before any override, so "Use built-in logo" can restore it.
+Private mBuiltInLogoPic As stdole.IPictureDisp
+
 
 '--- Lifecycle -------------------------------------------------------------
 
@@ -66,6 +71,7 @@ Private Sub UserForm_Initialize()
     mpgPages.value = 0
     lblFirstRunNotice.Visible = modPreferences.DefaultsNeverSaved()
 
+    Set mBuiltInLogoPic = imgLogoPreview.Picture   ' before RefreshLogoTab overrides it
     imgLogoPreview.PictureSizeMode = fmPictureSizeModeZoom
     RefreshLogoTab
 End Sub
@@ -143,9 +149,9 @@ End Sub
 ' preview but nothing is written until OK (Cancel discards it), like the
 ' column-list fields. ApplyPendingLogo runs in cmdOk_Click before the column
 ' save. A chosen image previews via GDI+ (modHelpers_Logo.LogoPreviewPicture);
-' the built-in preview reuses imgBrandLogo's picture - the same logo already
-' shown on this dialog's brand bar - since there's no reliable way to render
-' the _Resources shape into an Image control (#109).
+' the built-in preview is imgLogoPreview's own design-time picture, cached in
+' mBuiltInLogoPic (there's no reliable way to render the _Resources shape into
+' an Image control - #109).
 
 Private Sub cmdChooseLogo_Click()
     Dim fd As FileDialog
@@ -190,7 +196,7 @@ Private Sub RefreshLogoTab()
 
     On Error Resume Next
     If pic Is Nothing Then
-        Set imgLogoPreview.Picture = imgBrandLogo.Picture   ' the built-in logo
+        Set imgLogoPreview.Picture = mBuiltInLogoPic
     Else
         Set imgLogoPreview.Picture = pic
     End If
