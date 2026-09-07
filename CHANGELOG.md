@@ -11,6 +11,17 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **Column order from Set TPD Defaults is now honoured**
+  ([#127](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/127)).
+  Reordering the columns on the **EQ List**, **Schedule**, or **Split Sheets**
+  tab of Set TPD Defaults now changes the order of the generated columns — the
+  one-click **EQ List** / **Schedule** / **Split Sheets** buttons previously
+  emitted the source sheet's column order regardless of the order you set.
+  (The checkbox pickers still follow the source-sheet order; making them
+  orderable is separate UI work.)
+
 ## [2.4.0] - 2026-09-07
 
 ### Added

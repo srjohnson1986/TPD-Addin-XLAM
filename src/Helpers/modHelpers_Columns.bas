@@ -4,7 +4,8 @@ Attribute VB_Name = "modHelpers_Columns"
 '===========================================================
 '  Column-oriented helpers: case-insensitive collection
 '  membership, deleting columns whose heading isn't in a
-'  selected list, unique values in a column, and copying rows
+'  selected list, reordering the kept columns to a chosen
+'  order, unique values in a column, and copying rows
 '  between sheets (all rows, or only rows matching a value in
 '  the group column) projected onto a chosen set of columns.
 '===========================================================
@@ -34,6 +35,45 @@ Public Sub DeleteUnselectedColumnsByHeading(ws As Worksheet, selectedHeadings As
             ws.Columns(c).Delete
         End If
     Next c
+End Sub
+
+' Reorders ws's columns so their headings on headingsRow run left-to-right in
+' orderedHeadings order, moving each wanted column into place with cut/insert.
+' Headings not found at/after the current target position are skipped (already
+' placed, or absent); any columns whose heading isn't in orderedHeadings are
+' left untouched to the right of the ordered block.
+'
+' Pairs with DeleteUnselectedColumnsByHeading: that drops the unselected
+' columns but leaves the survivors in source order, so the EQ List / Schedule
+' flows call this straight after to honour the order set in Set TPD Defaults
+' (#127). Cheap no-op when orderedHeadings is already in source order (e.g. the
+' checkbox pickers, which can't express a custom order).
+Public Sub ReorderColumnsByHeading(ByVal ws As Worksheet, ByVal orderedHeadings As Collection, ByVal headingsRow As Long)
+    Dim targetCol As Long
+    Dim h As Variant
+    Dim j As Long
+    Dim lastCol As Long
+    Dim curIdx As Long
+
+    targetCol = 1
+    For Each h In orderedHeadings
+        lastCol = GetLastCol(ws, headingsRow)
+        curIdx = 0
+        For j = targetCol To lastCol
+            If StrComp(CStr(ws.Cells(headingsRow, j).value), CStr(h), vbTextCompare) = 0 Then
+                curIdx = j
+                Exit For
+            End If
+        Next j
+
+        If curIdx = targetCol Then
+            targetCol = targetCol + 1
+        ElseIf curIdx > targetCol Then
+            ws.Columns(curIdx).Cut
+            ws.Columns(targetCol).Insert Shift:=xlToRight
+            targetCol = targetCol + 1
+        End If
+    Next h
 End Sub
 
 ' Returns the subset of `wanted` heading names that actually appear on
@@ -96,9 +136,10 @@ Public Sub CopyFilteredRowsByColumns( _
     ByVal headingsRow As Long)
 
     Dim lastRow As Long
-    Dim lastCol As Long
+    Dim headings As Variant
     Dim colMap As Object
-    Dim i As Long
+    Dim h As Variant
+    Dim srcIdx As Long
     Dim srcColIndex As Variant
     Dim destCol As Long
     Dim destRow As Long
@@ -106,15 +147,18 @@ Public Sub CopyFilteredRowsByColumns( _
 
     lastRow = GetLastRow(wsSource)
 
-    lastCol = GetLastCol(wsSource, headingsRow)
-
-    ' Build column map
+    ' Build the column map by walking selectedHeadings in order (not the source
+    ' columns) so the output columns come out in the chosen order rather than
+    ' the source-sheet order (#127). Scripting.Dictionary preserves insertion
+    ' order, so colMap.Keys below is already in selectedHeadings order.
+    headings = modHelpers_Headers.GetHeadingList(wsSource, headingsRow)
     Set colMap = CreateObject("Scripting.Dictionary")
-    For i = 1 To lastCol
-        If CollectionContainsText(selectedHeadings, CStr(wsSource.Cells(headingsRow, i).value)) Then
-            colMap.Add i, wsSource.Cells(headingsRow, i).value
+    For Each h In selectedHeadings
+        srcIdx = modHelpers_Headers.FindHeadingIndex(headings, CStr(h), preferRightmost:=True)
+        If srcIdx > 0 Then
+            If Not colMap.exists(srcIdx) Then colMap.Add srcIdx, headings(srcIdx)
         End If
-    Next i
+    Next h
 
     ' Copy headings row
     destCol = 1

@@ -85,6 +85,9 @@ Public Sub CreateCustSchedule_DoWork( _
 
     CopyEntireSheetRows wsSource, wsNew
     modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
+    ' DeleteUnselectedColumnsByHeading keeps the survivors in source order;
+    ' reorder them to match the chosen column order (#127).
+    modHelpers_Columns.ReorderColumnsByHeading wsNew, selectedCols, 1
 
     ' "Tasks" is the schedule's long-text column - keep its natural left
     ' alignment, centre the rest (FormatEQSheet defaults to "Description").
