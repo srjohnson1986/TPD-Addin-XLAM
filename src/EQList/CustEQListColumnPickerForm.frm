@@ -59,6 +59,11 @@ End Sub
 ' OK / Cancel
 '===========================================================
 Private Sub cmdOK_Click()
+    If Not HasColumnSelection(fraColumns) Then
+        MsgBox "Please select at least one column to keep.", vbExclamation
+        Exit Sub
+    End If
+
     SaveColumnList PREF_EQLIST_COLUMNS, GetSelectedColumns(fraColumns)
 
     CancelPressed = False

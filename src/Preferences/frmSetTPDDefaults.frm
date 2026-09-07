@@ -154,11 +154,25 @@ End Sub
 Private Sub cmdOk_Click()
     Dim eqList As String, scheduleCols As String
     Dim splitCols As String, groupColumn As String
+    Dim emptyFields As String
 
     eqList = NormalizeColumnList(txtEqListColumns.Text)
     scheduleCols = NormalizeColumnList(txtScheduleColumns.Text)
     splitCols = NormalizeColumnList(txtSplitColumns.Text)
     groupColumn = CollapseWhitespace(txtSplitGroupColumn.Text)
+
+    ' A column list is never a meaningful "empty" - every consumer reads an
+    ' empty saved value as "fall back to the built-in list" - so an empty
+    ' field here would just silently mean "defaults". Make the user choose.
+    ' The Split group-column field is not checked: an empty group pref
+    ' harmlessly falls back to "Vendor" / first column in the picker.
+    emptyFields = EmptyColumnFields(eqList, scheduleCols, splitCols)
+    If Len(emptyFields) > 0 Then
+        MsgBox "These column lists can't be left empty: " & emptyFields & "." & vbCrLf & vbCrLf & _
+               "Type the columns you want, or use Restore defaults on that tab for " & _
+               "the built-in list.", vbExclamation, "TPD Add-in"
+        Exit Sub
+    End If
 
     If Not SaveAllDefaults(eqList, scheduleCols, splitCols, groupColumn) Then
         MsgBox "Couldn't save your defaults. Your changes are still open behind " & _
@@ -170,6 +184,20 @@ Private Sub cmdOk_Click()
     Me.Hide
     ShowSavedInStatusBar
 End Sub
+
+' Names (comma-joined) of the column-list fields that normalized to empty,
+' or "" when all three hold a value. Order matches the tabs.
+Private Function EmptyColumnFields(ByVal eqList As String, _
+                                   ByVal scheduleCols As String, _
+                                   ByVal splitCols As String) As String
+    Dim names As String
+
+    If Len(eqList) = 0 Then names = names & ", EQ List"
+    If Len(scheduleCols) = 0 Then names = names & ", Schedule"
+    If Len(splitCols) = 0 Then names = names & ", Split Sheets"
+
+    If Len(names) > 0 Then EmptyColumnFields = Mid$(names, 3)
+End Function
 
 Private Sub cmdCancel_Click()
     Me.Hide          ' discard, no warning (spec 6)

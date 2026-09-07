@@ -38,6 +38,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 - Dropped the unused `PREF_EXPORT_APPEND` / `PREF_EXPORT_INCLUDEDATE`
   preference keys — nothing read or wrote them (the "Save Each Sheet to
   XLSX" dialog asks for its inputs every run and has never persisted them).
+- Set TPD Defaults now blocks OK if any of the three column-list fields is
+  empty, pointing at "Restore defaults"
+  ([#104](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/104)). An
+  empty column list was never a meaningful state — every consumer reads it
+  as "fall back to the built-in list" — so clearing a field and saving
+  looked like it did nothing (and, if every field was cleared, wrongly
+  re-triggered the first-run notice). For parity, the Create Customer EQ
+  List picker now also requires at least one column ticked before OK,
+  matching the Split Sheet picker.
 - Fixed `CollapseWhitespace` (the header-name compare form used by the Set
   TPD Defaults dialog)
   ([#103](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/103)). It
