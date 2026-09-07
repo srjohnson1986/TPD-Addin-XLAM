@@ -135,6 +135,8 @@ in is the order the generated columns come out (one-click paths).
   **Restore defaults**. (The Split group-column field *may* be left empty.)
 - **OK** saves everything and confirms in the status bar. **Cancel**, **Esc**, or
   the **X** discard your changes.
+- The dialog reopens on whichever tab you had open last, so you don't have to
+  click back to it each time.
 
 **Logo tab:** **Choose image…** or **Use built-in logo** stages a change — you see
 it in the preview and a note saying what will happen. It is applied when you click
