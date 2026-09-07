@@ -20,6 +20,10 @@ Public Sub RunSplitSheetByColumn(control As IRibbonControl)
     SplitSheetByColumn control
 End Sub
 
+Public Sub RunCreateCustSchedule(control As IRibbonControl)
+    CreateCustSchedule control
+End Sub
+
 ' ---- Defaults group: one-click runs (no picker) --------------------------
 
 Public Sub RunQuickEqList(control As IRibbonControl)
@@ -30,15 +34,8 @@ Public Sub RunQuickSplitSheets(control As IRibbonControl)
     SplitSheetByColumnFromDefaults control
 End Sub
 
-' Placeholder until the Customer Schedule automation flow exists (#96
-' follow-up). btnQuickSchedule is greyed out by QuickScheduleEnabled, so
-' this only fires if a future ribbon state slips through.
 Public Sub RunQuickSchedule(control As IRibbonControl)
-    MsgBox "Customer Schedule automation isn't built yet.", vbInformation, "TPD Add-in"
-End Sub
-
-Public Sub QuickScheduleEnabled(control As IRibbonControl, ByRef enabled)
-    enabled = False        ' flip to True when the Customer Schedule flow lands
+    CreateCustScheduleFromDefaults control
 End Sub
 
 Public Sub RunExportSheetsToXLSX(control As IRibbonControl)

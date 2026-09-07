@@ -13,18 +13,27 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Added
 
+- **Create Customer Schedule**
+  ([#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)). The
+  schedule twin of Create Customer EQ List: it copies the source sheet to a
+  new **Customer Schedule** sheet before any formatting, keeps your chosen
+  columns, formats the table (the **Tasks** column stays left-aligned), and
+  adds the schedule header block, date, embedded logo, and frozen panes. Runs
+  two ways — **TPD → Sheet Tools → Create Customer Schedule** opens a column
+  picker; **TPD → Defaults → Schedule** (now enabled) runs straight from your
+  saved defaults. The picker remembers its own last selection separately from
+  the Set TPD Defaults value, same as the other two pickers.
 - **One-click feature buttons**
   ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)). The
   ribbon's **Settings** group is renamed **Defaults** and now carries three
   small buttons — **EQ List**, **Schedule**, **Split Sheets** — beside the
-  large **Set TPD Defaults** button. **EQ List** and **Split Sheets** run
-  their flow straight from your saved defaults with no picker: EQ List copies
-  the source sheet to a new **Customer EQ List** sheet, keeps the columns
+  large **Set TPD Defaults** button. Each runs its flow straight from your
+  saved defaults with no picker: EQ List / Schedule copy the source sheet to
+  a new **Customer EQ List** / **Customer Schedule** sheet, keep the columns
   from your saved default list (or the built-in list) that actually exist on
-  the sheet, then formats it; Split Sheets splits the active sheet on your
-  saved group column. **Create Customer EQ List** and **Split Sheet by
-  Column** stay as the custom (picker) path. The **Schedule** button is
-  present but disabled until the Customer Schedule automation flow is built.
+  the sheet, then format it; Split Sheets splits the active sheet on your
+  saved group column. **Create Customer EQ List**, **Create Customer
+  Schedule**, and **Split Sheet by Column** stay as the custom (picker) path.
 - **Set TPD Defaults dialog**
   ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25),
   [#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)). A new
@@ -43,12 +52,17 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 - **Default EQ List Header** and **Default Schedule Header** ribbon buttons
   ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)) — the new
-  one-click buttons cover the same ground. The Schedule Tools ribbon group
-  (which held only "Default Schedule Header") is gone. `InsertDefaultCustEQHeader`
-  went with them; `InsertDefaultCustScheduleHeader` is kept as the header
-  builder for the pending Customer Schedule flow.
+  one-click / Create buttons cover the same ground. `InsertDefaultCustEQHeader`
+  went with them; `InsertDefaultCustScheduleHeader` is now the header builder
+  for the Create Customer Schedule flow
+  ([#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)).
 
 ### Changed
+
+- Renamed the **EQ List Tools** ribbon group to **Sheet Tools**
+  ([#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)) — it
+  holds EQ Count and every Create/Split/Export button, none of them
+  EQ-List-specific.
 
 - Split the picker column preference from the Set TPD Defaults preference
   ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)). Clicking

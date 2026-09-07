@@ -20,6 +20,8 @@ Option Explicit
 
 Public Const PERF_CREATE_CUST_EQ_LIST As String = "CreateCustEQList_Internal"
 Public Const PERF_CREATE_CUST_EQ_LIST_DEFAULTS As String = "CreateCustEQListFromDefaults_Internal"
+Public Const PERF_CREATE_CUST_SCHEDULE As String = "CreateCustSchedule_Internal"
+Public Const PERF_CREATE_CUST_SCHEDULE_DEFAULTS As String = "CreateCustScheduleFromDefaults_Internal"
 Public Const PERF_SPLIT_SHEET_BY_COLUMN As String = "SplitSheetByColumn_Internal"
 Public Const PERF_SPLIT_SHEET_BY_COLUMN_DEFAULTS As String = "SplitSheetByColumnFromDefaults_Internal"
 Public Const PERF_EXPORT_SHEETS As String = "ExportSheets_Internal"
@@ -43,6 +45,12 @@ Public Sub WithPerformance(workProcName As String)
 
         Case PERF_CREATE_CUST_EQ_LIST_DEFAULTS
             CreateCustEQListFromDefaults_Internal
+
+        Case PERF_CREATE_CUST_SCHEDULE
+            CreateCustSchedule_Internal
+
+        Case PERF_CREATE_CUST_SCHEDULE_DEFAULTS
+            CreateCustScheduleFromDefaults_Internal
 
         Case PERF_SPLIT_SHEET_BY_COLUMN
             SplitSheetByColumn_Internal

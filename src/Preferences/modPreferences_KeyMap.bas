@@ -34,6 +34,7 @@ Public Const PREF_EQLIST_PICKER_COLUMNS As String = "LastUsedEqListColumns"
 
 ' ---- Customer Schedule ----
 Public Const PREF_SCHEDULE_COLUMNS As String = "DefaultUserScheduleColumns"
+Public Const PREF_SCHEDULE_PICKER_COLUMNS As String = "LastUsedScheduleColumns"
 
 ' ---- Split Sheet By Column ----
 Public Const PREF_SPLIT_GROUPCOL As String = "DefaultUserSplitSheetsGroupColumn"
