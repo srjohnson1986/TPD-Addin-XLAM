@@ -130,6 +130,8 @@ a heading row straight out of Excel — tabs and line breaks are converted to
 commas automatically when you paste or leave the field. The order you list them
 in is the order the generated columns come out (one-click paths).
 
+Each tab shows a short hint under its field as a reminder of what to type.
+
 - **Restore defaults** (per tab) resets that list to the built-in one.
 - A column list can't be left empty — if you want the built-in list, use
   **Restore defaults**. (The Split group-column field *may* be left empty.)

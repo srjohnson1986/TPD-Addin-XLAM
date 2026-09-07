@@ -14,6 +14,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -75,6 +76,7 @@ Private Sub UserForm_Initialize()
     InitAboutLinks
 
     LoadValues
+    SetHelperText
     mpgPages.value = SavedTabIndex()
     ApplyFirstRunNoticeLayout
 
@@ -163,6 +165,41 @@ End Sub
 
 Private Sub lblUserGuide_Click()
     modAbout.OpenUserGuide
+End Sub
+
+'--- Per-page helper text (#143) --------------------------------------
+'
+' A muted hint under each tab's entry field, saying what a "column" is
+' and that pasting a heading row straight out of Excel works. Captions
+' live here rather than as design-time .frx properties so the copy stays
+' in source and reviewable (same reason as InitAboutLinks). The labels
+' themselves are placed in the VBE - lblEqListHelp / lblScheduleHelp /
+' lblSplitColsHelp / lblSplitGroupHelp / lblLogoHelp, all WordWrap, no
+' TabStop. Width is forced here too: the design-time boxes were narrow
+' enough to wrap the one-line hints to three cramped lines.
+
+Private Sub SetHelperText()
+    Const PASTE_HINT As String = _
+        "Header names from row 1, in output order. " & _
+        "Paste a row from Excel - tabs become commas."
+
+    lblEqListHelp.Caption = PASTE_HINT
+    lblScheduleHelp.Caption = PASTE_HINT
+    lblSplitColsHelp.Caption = "Header names from row 1, in output order."
+    lblSplitGroupHelp.Caption = "One header name. A sheet is created per unique value."
+    lblLogoHelp.Caption = "PNG, JPG, GIF or BMP. The file is copied into the " & _
+                          "add-in, so it applies to every workbook."
+
+    StyleHelperLabel lblEqListHelp
+    StyleHelperLabel lblScheduleHelp
+    StyleHelperLabel lblSplitColsHelp
+    StyleHelperLabel lblSplitGroupHelp
+    StyleHelperLabel lblLogoHelp
+End Sub
+
+Private Sub StyleHelperLabel(ByVal lbl As MSForms.Label)
+    lbl.ForeColor = RGB(90, 90, 90)   ' grey #5A5A5A (RGB() handles BGR)
+    lbl.Width = 500                   ' points - wide enough to keep each hint on one line
 End Sub
 
 Private Sub LoadValues()
