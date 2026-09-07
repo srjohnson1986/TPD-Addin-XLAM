@@ -13,6 +13,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -33,6 +35,13 @@ Private Const STATUS_CLEAR_SECONDS As Long = 4
 
 ' Ctrl bit in a KeyUp Shift argument.
 Private Const CTRL_MASK As Integer = 2
+
+' Logo tab: which change is staged for OK (Cancel discards it).
+Private Const LOGO_NONE As Long = 0
+Private Const LOGO_CHOOSE As Long = 1
+Private Const LOGO_RESTORE As Long = 2
+Private mLogoAction As Long
+Private mLogoChosenPath As String
 
 
 '--- Lifecycle -------------------------------------------------------------
@@ -56,12 +65,10 @@ Private Sub UserForm_Initialize()
     LoadValues
     mpgPages.value = 0
     lblFirstRunNotice.Visible = modPreferences.DefaultsNeverSaved()
-End Sub
 
-' The Logo tab is a static "the logo is embedded" note for now - imgLogoPreview
-' stays empty. A working preview needs a real shape-to-Picture mechanism (the
-' removed PastePicture stub never did anything) and is tracked with the
-' user-settable logo work in #95.
+    imgLogoPreview.PictureSizeMode = fmPictureSizeModeZoom
+    RefreshLogoTab
+End Sub
 
 Private Sub LoadValues()
     txtEqListColumns.Text = LoadPref(PREF_EQLIST_COLUMNS, DefaultEqListColumns())
@@ -130,12 +137,103 @@ Private Sub cmdRestoreSplitSheets_Click()
 End Sub
 
 
+'--- Logo tab (#95 / #109) -------------------------------------------------
+'
+' Choosing an image or restoring the built-in one is STAGED - it updates the
+' preview but nothing is written until OK (Cancel discards it), like the
+' column-list fields. ApplyPendingLogo runs in cmdOk_Click before the column
+' save. The built-in logo has no file, so its preview is left blank - the
+' user's own image previews via GDI+ (modGdiPlus.LoadPictureGDIP).
+
+Private Sub cmdChooseLogo_Click()
+    Dim fd As FileDialog
+    Dim picked As String
+
+    Set fd = Application.FileDialog(msoFileDialogFilePicker)
+    fd.Title = "Choose a logo image"
+    fd.AllowMultiSelect = False
+    fd.Filters.Clear
+    fd.Filters.Add "Images", "*.png; *.jpg; *.jpeg; *.gif; *.bmp"
+
+    If fd.Show <> -1 Then Exit Sub
+    picked = fd.SelectedItems(1)
+
+    If modGdiPlus.LoadPictureGDIP(picked) Is Nothing Then
+        MsgBox "That image couldn't be read. Try a PNG, JPG, GIF or BMP file.", _
+               vbExclamation, "TPD Add-in"
+        Exit Sub
+    End If
+
+    mLogoAction = LOGO_CHOOSE
+    mLogoChosenPath = picked
+    RefreshLogoTab
+End Sub
+
+Private Sub cmdRestoreLogo_Click()
+    mLogoAction = LOGO_RESTORE
+    mLogoChosenPath = vbNullString
+    RefreshLogoTab
+End Sub
+
+' Preview + status for what the tab currently shows: the staged change if
+' there is one, else the saved state.
+Private Sub RefreshLogoTab()
+    Dim pic As stdole.IPictureDisp
+    Dim pendingPath As String
+    Dim savedPath As String
+    Dim logoName As String
+
+    If mLogoAction = LOGO_CHOOSE Then pendingPath = mLogoChosenPath
+    Set pic = modHelpers_Logo.LogoPreviewPicture(pendingPath, mLogoAction = LOGO_RESTORE)
+
+    On Error Resume Next
+    Set imgLogoPreview.Picture = pic          ' pic Is Nothing => cleared
+    On Error GoTo 0
+
+    Select Case mLogoAction
+        Case LOGO_CHOOSE
+            logoName = FileNameOnly(mLogoChosenPath)
+        Case LOGO_RESTORE
+            logoName = "the built-in logo"
+        Case Else
+            savedPath = modHelpers_Logo.EffectiveLogoPath()
+            If Len(savedPath) > 0 Then logoName = FileNameOnly(savedPath) _
+            Else logoName = "the built-in logo"
+    End Select
+
+    If mLogoAction = LOGO_NONE Then
+        lblLogoStatus.Caption = "Currently using " & logoName & "."
+    Else
+        lblLogoStatus.Caption = "On OK: use " & logoName & "."
+    End If
+End Sub
+
+Private Function FileNameOnly(ByVal path As String) As String
+    Dim slash As Long
+    slash = InStrRev(path, "\")
+    If slash > 0 Then FileNameOnly = Mid$(path, slash + 1) Else FileNameOnly = path
+End Function
+
+' Applies the staged logo change. "" on success or nothing staged, else a
+' reason (the caller keeps the form open). Runs before the column save so a
+' bad image can't leave saved columns with no logo (#95).
+Private Function ApplyPendingLogo() As String
+    Select Case mLogoAction
+        Case LOGO_CHOOSE
+            ApplyPendingLogo = modHelpers_Logo.SetUserLogo(mLogoChosenPath)
+        Case LOGO_RESTORE
+            modHelpers_Logo.ClearUserLogo
+    End Select
+End Function
+
+
 '--- OK / Cancel (spec 6, 7) -------------------------------------------------
 
 Private Sub cmdOk_Click()
     Dim eqList As String, scheduleCols As String
     Dim splitCols As String, groupColumn As String
     Dim emptyFields As String
+    Dim logoErr As String
 
     eqList = NormalizeColumnList(txtEqListColumns.Text)
     scheduleCols = NormalizeColumnList(txtScheduleColumns.Text)
@@ -152,6 +250,14 @@ Private Sub cmdOk_Click()
         MsgBox "These column lists can't be left empty: " & emptyFields & "." & vbCrLf & vbCrLf & _
                "Type the columns you want, or use Restore defaults on that tab for " & _
                "the built-in list.", vbExclamation, "TPD Add-in"
+        Exit Sub
+    End If
+
+    ' Apply a staged logo change first - a bad image must not leave columns
+    ' saved with no logo (#95).
+    logoErr = ApplyPendingLogo()
+    If Len(logoErr) > 0 Then
+        MsgBox logoErr, vbExclamation, "TPD Add-in"
         Exit Sub
     End If
 
@@ -196,4 +302,3 @@ Private Sub ShowSavedInStatusBar()
     Application.StatusBar = STATUS_MESSAGE
     Application.OnTime Now + TimeSerial(0, 0, STATUS_CLEAR_SECONDS), "ClearTPDDefaultsStatusBar"
 End Sub
-

@@ -13,6 +13,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Added
 
+- **Your own header logo**
+  ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95),
+  [#109](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109)). The **Logo**
+  tab of Set TPD Defaults now has **Choose image…** (PNG / JPG / GIF / BMP) and
+  **Use built-in logo**. Your pick is previewed on the tab, applied when you click
+  OK, and used on every generated header (EQ List, Schedule, Split) from then on —
+  it's stored per Windows user under `%APPDATA%\TPD_Addin\`, so it survives an
+  Excel restart. "Use built-in logo" reverts to the logo shipped with the add-in.
 - **Create Customer Schedule**
   ([#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)). The
   schedule twin of Create Customer EQ List: it copies the source sheet to a
