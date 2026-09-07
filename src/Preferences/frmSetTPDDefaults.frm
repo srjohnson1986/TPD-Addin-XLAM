@@ -175,7 +175,10 @@ End Sub
 ' in source and reviewable (same reason as InitAboutLinks). The labels
 ' themselves are placed in the VBE - lblEqListHelp / lblScheduleHelp /
 ' lblSplitColsHelp / lblSplitGroupHelp / lblLogoHelp, all WordWrap, no
-' TabStop.
+' TabStop. Width is forced here too: the design-time boxes were narrow
+' enough to wrap the one-line hints to three cramped lines.
+
+Private Const HELPER_WIDTH As Single = 500
 
 Private Sub SetHelperText()
     Const PASTE_HINT As String = _
@@ -189,15 +192,16 @@ Private Sub SetHelperText()
     lblLogoHelp.Caption = "PNG, JPG, GIF or BMP. The file is copied into the " & _
                           "add-in, so it applies to every workbook."
 
-    MuteHelperLabel lblEqListHelp
-    MuteHelperLabel lblScheduleHelp
-    MuteHelperLabel lblSplitColsHelp
-    MuteHelperLabel lblSplitGroupHelp
-    MuteHelperLabel lblLogoHelp
+    StyleHelperLabel lblEqListHelp
+    StyleHelperLabel lblScheduleHelp
+    StyleHelperLabel lblSplitColsHelp
+    StyleHelperLabel lblSplitGroupHelp
+    StyleHelperLabel lblLogoHelp
 End Sub
 
-Private Sub MuteHelperLabel(ByVal lbl As MSForms.Label)
+Private Sub StyleHelperLabel(ByVal lbl As MSForms.Label)
     lbl.ForeColor = RGB(90, 90, 90)   ' grey #5A5A5A (RGB() handles BGR)
+    lbl.Width = HELPER_WIDTH
 End Sub
 
 Private Sub LoadValues()
