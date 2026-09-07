@@ -51,8 +51,6 @@ Private Sub UserForm_Initialize()
     txtSplitColumns.Multiline = True
     txtSplitColumns.ScrollBars = fmScrollBarsVertical
 
-    imgLogoPreview.PictureSizeMode = fmPictureSizeModeZoom
-
     lblVersion.Caption = "v" & ADDIN_VERSION
 
     LoadValues
@@ -60,9 +58,10 @@ Private Sub UserForm_Initialize()
     lblFirstRunNotice.Visible = modPreferences.DefaultsNeverSaved()
 End Sub
 
-Private Sub UserForm_Activate()
-    ShowEmbeddedLogo
-End Sub
+' The Logo tab is a static "the logo is embedded" note for now - imgLogoPreview
+' stays empty. A working preview needs a real shape-to-Picture mechanism (the
+' removed PastePicture stub never did anything) and is tracked with the
+' user-settable logo work in #95.
 
 Private Sub LoadValues()
     txtEqListColumns.Text = LoadPref(PREF_EQLIST_COLUMNS, DefaultEqListColumns())
@@ -128,24 +127,6 @@ End Sub
 Private Sub cmdRestoreSplitSheets_Click()
     txtSplitColumns.Text = DefaultSplitColumns()
     txtSplitGroupColumn.Text = DefaultSplitGroupColumn()
-End Sub
-
-
-'--- Logo preview: read-only view of the embedded _Resources logo --------
-
-Private Sub ShowEmbeddedLogo()
-    Dim ws As Worksheet
-    Dim shp As Shape
-
-    On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets("_Resources")
-    If ws Is Nothing Then Exit Sub
-    Set shp = ws.Shapes("DefaultLogo")
-    If shp Is Nothing Then Exit Sub
-
-    shp.Copy
-    Set imgLogoPreview.Picture = PastePicture()
-    On Error GoTo 0
 End Sub
 
 

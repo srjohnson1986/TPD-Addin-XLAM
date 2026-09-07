@@ -8,11 +8,28 @@ Attribute VB_Name = "modHelpers_Logo"
 '  max row count to scale into. anchorRow is the row the logo
 '  is positioned against - a title-block row or a heading row
 '  depending on the caller. ResizeImageToMaxRows is the scaling
-'  helper. PastePicture pulls an image off the clipboard as a
-'  StdPicture (used by frmSetTPDDefaults to preview the logo).
+'  helper. DefaultLogoShape is the one place the _Resources /
+'  DefaultLogo names are resolved.
 '===========================================================
 
 Option Explicit
+
+' The hidden sheet + shape that hold the add-in's embedded default logo,
+' shipped in the base .xlam. Everything resolves them through
+' DefaultLogoShape so the names live in exactly one place.
+Private Const RESOURCE_SHEET_NAME As String = "_Resources"
+Private Const LOGO_SHAPE_NAME As String = "DefaultLogo"
+
+' The embedded default-logo shape, or Nothing when the _Resources sheet
+' or the shape is missing (a base-file build mistake - see CONTRIBUTING.md).
+Public Function DefaultLogoShape() As Shape
+    Dim ws As Worksheet
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Worksheets(RESOURCE_SHEET_NAME)
+    If Not ws Is Nothing Then Set DefaultLogoShape = ws.Shapes(LOGO_SHAPE_NAME)
+    On Error GoTo 0
+End Function
 
 Public Sub ResizeImageToMaxRows(pic As Shape, ws As Worksheet, anchorRow As Long, maxRows As Long)
     Dim maxHeight As Double
@@ -33,7 +50,6 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
                              Optional alignment As String = "left", _
                              Optional maxRows As Long = 0)
 
-    Dim srcSheet As Worksheet
     Dim srcPic As Shape
     Dim newPic As Shape
     Dim naturalWidth As Single, naturalHeight As Single
@@ -51,9 +67,12 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
         vert = "anchor"   ' default vertical alignment
     End If
 
-    ' Get embedded logo
-    Set srcSheet = ThisWorkbook.Worksheets("_Resources")
-    Set srcPic = srcSheet.Shapes("DefaultLogo")
+    ' Get embedded logo - fail loud, the caller is building a sheet around it
+    Set srcPic = DefaultLogoShape()
+    If srcPic Is Nothing Then
+        Err.Raise 5, "InsertDefaultLogo", _
+            "The add-in's _Resources sheet or its DefaultLogo shape is missing."
+    End If
 
     ' Copy/paste into target sheet
     srcPic.Copy
@@ -110,11 +129,3 @@ Public Sub InsertDefaultLogo(ws As Worksheet, anchorRow As Long, _
     newPic.LockAspectRatio = msoTrue
     newPic.Placement = xlFreeFloating
 End Sub
-
-Public Function PastePicture() As StdPicture
-    ' Returns a picture object from the clipboard
-    Dim IData As Object
-    Set IData = CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
-    IData.GetData 1
-    Set PastePicture = IData.GetData(1)
-End Function
