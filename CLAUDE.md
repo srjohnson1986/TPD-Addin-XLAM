@@ -41,7 +41,12 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 3. Load it as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise it against the sample EQ List fixtures.
 4. If it checks out, it's a release candidate.
 
-A clean build is not a passing test — there's no compile step in the macro. For a headless compile check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`): VBA refuses to run any macro when the project has a compile error, so a clean return means the whole project compiled.
+A clean build is not a passing test — there's no compile step in the macro. For a headless smoke check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`). **A clean return does NOT prove the whole project compiles** — that claim used to be here and it is wrong. On 2026-09-08 this check passed on a build whose `modPreferences_Defaults` had `Private Const` declarations sitting *after* the first procedure; every ribbon flow that touched them then died with "variable not defined". Treat the check as "the add-in loads and a macro runs", nothing more. The real thing is **Debug → Compile VBAProject** in the VBE, which needs a human.
+
+Two static rules worth checking by eye before you build, since neither shows up until run time:
+
+- Module-level `Const` / `Dim` must be in the declarations section, **above the first `Sub`/`Function`**. Down beside the code they relate to, they read better and do not resolve.
+- Anything named by a string rather than by code — see the load-bearing strings below.
 
 **Cutting a release:** bump `ADDIN_VERSION` in `modStartup`, tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry, update `docs/USER_GUIDE.md` for any user-visible change and re-sync it to the [wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki) (`Home.md`). Refresh `build/_base/TPD_Addin_base.xlam` only if the release changed something outside `/src` (ribbon / sheets / logo) — and then from a code-stripped copy, not the release `.xlam` directly. Full steps in `CONTRIBUTING.md`.
 

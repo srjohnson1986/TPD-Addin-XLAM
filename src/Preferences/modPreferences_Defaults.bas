@@ -3,6 +3,21 @@ Attribute VB_Name = "modPreferences_Defaults"
 
 Option Explicit
 
+' Field layout of the EQ List toggle table further down: its rows are
+' "key|shipsOn|display name|needsPurchased" strings and these are the
+' separator and the four field positions.
+'
+' They live up here because VBA only accepts module-level declarations in
+' the declarations section, above the first procedure. Down beside the table
+' they read better but do not resolve, and the module then fails to compile
+' with "variable not defined" at the first constant a function reads - which
+' is where these spent their first run.
+Private Const TOGGLE_SEP As String = "|"
+Private Const TOGGLE_KEY As Long = 0
+Private Const TOGGLE_SHIPS_ON As Long = 1
+Private Const TOGGLE_NAME As Long = 2
+Private Const TOGGLE_NEEDS_PURCHASED As Long = 3
+
 '===========================================================
 '  What the add-in ships as, before a user saves anything:
 '  the default column lists below, and the EQ List behaviour
@@ -68,13 +83,9 @@ End Function
 ' of this table raised an unhandled error in the lookup below; the cause was
 ' never pinned down, so this shape is the deliberate one - do not "simplify"
 ' it back to nested Array() calls without testing the lookup in Excel.
-Private Const TOGGLE_SEP As String = "|"
-
-Private Const TOGGLE_KEY As Long = 0
-Private Const TOGGLE_SHIPS_ON As Long = 1
-Private Const TOGGLE_NAME As Long = 2
-Private Const TOGGLE_NEEDS_PURCHASED As Long = 3
-
+'
+' The separator and the four field positions are declared at the top of the
+' module, where VBA requires them - see the note there.
 Private Function EqListToggleTable() As Variant
     EqListToggleTable = Array( _
         PREF_EQLIST_REMOVE_PARENT_ROWS & "|0|Remove PARENT rows|1", _
