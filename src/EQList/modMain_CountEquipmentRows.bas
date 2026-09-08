@@ -92,6 +92,13 @@ Public Sub NumberEquipmentRowsFromStatuses(ws As Worksheet, headingRow As Long, 
     ws.Columns(EQ_COUNT_COL).Insert Shift:=xlToRight
     ws.Cells(headingRow, EQ_COUNT_COL).value = "EQ COUNT"
 
+    ' The inserted column comes in with no formatting - copy the neighbouring
+    ' heading cell's look onto it (bold, fill, borders, alignment, whatever the
+    ' sheet's column headings carry) so EQ COUNT doesn't stand out.
+    ws.Cells(headingRow, EQ_COUNT_COL + 1).Copy
+    ws.Cells(headingRow, EQ_COUNT_COL).PasteSpecial Paste:=xlPasteFormats
+    Application.CutCopyMode = False
+
     If Not IsArray(statuses) Then Exit Sub
     If UBound(statuses) < LBound(statuses) Then Exit Sub   ' heading row only
 

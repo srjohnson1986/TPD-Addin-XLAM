@@ -52,6 +52,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   `GetLastRow` helper instead of walking up the Purchased column, so a blank
   Purchased value in the last rows no longer cuts the numbering short.
 
+### Fixed
+
+- **The EQ COUNT column heading now matches the other headings**
+  ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)). The
+  freshly-inserted column came in unformatted, so its heading wasn't bold /
+  shaded like the rest of the heading row. It now copies the neighbouring
+  heading cell's formatting. Applies to both the inline "Add EQ Count column"
+  option and the standalone EQ Count flow.
+
 ## [2.4.1] - 2026-09-07
 
 ### Added
