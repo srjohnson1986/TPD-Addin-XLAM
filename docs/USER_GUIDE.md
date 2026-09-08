@@ -120,7 +120,7 @@ Tabs:
 
 | Tab | What it holds |
 |---|---|
-| **EQ List** | Your default column list for the EQ List tools. |
+| **EQ List** | Your default column list for the EQ List tools, plus five behaviour checkboxes (see below). |
 | **Schedule** | Your default column list for the Schedule tools. |
 | **Split Sheets** | Your default column list **and** the default group-by column for the Split tools. |
 | **Logo** | Your header logo — **Choose image…** (PNG / JPG / GIF / BMP) or **Use built-in logo**. |
@@ -157,6 +157,24 @@ Built-in column defaults, for reference:
 - **Schedule:** `Status, % Complete, Tasks, Start Date, End Date`
 - **Split group column:** `Vendor`
 
+### EQ List behaviour checkboxes
+
+On the **EQ List** tab, below the column list. They apply to **every** EQ List
+you generate — the picker *and* the one-click button:
+
+| Checkbox | Effect | Default |
+|---|---|---|
+| **Remove PARENT rows** | Drops every row marked `PARENT` in the Purchased column. | off |
+| **Add EQ Count column** | Adds the numbered **EQ COUNT** column as part of the build (same as running EQ Count afterwards). | off |
+| **Plain PARENT rows** | White fill, black un-bold text on PARENT rows, instead of the grey grouping shade. | off |
+| **Add cell borders** | The thin border around the data range. Turn off for a border-free sheet. | **on** |
+| **Add column filters** | Puts Excel's AutoFilter dropdowns on the heading row. | off |
+
+The first three read the **Purchased** column. If the sheet doesn't have one,
+those three are skipped (you get a note) and the rest of the list is still
+generated. Turning them on does **not** force Purchased into the output — it
+appears only if it's in your column list.
+
 ---
 
 ## The tools
@@ -181,6 +199,10 @@ All of these assume the Smartsheet export is the active sheet.
 
 The picker remembers *its own* last selection separately from the Set Defaults
 value — clicking OK here does not change your one-click default.
+
+The **EQ List behaviour checkboxes** in Set Defaults (remove PARENT rows, add EQ
+Count, plain PARENT rows, borders, column filters) apply here too — they're read
+at generate time, not stored with the picker.
 
 **One-click path — One-click → EQ List:** same result, no dialog. Columns come
 from your Set Defaults list (then the built-in list). Only the columns from that
