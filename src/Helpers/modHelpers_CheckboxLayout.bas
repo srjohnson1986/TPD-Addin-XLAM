@@ -3,14 +3,21 @@ Attribute VB_Name = "modHelpers_CheckboxLayout"
 
 '===========================================================
 '  Builds the checkbox grid inside a column-picker frame: one
-'  checkbox per heading, laid out in 3 columns, filling each
-'  column top-to-bottom before starting the next.
+'  checkbox per heading, laid out in AT MOST 3 columns, filling
+'  each column top-to-bottom before starting the next
+'  (column-major - the reading order stays down-then-across).
 '
 '  rowsPerColumn is the preferred column height. If there are
 '  more headings than fit in 3 columns of that height, the
-'  columns grow downward instead of spilling into a 4th column
-'  off the right edge, and the frame gets a vertical scrollbar
-'  so every checkbox stays reachable (#47).
+'  columns grow taller rather than spilling into a 4th column
+'  off the right edge (#47).
+'
+'  The frame keeps a vertical scrollbar ALWAYS (#150): a short
+'  heading set shows a present-but-idle bar, a long one scrolls.
+'  Never a horizontal bar - ScrollBars is fmScrollBarsVertical,
+'  and the column width leaves room for the bar so the third
+'  column isn't clipped under it. The frame is a fixed viewport;
+'  this never resizes it or the form.
 '===========================================================
 
 Option Explicit
@@ -18,6 +25,11 @@ Option Explicit
 Private Const COLUMN_COUNT As Long = 3
 Private Const ROW_PITCH As Single = 18
 Private Const MARGIN As Single = 6
+
+' Width the always-on vertical scrollbar takes out of the frame interior.
+' Generous by a point or two - the cost of over-estimating is a little right
+' padding on the third column; under-estimating clips it under the bar.
+Private Const SCROLLBAR_ALLOWANCE As Single = 16
 
 Public Sub LayoutCheckboxes( _
         ByVal fra As MSForms.Frame, _
@@ -43,16 +55,20 @@ Public Sub LayoutCheckboxes( _
     Next idx
 
     headingCount = UBound(headingList) - LBound(headingList) + 1
-    If headingCount <= 0 Then Exit Sub
+    If headingCount <= 0 Then
+        NormalizeFrameScroll fra, MARGIN * 2
+        Exit Sub
+    End If
 
     ' Keep it to COLUMN_COUNT columns: if the preferred height isn't enough,
-    ' make the columns as tall as they need to be.
+    ' make the columns as tall as they need to be (scroll to reach them).
     If rowsPerColumn < 1 Then rowsPerColumn = 1
     If headingCount > rowsPerColumn * COLUMN_COUNT Then
         rowsPerColumn = -Int(-headingCount / COLUMN_COUNT)   ' ceil(count / COLUMN_COUNT)
     End If
 
-    chkWidth = (fra.Width - 12) / COLUMN_COUNT
+    ' Leave room for the always-on scrollbar so the third column clears it.
+    chkWidth = (fra.InsideWidth - SCROLLBAR_ALLOWANCE - MARGIN) / COLUMN_COUNT
 
     colIndex = 0
     rowIndex = 0
@@ -74,16 +90,23 @@ Public Sub LayoutCheckboxes( _
         End If
     Next i
 
-    ' Scroll vertically when the grid is taller than the frame's interior.
-    ' Wrapped defensively - a scrollbar quirk must never break the picker.
     gridHeight = (MARGIN * 2) + (rowsPerColumn * ROW_PITCH)
+    NormalizeFrameScroll fra, gridHeight
+End Sub
+
+' Always-on vertical scrollbar, never horizontal (#150). ScrollHeight is the
+' laid-out content, or the interior height when the grid is shorter - so a
+' short list still shows the bar (idle, thumb filling the track) and the grid
+' never scrolls sideways. Wrapped defensively: a scrollbar quirk must never
+' break the picker.
+Private Sub NormalizeFrameScroll(ByVal fra As MSForms.Frame, ByVal contentHeight As Single)
     On Error Resume Next
-    If gridHeight > fra.InsideHeight Then
-        fra.ScrollBars = fmScrollBarsVertical
-        fra.ScrollHeight = gridHeight
-        fra.KeepScrollBarsVisible = fmScrollBarsVertical
+    fra.ScrollBars = fmScrollBarsVertical
+    fra.KeepScrollBarsVisible = fmScrollBarsVertical
+    If contentHeight > fra.InsideHeight Then
+        fra.ScrollHeight = contentHeight
     Else
-        fra.ScrollBars = fmScrollBarsNone
+        fra.ScrollHeight = fra.InsideHeight
     End If
     On Error GoTo 0
 End Sub
