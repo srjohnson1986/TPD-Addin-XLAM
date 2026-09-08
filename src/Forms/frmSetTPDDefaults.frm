@@ -198,16 +198,21 @@ End Sub
 '--- EQ List behaviour toggles (#97 / #119-#123) ----------------------
 '
 ' Five checkboxes on the EQ List page, "1"/"0" prefs, honoured by
-' modMain_CustEQList.CreateCustEQList_DoWork. "Add cell borders" defaults
-' on (the pre-#122 look); the rest default off. Saved by CommitDefaults
-' after the column keys, reset by cmdRestoreEqList_Click.
+' modMain_CustEQList.CreateCustEQList_DoWork. Saved by CommitDefaults after
+' the column keys, reset by cmdRestoreEqList_Click. Which one ships on is
+' not written here - LoadEqListToggle reads it from the toggle table in
+' modPreferences_Defaults, the one place that knows.
+'
+' These two routines are the only place a checkbox is named out loud, and
+' they stay explicit for that reason: a control referenced by name in a loop
+' would be a run-time 438 when renamed, where this is a compile error.
 
 Private Sub LoadEqListToggles()
-    cbxRemoveParentRows.value = LoadToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
-    cbxAddItemCountColumn.value = LoadToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
-    cbxPlainParentRows.value = LoadToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
-    cbxAddCellBorders.value = LoadToggle(PREF_EQLIST_ADD_CELL_BORDERS, defaultOn:=True)
-    cbxAddColumnFilters.value = LoadToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
+    cbxRemoveParentRows.value = LoadEqListToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
+    cbxAddItemCountColumn.value = LoadEqListToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
+    cbxPlainParentRows.value = LoadEqListToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    cbxAddCellBorders.value = LoadEqListToggle(PREF_EQLIST_ADD_CELL_BORDERS)
+    cbxAddColumnFilters.value = LoadEqListToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
 End Sub
 
 Private Sub SaveEqListToggles()
@@ -266,12 +271,13 @@ End Function
 Private Sub cmdRestoreEqList_Click()
     txtEqListColumns.Text = DefaultEqListColumns()
     ' The behaviour toggles live on this page, so Restore defaults resets them
-    ' too - off, except "Add cell borders" which ships on (#122).
-    cbxRemoveParentRows.value = False
-    cbxAddItemCountColumn.value = False
-    cbxPlainParentRows.value = False
-    cbxAddCellBorders.value = True
-    cbxAddColumnFilters.value = False
+    ' too - each back to what it ships as, read from the toggle table rather
+    ' than repeated as literals here (#122 put "Add cell borders" on).
+    cbxRemoveParentRows.value = EqListToggleShipsOn(PREF_EQLIST_REMOVE_PARENT_ROWS)
+    cbxAddItemCountColumn.value = EqListToggleShipsOn(PREF_EQLIST_ADD_COUNT_COLUMN)
+    cbxPlainParentRows.value = EqListToggleShipsOn(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    cbxAddCellBorders.value = EqListToggleShipsOn(PREF_EQLIST_ADD_CELL_BORDERS)
+    cbxAddColumnFilters.value = EqListToggleShipsOn(PREF_EQLIST_ADD_COLUMN_FILTERS)
 End Sub
 
 Private Sub cmdRestoreSchedule_Click()
