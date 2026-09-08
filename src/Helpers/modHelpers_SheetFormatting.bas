@@ -15,10 +15,13 @@ Option Explicit
 ' "Description"; the Customer Schedule flow passes "Tasks". If that heading
 ' isn't on the row, every column is centred.
 '
+' Named FormatEQSheet until the Schedule flow started calling it too - it has
+' never been EQ-specific, only EQ-first.
+'
 ' addBorders defaults True (the historic behaviour, kept for the Schedule
 ' caller and every existing path). The EQ List flow passes the user's
 ' "Add cell borders" toggle so the border can be turned off (#122).
-Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long, _
+Public Sub FormatDataTable(ws As Worksheet, headingsRow As Long, _
                          Optional ByVal leftAlignHeading As String = "Description", _
                          Optional ByVal addBorders As Boolean = True)
     Dim lastRow As Long

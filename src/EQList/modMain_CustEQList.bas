@@ -66,11 +66,11 @@ Public Sub CreateCustEQList_DoWork( _
     ' one-click flow - both land in _DoWork - honour them the same way.
     Dim removeParents As Boolean, addCount As Boolean, plainParents As Boolean
     Dim addBorders As Boolean, addFilters As Boolean
-    removeParents = LoadToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
-    addCount = LoadToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
-    plainParents = LoadToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
-    addBorders = LoadToggle(PREF_EQLIST_ADD_CELL_BORDERS, defaultOn:=True)
-    addFilters = LoadToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
+    removeParents = LoadEqListToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
+    addCount = LoadEqListToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
+    plainParents = LoadEqListToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    addBorders = LoadEqListToggle(PREF_EQLIST_ADD_CELL_BORDERS)
+    addFilters = LoadEqListToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
 
     Dim wantsPurchasedToggle As Boolean
     wantsPurchasedToggle = removeParents Or addCount Or plainParents
@@ -114,7 +114,7 @@ Public Sub CreateCustEQList_DoWork( _
     ' while the heading row is still row 1, before the title block goes on top.
     If addCount Then NumberEquipmentRowsFromStatuses wsNew, 1, parentStatuses
 
-    FormatEQSheet wsNew, 1, addBorders:=addBorders     ' #122
+    FormatDataTable wsNew, 1, addBorders:=addBorders     ' #122
 
     ' AutoFilter (#123) goes on while the heading is still row 1 and, crucially,
     ' BEFORE the autofit - so the columns are widened to clear the dropdown
@@ -189,12 +189,19 @@ End Sub
 ' Comma-joined display names of the Purchased-dependent toggles the user has
 ' turned on - read from the saved prefs, since _DoWork forces its local flags
 ' False once it finds no Purchased column. Used only for the skip notice.
+'
+' Which toggles need Purchased, and what to call them, come from the table in
+' modPreferences_Defaults: this used to be a hand-kept third copy of that list
+' and would have gone stale the first time a toggle was added or renamed.
 Private Function SkippedPurchasedToggleNames() As String
     Dim names As String
+    Dim key As Variant
 
-    If LoadToggle(PREF_EQLIST_REMOVE_PARENT_ROWS) Then names = names & ", Remove PARENT rows"
-    If LoadToggle(PREF_EQLIST_ADD_COUNT_COLUMN) Then names = names & ", Add EQ Count column"
-    If LoadToggle(PREF_EQLIST_PLAIN_PARENT_ROWS) Then names = names & ", Plain PARENT rows"
+    For Each key In EqListToggleKeys()
+        If EqListToggleNeedsPurchased(CStr(key)) Then
+            If LoadEqListToggle(CStr(key)) Then names = names & ", " & EqListToggleName(CStr(key))
+        End If
+    Next key
 
     If Len(names) > 0 Then SkippedPurchasedToggleNames = Mid$(names, 3)
 End Function

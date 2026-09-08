@@ -12,7 +12,7 @@ Attribute VB_Name = "modRibbonCallbacks"
 '  matches the button's onAction attribute.
 '
 '  The one exception is Set Defaults: RunSetTPDDefaults lives
-'  in modMain_SetTPDDefaults because it is not a forwarder -
+'  in modSetDefaults because it is not a forwarder -
 '  it shows the dialog, then runs whichever one-click flow the
 '  "Save & Run" button staged, after the form has unloaded.
 '

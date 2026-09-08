@@ -1,14 +1,25 @@
-Attribute VB_Name = "modMain_SetTPDDefaults"
+Attribute VB_Name = "modSetDefaults"
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
-'  "Set TPD Defaults" ribbon entry point - opens the modal
+'  The "Set Defaults" ribbon entry point - opens the modal
 '  frmSetTPDDefaults, the one place to configure the default
-'  column lists the per-run pickers fall back to.
+'  column lists the per-run pickers fall back to. The only
+'  onAction callback that isn't a one-line forwarder in
+'  modRibbonCallbacks, because it does real work after the
+'  dialog closes.
 '
-'  ClearTPDDefaultsStatusBar lives here (not on the form)
-'  because Application.OnTime can only call a public sub in a
-'  standard module.
+'  Was modMain_SetTPDDefaults: a 41-line entry-point shim is
+'  not a "main" like modMain_CustEQList, and the ribbon has
+'  said "Set Defaults" rather than "Set TPD Defaults" since
+'  v2.4.1.
+'
+'  ClearTPDDefaultsStatusBar keeps its name deliberately:
+'  frmSetTPDDefaults schedules it by STRING in its
+'  Application.OnTime call, which no compiler checks, so a
+'  rename would silently stop the status bar ever clearing. It
+'  lives here rather than on the form because OnTime can only
+'  call a public sub in a standard module.
 '===========================================================
 
 Option Explicit

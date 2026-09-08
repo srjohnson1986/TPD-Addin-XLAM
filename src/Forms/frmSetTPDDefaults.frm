@@ -21,7 +21,7 @@ Attribute VB_Exposed = False
 '  column lists the per-run pickers fall back to. Storage,
 '  parsing and the hard-coded fallback lists live in
 '  modPreferences / modPreferences_Defaults; the ribbon entry
-'  point and status-bar reset live in modMain_SetTPDDefaults.
+'  point and status-bar reset live in modSetDefaults.
 '
 '  Behaviour spec: design_handoff_tpd_addin_defaults/design/
 '  "TPD Addin Defaults - Behavior Spec.dc.html".
@@ -198,16 +198,21 @@ End Sub
 '--- EQ List behaviour toggles (#97 / #119-#123) ----------------------
 '
 ' Five checkboxes on the EQ List page, "1"/"0" prefs, honoured by
-' modMain_CustEQList.CreateCustEQList_DoWork. "Add cell borders" defaults
-' on (the pre-#122 look); the rest default off. Saved by CommitDefaults
-' after the column keys, reset by cmdRestoreEqList_Click.
+' modMain_CustEQList.CreateCustEQList_DoWork. Saved by CommitDefaults after
+' the column keys, reset by cmdRestoreEqList_Click. Which one ships on is
+' not written here - LoadEqListToggle reads it from the toggle table in
+' modPreferences_Defaults, the one place that knows.
+'
+' These two routines are the only place a checkbox is named out loud, and
+' they stay explicit for that reason: a control referenced by name in a loop
+' would be a run-time 438 when renamed, where this is a compile error.
 
 Private Sub LoadEqListToggles()
-    cbxRemoveParentRows.value = LoadToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
-    cbxAddItemCountColumn.value = LoadToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
-    cbxPlainParentRows.value = LoadToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
-    cbxAddCellBorders.value = LoadToggle(PREF_EQLIST_ADD_CELL_BORDERS, defaultOn:=True)
-    cbxAddColumnFilters.value = LoadToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
+    cbxRemoveParentRows.value = LoadEqListToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
+    cbxAddItemCountColumn.value = LoadEqListToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
+    cbxPlainParentRows.value = LoadEqListToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    cbxAddCellBorders.value = LoadEqListToggle(PREF_EQLIST_ADD_CELL_BORDERS)
+    cbxAddColumnFilters.value = LoadEqListToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
 End Sub
 
 Private Sub SaveEqListToggles()
@@ -266,12 +271,13 @@ End Function
 Private Sub cmdRestoreEqList_Click()
     txtEqListColumns.Text = DefaultEqListColumns()
     ' The behaviour toggles live on this page, so Restore defaults resets them
-    ' too - off, except "Add cell borders" which ships on (#122).
-    cbxRemoveParentRows.value = False
-    cbxAddItemCountColumn.value = False
-    cbxPlainParentRows.value = False
-    cbxAddCellBorders.value = True
-    cbxAddColumnFilters.value = False
+    ' too - each back to what it ships as, read from the toggle table rather
+    ' than repeated as literals here (#122 put "Add cell borders" on).
+    cbxRemoveParentRows.value = EqListToggleShipsOn(PREF_EQLIST_REMOVE_PARENT_ROWS)
+    cbxAddItemCountColumn.value = EqListToggleShipsOn(PREF_EQLIST_ADD_COUNT_COLUMN)
+    cbxPlainParentRows.value = EqListToggleShipsOn(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    cbxAddCellBorders.value = EqListToggleShipsOn(PREF_EQLIST_ADD_CELL_BORDERS)
+    cbxAddColumnFilters.value = EqListToggleShipsOn(PREF_EQLIST_ADD_COLUMN_FILTERS)
 End Sub
 
 Private Sub cmdRestoreSchedule_Click()
@@ -383,7 +389,7 @@ End Function
 ' The footer is Save (cmdOK, relabelled) / Save & Run (cmdSaveRun) / Cancel.
 ' Both Save buttons run CommitDefaults - normalize, block empty column lists,
 ' apply the staged logo, write all four keys - and on success hide + confirm
-' in the status bar. Save & Run additionally hands modMain_SetTPDDefaults the
+' in the status bar. Save & Run additionally hands modSetDefaults the
 ' PERF_* flow for the open tab; RunSetTPDDefaults runs it after the form
 ' unloads, so the perf wrapper toggles screen updating with no modal form in
 ' memory. Save & Run is hidden on the Logo tab (nothing to run there).
@@ -396,7 +402,7 @@ End Sub
 
 Private Sub cmdSaveRun_Click()
     If Not CommitDefaults() Then Exit Sub
-    modMain_SetTPDDefaults.gPendingDefaultsFlow = PerfConstForActivePage()
+    modSetDefaults.gPendingDefaultsFlow = PerfConstForActivePage()
     Me.Hide
     ShowSavedInStatusBar
 End Sub
