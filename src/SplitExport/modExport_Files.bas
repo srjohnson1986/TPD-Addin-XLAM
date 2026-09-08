@@ -1,13 +1,18 @@
-Attribute VB_Name = "modHelpers_Export"
+Attribute VB_Name = "modExport_Files"
 '@Folder("TPD_Addin.SplitExport")
 
 '===========================================================
-'  Helpers behind "Save Each Sheet to XLSX": locate/create the
-'  per-workbook export folder (EnsureExportFolder) and write a
+'  The file end of "Save Each Sheet to XLSX": locate/create the
+'  per-workbook export folder (EnsureExportFolder), write a
 '  single worksheet out to its own .xlsx (ExportSheetToXLSX,
-'  which returns "" on success or a reason string on failure).
-'  Also ReportBatchOutcome - the shared "N done, here's what
-'  failed" summary box used by both the Split and Export flows.
+'  which returns "" on success or a reason string on failure),
+'  and build the filename suffix the dialog previews and the
+'  export uses (BuildExportSuffix / PreviewExportFileName).
+'
+'  Was modHelpers_Export - the only modHelpers_* outside the
+'  Helpers folder, and it wasn't shared: everything here is
+'  export-only. The one genuinely shared routine it did hold,
+'  ReportBatchOutcome, moved to modHelpers_Reporting.
 '===========================================================
 
 Option Explicit
@@ -46,30 +51,6 @@ Public Function PreviewExportFileName(ByVal sampleSheetName As String, _
     PreviewExportFileName = SanitizeFileText(base) & ".xlsx"
 End Function
 
-' Shows the end-of-run summary for a batch flow (Split Sheet by Column,
-' Save Each Sheet to XLSX). "summary" is the lead line (already complete -
-' e.g. "3 sheet(s) created." or "3 sheet(s) exported to:" + path). Each entry
-' in "failures" is a "'name': reason" string; when there are any, they are
-' listed under "<count> <failureNoun>" and the box is a warning titled
-' errTitle, otherwise it's an info box titled okTitle.
-Public Sub ReportBatchOutcome(ByVal summary As String, ByVal failures As Collection, _
-                              ByVal failureNoun As String, _
-                              ByVal errTitle As String, ByVal okTitle As String)
-    Dim msg As String
-    Dim f As Variant
-
-    msg = summary
-
-    If failures.Count > 0 Then
-        msg = msg & vbCrLf & vbCrLf & failures.Count & " " & failureNoun
-        For Each f In failures
-            msg = msg & vbCrLf & "  " & f
-        Next f
-        MsgBox msg, vbExclamation, errTitle
-    Else
-        MsgBox msg, vbInformation, okTitle
-    End If
-End Sub
 
 ' Returns the path of the per-workbook export folder (created next to the
 ' workbook if missing), or "" - after a message - if the workbook is unsaved

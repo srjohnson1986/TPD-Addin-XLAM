@@ -73,8 +73,8 @@ Public Sub CreateCustSchedule_DoWork( _
     modHelpers_Columns.ReorderColumnsByHeading wsNew, selectedCols, 1
 
     ' "Tasks" is the schedule's long-text column - keep its natural left
-    ' alignment, centre the rest (FormatEQSheet defaults to "Description").
-    FormatEQSheet wsNew, 1, "Tasks"
+    ' alignment, centre the rest (FormatDataTable defaults to "Description").
+    FormatDataTable wsNew, 1, "Tasks"
     AutoFitUsedColumns wsNew
 
     ' Inserts the 5 header rows, the Date text/value, and the logo.

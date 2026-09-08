@@ -21,7 +21,7 @@ Attribute VB_Exposed = False
 '  column lists the per-run pickers fall back to. Storage,
 '  parsing and the hard-coded fallback lists live in
 '  modPreferences / modPreferences_Defaults; the ribbon entry
-'  point and status-bar reset live in modMain_SetTPDDefaults.
+'  point and status-bar reset live in modSetDefaults.
 '
 '  Behaviour spec: design_handoff_tpd_addin_defaults/design/
 '  "TPD Addin Defaults - Behavior Spec.dc.html".
@@ -389,7 +389,7 @@ End Function
 ' The footer is Save (cmdOK, relabelled) / Save & Run (cmdSaveRun) / Cancel.
 ' Both Save buttons run CommitDefaults - normalize, block empty column lists,
 ' apply the staged logo, write all four keys - and on success hide + confirm
-' in the status bar. Save & Run additionally hands modMain_SetTPDDefaults the
+' in the status bar. Save & Run additionally hands modSetDefaults the
 ' PERF_* flow for the open tab; RunSetTPDDefaults runs it after the form
 ' unloads, so the perf wrapper toggles screen updating with no modal form in
 ' memory. Save & Run is hidden on the Logo tab (nothing to run there).
@@ -402,7 +402,7 @@ End Sub
 
 Private Sub cmdSaveRun_Click()
     If Not CommitDefaults() Then Exit Sub
-    modMain_SetTPDDefaults.gPendingDefaultsFlow = PerfConstForActivePage()
+    modSetDefaults.gPendingDefaultsFlow = PerfConstForActivePage()
     Me.Hide
     ShowSavedInStatusBar
 End Sub

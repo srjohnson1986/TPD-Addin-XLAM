@@ -35,8 +35,6 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   About-link setup in favour of the shared `modHelpers_DialogChrome` the other
   four dialogs already used.
 
-### Removed
-
 - **Internal: one ribbon callback layer instead of two.** Each button's
   `onAction` used to land on a forwarder in `modRibbonCallbacks` that called a
   second forwarder in the feature module that called `WithPerformance`. The
@@ -45,6 +43,26 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   The two one-click column-resolving subs collapse into the shared
   `modHelpers_Columns.ResolveOneClickColumns`, and the Split flow's two entry
   points now share one run-and-report tail.
+
+- **Internal: one table for the five EQ List behaviour toggles.** Each
+  toggle's key, shipped default, display name and "needs a PURCHASED column"
+  were hand-listed across four routines, free to disagree - "add cell borders
+  ships on" alone was written out twice, independently.
+  `modPreferences_Defaults` now owns one table of those four facts, which the
+  *Set Defaults* dialog and the EQ List flow both read. Adding a sixth toggle
+  is now a preference constant, a table row, a checkbox, and one line each in
+  the dialog's load and save.
+
+- **Internal: three names that no longer described what they do.**
+  `FormatEQSheet` becomes `FormatDataTable` (the Schedule flow calls it too);
+  `modHelpers_Export` splits into `modExport_Files` (export-only, and no longer
+  the one `modHelpers_*` living outside the Helpers folder) and
+  `modHelpers_Reporting` (the end-of-run summary both batch flows share);
+  `modMain_SetTPDDefaults` becomes `modSetDefaults`. `ClearTPDDefaultsStatusBar`
+  deliberately keeps its name - it is scheduled by string literal, which no
+  compiler checks.
+
+### Removed
 
 - **Internal: dead code.** `DeleteSheetIfExists` and `ClearAllPrefs` (no callers),
   the `AutoSelectColumns` / `ApplyColumnSelection` pass-through pair (now one

@@ -114,7 +114,7 @@ Public Sub CreateCustEQList_DoWork( _
     ' while the heading row is still row 1, before the title block goes on top.
     If addCount Then NumberEquipmentRowsFromStatuses wsNew, 1, parentStatuses
 
-    FormatEQSheet wsNew, 1, addBorders:=addBorders     ' #122
+    FormatDataTable wsNew, 1, addBorders:=addBorders     ' #122
 
     ' AutoFilter (#123) goes on while the heading is still row 1 and, crucially,
     ' BEFORE the autofit - so the columns are widened to clear the dropdown
