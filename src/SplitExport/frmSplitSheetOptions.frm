@@ -16,6 +16,7 @@ Attribute VB_Exposed = False
 
 
 
+
 '@Folder("TPD_Addin.SplitExport")
 
 Option Explicit
@@ -42,6 +43,24 @@ End Sub
 
 Private Sub lblUserGuide_Click()
     modAbout.OpenUserGuide
+End Sub
+
+'===========================================================
+' Column grid actions (#149). These act on fraColumns only -
+' never cboGroupColumn. No persistence; cmdOK_Click still
+' writes the PREF_SPLIT_PICKER_* keys. Restore defaults
+' resolves DefaultUser* -> shipped, skipping LastUsed*.
+'===========================================================
+Private Sub cmdSelectAll_Click()
+    SetAllColumns fraColumns, True
+End Sub
+
+Private Sub cmdSelectNone_Click()
+    SetAllColumns fraColumns, False
+End Sub
+
+Private Sub cmdRestoreColumns_Click()
+    RestoreColumnDefaults fraColumns, PREF_SPLIT_COLUMNS, DefaultSplitColumns()
 End Sub
 
 '===========================================================

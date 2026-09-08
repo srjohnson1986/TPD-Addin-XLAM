@@ -16,6 +16,7 @@ Attribute VB_Exposed = False
 
 
 
+
 '@Folder("TPD_Addin.Schedule")
 
 Option Explicit
@@ -59,6 +60,24 @@ End Sub
 
 Private Sub lblUserGuide_Click()
     modAbout.OpenUserGuide
+End Sub
+
+'===========================================================
+' Column grid actions (#149). Kept identical to
+' frmCustEQListColumnPicker - only the pref key and shipped
+' list differ. Restore defaults resolves DefaultUser* ->
+' shipped, skipping LastUsed*.
+'===========================================================
+Private Sub cmdSelectAll_Click()
+    SetAllColumns fraColumns, True
+End Sub
+
+Private Sub cmdSelectNone_Click()
+    SetAllColumns fraColumns, False
+End Sub
+
+Private Sub cmdRestoreColumns_Click()
+    RestoreColumnDefaults fraColumns, PREF_SCHEDULE_COLUMNS, DefaultScheduleColumns()
 End Sub
 
 '===========================================================

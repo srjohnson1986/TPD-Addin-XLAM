@@ -72,3 +72,34 @@ Public Sub ApplyColumnSelection(fra As MSForms.Frame, resolved As Collection)
     AutoSelectColumns fra, resolved
 End Sub
 
+'===========================================================
+'  Tick (isChecked = True) or clear every checkbox in the
+'  frame - the Select all / Select none actions on the three
+'  column pickers (#149). Walks fra.Controls, so it covers
+'  boxes scrolled out of view as well as visible ones. No
+'  persistence: cmdOK_Click still writes the LastUsed* key.
+'===========================================================
+Public Sub SetAllColumns(fra As MSForms.Frame, ByVal isChecked As Boolean)
+    Dim ctrl As control
+
+    For Each ctrl In fra.Controls
+        If TypeName(ctrl) = "CheckBox" Then ctrl.value = isChecked
+    Next ctrl
+End Sub
+
+'===========================================================
+'  "Restore defaults" on a picker (#149): reset the ticks to
+'  the user's configured default list (a DefaultUser* key,
+'  written only by Set TPD Defaults), falling back to the
+'  shipped list. Deliberately skips the picker's own LastUsed*
+'  key via a single-key ResolveColumnList call, so the button
+'  means the same thing it does on the Set Defaults tabs
+'  (#149 option 1). Caller passes its own DefaultUser* key and
+'  shipped CSV (e.g. PREF_EQLIST_COLUMNS, DefaultEqListColumns()).
+'===========================================================
+Public Sub RestoreColumnDefaults(fra As MSForms.Frame, _
+                                 ByVal defaultUserKey As String, _
+                                 ByVal shippedCsv As String)
+    ApplyColumnSelection fra, ResolveColumnList(Array(defaultUserKey), shippedCsv)
+End Sub
+
