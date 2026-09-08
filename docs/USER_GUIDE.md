@@ -88,6 +88,17 @@ The first time it loads, Excel may ask you to enable macros / content — allow 
 Your saved defaults and logo are **not** stored in the `.xlam` — they live in your
 Windows user profile — so they carry across an update untouched.
 
+### What's new
+
+**v2.4.3** — a housekeeping release. Nothing about how the tools work has changed.
+The one thing you might notice: when a one-click button finds none of your default
+columns on the sheet, the message it shows now points at the right place on the
+ribbon — **TPD → One-click → Set Defaults**. It had been naming a menu path that
+was renamed two versions ago.
+
+Notes for every version are on the
+[Releases page](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases).
+
 ---
 
 ## The TPD ribbon tab
