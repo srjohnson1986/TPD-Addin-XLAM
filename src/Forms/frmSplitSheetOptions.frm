@@ -78,8 +78,7 @@ Public Sub LoadColumns(headingList As Variant)
                      DefaultSplitColumns()
 
     cboGroupColumn.Clear
-    For i = LBound(headingList)
- To UBound(headingList)
+    For i = LBound(headingList) To UBound(headingList)
         cboGroupColumn.AddItem headingList(i)
     Next i
 
