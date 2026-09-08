@@ -11,6 +11,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-09-08
+
+A housekeeping release: the code was reorganised and de-duplicated after the
+2.4.2 feature work, with one user-visible fix that fell out of it. Nothing
+else about how the add-in behaves has changed.
+
 ### Fixed
 
 - **The "no default columns found" message pointed at a ribbon path that no
