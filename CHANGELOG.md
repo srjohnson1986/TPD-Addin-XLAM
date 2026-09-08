@@ -81,6 +81,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- **Save Each Sheet to XLSX: the preview shows the active sheet from the start**
+  ([#154](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/154)). It opened
+  reading `Sheet1.xlsx` and only corrected itself once you typed something or
+  ticked the date box. The first preview is now drawn after the dialog has the
+  active sheet name, not before.
 - **EQ List column filters no longer clip the heading text**
   ([#147](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/147)). With the
   **Add column filters** option on, the AutoFilter is now applied before the
