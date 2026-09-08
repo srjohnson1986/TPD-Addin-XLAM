@@ -37,6 +37,14 @@ Public SampleSheetName As String
 Private Sub UserForm_Initialize()
     ApplyDialogChrome lblBrandBar, lblHelp
     InitAboutLinks lblVersion, lblUserGuide
+End Sub
+
+' The first preview is drawn in Activate, not Initialize (#154): assigning
+' frm.SampleSheetName is the caller's first member access, so it runs
+' Initialize before that assignment lands - Initialize would build the
+' preview with an empty sample name. Activate fires on .Show, after the
+' caller has set SampleSheetName.
+Private Sub UserForm_Activate()
     RefreshPreview
 End Sub
 
