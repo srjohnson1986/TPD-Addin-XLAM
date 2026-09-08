@@ -17,10 +17,10 @@ Option Explicit
 Public Const EQ_HEADER_ROW_COUNT As Long = 6
 
 ' Rows InsertDefaultCustScheduleHeader inserts above the schedule heading row.
-' InsertDefaultCustScheduleHeader (below) currently has no caller - the
-' "Default Schedule Header" ribbon button was removed in #96. It is kept
-' as the header builder the pending Customer Schedule one-click flow will
-' call (mirroring how CreateCustEQList_DoWork builds the EQ header).
+' InsertDefaultCustScheduleHeader (below) is the schedule's header builder,
+' called by CreateCustSchedule_DoWork (#112) the way CreateCustEQList_DoWork
+' calls InsertEQHeaderBlock. The old "Default Schedule Header" ribbon button
+' that used to call it directly was removed in #96.
 Public Const SCHEDULE_HEADER_ROW_COUNT As Long = 5
 
 Public Sub InsertEQHeaderBlock(ws As Worksheet)

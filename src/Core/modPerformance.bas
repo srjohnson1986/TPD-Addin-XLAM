@@ -12,8 +12,11 @@ Attribute VB_Name = "modPerformance"
 '  Callers pass one of the PERF_* constants below rather than
 '  a bare string, so a mistyped routine name is a compile
 '  error at the call site instead of a run-time "Unknown
-'  action". Adding a flow = add a PERF_* constant, a Case in
-'  the Select, and the WithPerformance call in the callback.
+'  action". Every caller is a ribbon callback in
+'  modRibbonCallbacks - bar Set Defaults' "Save & Run", which
+'  passes the constant the open tab staged - so adding a flow
+'  = a PERF_* constant, a Case in the Select below, and a
+'  one-line callback in modRibbonCallbacks.
 '===========================================================
 
 Option Explicit

@@ -17,7 +17,7 @@ Attribute VB_Exposed = False
 
 
 
-'@Folder("TPD_Addin.SplitExport")
+'@Folder("TPD_Addin.Forms")
 
 Option Explicit
 
@@ -66,16 +66,16 @@ End Sub
 '===========================================================
 ' Load columns into checkboxes + ComboBox
 '===========================================================
+' The checkbox grid and its pre-fill are modHelpers_ColumnPicker's job,
+' shared with the other two pickers (last-used, else Set Defaults, else the
+' shipped list - #96, #98). The group-column dropdown below is this form's
+' alone.
 Public Sub LoadColumns(headingList As Variant)
     Dim i As Long
 
-    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkSplit"
-
-    ' Pre-fill: this picker's own last-used selection, else the Set TPD
-    ' Defaults value, else the shipped default list (#96, #98).
-    ApplyColumnSelection fraColumns, _
-        ResolveColumnList(Array(PREF_SPLIT_PICKER_COLUMNS, PREF_SPLIT_COLUMNS), _
-                          DefaultSplitColumns())
+    InitColumnPicker fraColumns, headingList, ROWS_PER_COLUMN, "chkSplit", _
+                     PREF_SPLIT_PICKER_COLUMNS, PREF_SPLIT_COLUMNS, _
+                     DefaultSplitColumns()
 
     cboGroupColumn.Clear
     For i = LBound(headingList) To UBound(headingList)
@@ -121,15 +121,14 @@ Private Sub cmdOK_Click()
         Exit Sub
     End If
 
-    If Not HasColumnSelection(fraColumns) Then
-        MsgBox "Please select at least one column to keep.", vbExclamation
-        Exit Sub
-    End If
+    ' Guards "at least one column" and writes the picker-only column key;
+    ' the group column is this form's own, saved alongside it.
+    If Not CommitColumnPicker(fraColumns, PREF_SPLIT_PICKER_COLUMNS) Then Exit Sub
 
     SavePref PREF_SPLIT_PICKER_GROUPCOL, cboGroupColumn.value
-    SaveColumnList PREF_SPLIT_PICKER_COLUMNS, GetSelectedColumns(fraColumns)
 
     CancelPressed = False
+
     Me.Hide
 End Sub
 

@@ -17,7 +17,7 @@ Attribute VB_Exposed = False
 
 
 
-'@Folder("TPD_Addin.Schedule")
+'@Folder("TPD_Addin.Forms")
 
 Option Explicit
 
@@ -83,28 +83,21 @@ End Sub
 '===========================================================
 ' Load columns into checkboxes
 '===========================================================
+' Grid + pre-fill are modHelpers_ColumnPicker's job, shared with the other
+' two pickers: last-used selection, else the Set Defaults value, else the
+' shipped default list (#96, #112).
 Public Sub LoadColumns(headingList As Variant)
-
-    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkCustSched"
-
-    ' Pre-fill: this picker's own last-used selection, else the Set TPD
-    ' Defaults value, else the shipped default list (#96, #112).
-    ApplyColumnSelection fraColumns, _
-        ResolveColumnList(Array(PREF_SCHEDULE_PICKER_COLUMNS, PREF_SCHEDULE_COLUMNS), _
-                          DefaultScheduleColumns())
-
+    InitColumnPicker fraColumns, headingList, ROWS_PER_COLUMN, "chkCustSched", _
+                     PREF_SCHEDULE_PICKER_COLUMNS, PREF_SCHEDULE_COLUMNS, _
+                     DefaultScheduleColumns()
 End Sub
 
 '===========================================================
 ' OK / Cancel
 '===========================================================
 Private Sub cmdOK_Click()
-    If Not HasColumnSelection(fraColumns) Then
-        MsgBox "Please select at least one column to keep.", vbExclamation
-        Exit Sub
-    End If
-
-    SaveColumnList PREF_SCHEDULE_PICKER_COLUMNS, GetSelectedColumns(fraColumns)
+    ' Guards "at least one column" and writes the picker-only LastUsed* key.
+    If Not CommitColumnPicker(fraColumns, PREF_SCHEDULE_PICKER_COLUMNS) Then Exit Sub
 
     CancelPressed = False
     Me.Hide

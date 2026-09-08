@@ -12,7 +12,8 @@ This document covers the developer workflow: how the VBA source is organized, ho
 ## Repo layout
 
 ```
-/src        VBA source - the source of truth (.bas / .cls / .frm / .frx)
+/src        VBA source - the source of truth (.bas / .cls / .frm / .frx);
+            every UserForm lives in /src/Forms
 /customUI   customUI14.xml (ribbon definition) + ribbon icons
 /build      Local build output - gitignored, never committed
 /docs       Developer documentation (this file, ARCHITECTURE.md, etc.)
@@ -33,6 +34,8 @@ Option Explicit
 This groups modules in Rubberduck's Code Explorer to match the feature areas of the add-in, and the export tooling below uses the same tag to sort exported files into matching subfolders under `/src`. See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the current, complete folder map and what each module does.
 
 If you add a new module, give it a `@Folder` tag matching one of the existing groups (or propose a new one in `ARCHITECTURE.md` if it genuinely doesn't fit).
+
+**UserForms group by kind, not by feature.** Every `.frm` is tagged `'@Folder("TPD_Addin.Forms")` and therefore exports to `/src/Forms`, no matter which feature area shows it — so all five dialogs sit together instead of being scattered across four folders. Tag any new form the same way; tag it with its feature area instead and the next export will move it out of `/src/Forms`.
 
 ## Making a change
 

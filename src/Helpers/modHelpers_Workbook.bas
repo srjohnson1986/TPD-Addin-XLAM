@@ -125,17 +125,3 @@ Public Function GetLastCol(ws As Worksheet, headingsRow As Long) As Long
     GetLastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
 End Function
 
-Public Sub DeleteSheetIfExists(wsName As String)
-    Dim ws As Worksheet
-
-    On Error Resume Next
-    Set ws = ActiveWorkbook.Worksheets(wsName)
-    On Error GoTo 0
-
-    If Not ws Is Nothing Then
-        Application.DisplayAlerts = False
-        ws.Delete
-        Application.DisplayAlerts = True
-    End If
-End Sub
-

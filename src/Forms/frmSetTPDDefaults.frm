@@ -14,7 +14,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-'@Folder("TPD_Addin.Preferences")
+'@Folder("TPD_Addin.Forms")
 
 '===========================================================
 '  "Set Defaults" - the one place to configure the default
@@ -61,9 +61,9 @@ Private Sub UserForm_Initialize()
     mInitializing = True
     Me.Caption = "Set Defaults"
 
-    ' TPD grey #64665D - VBA BackColor is BGR, not RGB.
-    lblBrandBar.BackColor = &H5D6664
-    lblBrandBar.Caption = vbNullString
+    ' Brand band, About links: the same shared chrome the picker / split /
+    ' export dialogs use, so the five forms cannot drift apart (#118).
+    ApplyDialogChrome lblBrandBar, Nothing
 
     txtEqListColumns.Multiline = True
     txtEqListColumns.ScrollBars = fmScrollBarsVertical
@@ -72,7 +72,7 @@ Private Sub UserForm_Initialize()
     txtSplitColumns.Multiline = True
     txtSplitColumns.ScrollBars = fmScrollBarsVertical
 
-    InitAboutLinks
+    modHelpers_DialogChrome.InitAboutLinks lblVersion, lblUserGuide
 
     LoadValues
     SetHelperText
@@ -138,27 +138,11 @@ End Sub
 
 '--- About links (#94) --------------------------------------------------
 '
-' lblVersion and lblUserGuide are plain labels sitting in the bottom
-' corner of the form (outside mpgPages, so they show on every tab). Their
-' link look - blue, underlined - is applied here rather than as design-
-' time properties so it stays in source; the URLs live in modAbout.
-'   lblVersion   -> this version's GitHub release page
-'   lblUserGuide -> the user guide (wiki)
-
-Private Sub InitAboutLinks()
-    lblVersion.Caption = "v" & ADDIN_VERSION
-    StyleAsLink lblVersion
-    lblVersion.ControlTipText = AboutReleaseUrl()
-
-    lblUserGuide.Caption = "User guide"
-    StyleAsLink lblUserGuide
-    lblUserGuide.ControlTipText = modAbout.ABOUT_USER_GUIDE_URL
-End Sub
-
-Private Sub StyleAsLink(ByVal lbl As MSForms.Label)
-    lbl.ForeColor = RGB(0, 102, 204)   ' hyperlink blue (RGB() handles BGR)
-    lbl.Font.Underline = True
-End Sub
+' lblVersion and lblUserGuide are plain labels in the bottom corner of the
+' form (outside mpgPages, so they show on every tab). Captions, tooltips and
+' the blue-underline link look come from modHelpers_DialogChrome.InitAboutLinks,
+' called in UserForm_Initialize; the URLs live in modAbout. Only the two Click
+' handlers stay here - a standard module can't wire an event.
 
 Private Sub lblVersion_Click()
     modAbout.OpenReleasePage

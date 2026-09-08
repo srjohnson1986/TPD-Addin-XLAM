@@ -14,11 +14,9 @@ Option Explicit
 
 Private Const EQ_COUNT_COL As Long = 1
 
-' Ribbon callback
-Public Sub RunCountEquipmentRows(control As IRibbonControl)
-    WithPerformance PERF_COUNT_EQ_ROWS
-End Sub
-
+' The standalone "EQ Count" flow. Its ribbon button was removed in #120 (the
+' count is an EQ List option now); the callback that reaches this lives with
+' the others in modRibbonCallbacks.
 Public Sub CountEquipmentRows_Internal()
     Dim wb As Workbook
     Dim ws As Worksheet

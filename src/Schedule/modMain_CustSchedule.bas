@@ -15,60 +15,41 @@ Attribute VB_Name = "modMain_CustSchedule"
 
 Option Explicit
 
-' Ribbon callback - "Create Customer Schedule" (opens the column picker)
-Public Sub CreateCustSchedule(control As IRibbonControl)
-    WithPerformance PERF_CREATE_CUST_SCHEDULE
-End Sub
-
-' Ribbon callback - "Schedule" one-click: no picker, columns come straight
-' from the saved Set TPD Defaults value (or the shipped default list) (#96).
-Public Sub CreateCustScheduleFromDefaults(control As IRibbonControl)
-    WithPerformance PERF_CREATE_CUST_SCHEDULE_DEFAULTS
-End Sub
-
+' "Create Customer Schedule" - the picker path. Entered from
+' modRibbonCallbacks.RunCreateCustSchedule via WithPerformance.
 Public Sub CreateCustSchedule_Internal()
 
     Dim wsSource As Worksheet
-    Dim headings As Variant
     Dim frm As frmCustScheduleColumnPicker
-    Dim selectedCols As Collection
 
     Set wsSource = GetFirstVisibleSheet()
     If wsSource Is Nothing Then Exit Sub
-    headings = modHelpers_Headers.GetHeadingList(wsSource, 1)
 
     Set frm = New frmCustScheduleColumnPicker
-    frm.LoadColumns headings
+    frm.LoadColumns modHelpers_Headers.GetHeadingList(wsSource, 1)
     frm.Show
 
     If frm.Cancelled Then Exit Sub
 
-    Set selectedCols = GetSelectedColumns(frm.fraColumns)
-
-    CreateCustSchedule_DoWork wsSource, selectedCols
+    CreateCustSchedule_DoWork wsSource, GetSelectedColumns(frm.fraColumns)
 End Sub
 
+' "Schedule" - the one-click path. Same resolution the EQ List one-click uses
+' (saved Set Defaults value, else the shipped list, narrowed to the headings
+' on the sheet); ResolveOneClickColumns shows the reason and returns Nothing
+' when nothing matches (#96).
 Public Sub CreateCustScheduleFromDefaults_Internal()
 
     Dim wsSource As Worksheet
-    Dim wantCols As Collection
     Dim presentCols As Collection
 
     Set wsSource = GetFirstVisibleSheet()
     If wsSource Is Nothing Then Exit Sub
 
-    ' One-click precedence: Set TPD Defaults value -> shipped default list.
-    ' (No picker LastUsed* layer here - that's the picker's alone.)
-    Set wantCols = ResolveColumnList(Array(PREF_SCHEDULE_COLUMNS), DefaultScheduleColumns())
-    Set presentCols = HeadingsPresentOnSheet(wsSource, 1, wantCols)
-
-    If presentCols.Count = 0 Then
-        MsgBox "None of your default Schedule columns were found on '" & wsSource.name & "'." & vbCrLf & vbCrLf & _
-               "Open TPD " & Chr$(187) & " Defaults " & Chr$(187) & " Set TPD Defaults to change the list, " & _
-               "or use Create Customer Schedule to pick columns for this sheet.", _
-               vbExclamation, "TPD Add-in"
-        Exit Sub
-    End If
+    Set presentCols = ResolveOneClickColumns(wsSource, PREF_SCHEDULE_COLUMNS, _
+                                             DefaultScheduleColumns(), _
+                                             "Schedule", "Create Customer Schedule")
+    If presentCols Is Nothing Then Exit Sub
 
     CreateCustSchedule_DoWork wsSource, presentCols
 End Sub

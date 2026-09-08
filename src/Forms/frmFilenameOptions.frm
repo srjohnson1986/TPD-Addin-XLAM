@@ -15,7 +15,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 
-'@Folder("TPD_Addin.SplitExport")
+'@Folder("TPD_Addin.Forms")
 
 Option Explicit
 
