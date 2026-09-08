@@ -14,8 +14,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
-
 '@Folder("TPD_Addin.Preferences")
 
 '===========================================================
@@ -210,6 +208,30 @@ Private Sub LoadValues()
     txtScheduleColumns.Text = LoadPref(PREF_SCHEDULE_COLUMNS, DefaultScheduleColumns())
     txtSplitColumns.Text = LoadPref(PREF_SPLIT_COLUMNS, DefaultSplitColumns())
     txtSplitGroupColumn.Text = LoadPref(PREF_SPLIT_GROUPCOL, DefaultSplitGroupColumn())
+    LoadEqListToggles
+End Sub
+
+'--- EQ List behaviour toggles (#97 / #119-#123) ----------------------
+'
+' Five checkboxes on the EQ List page, "1"/"0" prefs, honoured by
+' modMain_CustEQList.CreateCustEQList_DoWork. "Add cell borders" defaults
+' on (the pre-#122 look); the rest default off. Saved by CommitDefaults
+' after the column keys, reset by cmdRestoreEqList_Click.
+
+Private Sub LoadEqListToggles()
+    cbxRemoveParentRows.value = LoadToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
+    cbxAddItemCountColumn.value = LoadToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
+    cbxPlainParentRows.value = LoadToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    cbxAddCellBorders.value = LoadToggle(PREF_EQLIST_ADD_CELL_BORDERS, defaultOn:=True)
+    cbxAddColumnFilters.value = LoadToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
+End Sub
+
+Private Sub SaveEqListToggles()
+    SaveToggle PREF_EQLIST_REMOVE_PARENT_ROWS, CBool(cbxRemoveParentRows.value)
+    SaveToggle PREF_EQLIST_ADD_COUNT_COLUMN, CBool(cbxAddItemCountColumn.value)
+    SaveToggle PREF_EQLIST_PLAIN_PARENT_ROWS, CBool(cbxPlainParentRows.value)
+    SaveToggle PREF_EQLIST_ADD_CELL_BORDERS, CBool(cbxAddCellBorders.value)
+    SaveToggle PREF_EQLIST_ADD_COLUMN_FILTERS, CBool(cbxAddColumnFilters.value)
 End Sub
 
 '--- Column boxes: normalize on paste and on losing focus (spec 2) --------
@@ -259,6 +281,13 @@ End Function
 
 Private Sub cmdRestoreEqList_Click()
     txtEqListColumns.Text = DefaultEqListColumns()
+    ' The behaviour toggles live on this page, so Restore defaults resets them
+    ' too - off, except "Add cell borders" which ships on (#122).
+    cbxRemoveParentRows.value = False
+    cbxAddItemCountColumn.value = False
+    cbxPlainParentRows.value = False
+    cbxAddCellBorders.value = True
+    cbxAddColumnFilters.value = False
 End Sub
 
 Private Sub cmdRestoreSchedule_Click()
@@ -430,6 +459,7 @@ Private Function CommitDefaults() As Boolean
         Exit Function
     End If
 
+    SaveEqListToggles          ' "1"/"0" - best-effort, like the last-tab pref
     CommitDefaults = True
 End Function
 

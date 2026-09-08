@@ -25,6 +25,20 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   open tab's one-click flow (EQ List, Schedule or Split Sheets) against the
   active sheet - no second trip through the ribbon. It's hidden on the Logo tab,
   which has nothing to run.
+- **Set Defaults dialog: EQ List behaviour toggles**
+  ([#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97)). Five
+  checkboxes on the EQ List page, applied by **both** the picker and the
+  one-click EQ List flow:
+  - **Remove PARENT rows** ([#119](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/119)) - drop every row marked `PARENT` in the Purchased column.
+  - **Add EQ Count column** ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)) - run the EQ Count numbering inline, no separate step.
+  - **Plain PARENT rows** ([#121](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/121)) - white fill, black un-bold text on PARENT rows instead of the grouping shade.
+  - **Add cell borders** ([#122](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/122)) - the thin border on the data range is now optional (defaults **on**, same as before).
+  - **Add column filters** ([#123](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/123)) - AutoFilter on the heading row.
+
+  The first three need a **Purchased** column; if the sheet has none they're
+  skipped with a note and the list is still generated. Whether Purchased itself
+  appears in the output is unchanged - it only shows if it's in your column
+  list.
 
 ### Changed
 
@@ -32,6 +46,20 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)). Same
   behaviour, clearer label now that "Save & Run" sits beside it. Both Save
   buttons still persist all four tabs, not just the one you're looking at.
+- **EQ Count now measures the table the same way the rest of the add-in does**
+  ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)). The
+  standalone **EQ Count** flow finds the last data row with the shared
+  `GetLastRow` helper instead of walking up the Purchased column, so a blank
+  Purchased value in the last rows no longer cuts the numbering short.
+
+### Fixed
+
+- **The EQ COUNT column heading now matches the other headings**
+  ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)). The
+  freshly-inserted column came in unformatted, so its heading wasn't bold /
+  shaded like the rest of the heading row. It now copies the neighbouring
+  heading cell's formatting. Applies to both the inline "Add EQ Count column"
+  option and the standalone EQ Count flow.
 
 ## [2.4.1] - 2026-09-07
 

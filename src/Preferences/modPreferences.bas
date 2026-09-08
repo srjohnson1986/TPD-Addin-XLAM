@@ -57,6 +57,21 @@ End Function
 
 
 '-----------------------------------------------------------
+' Boolean preference stored as "1" / "0" (the EQ List behaviour
+' toggles, #97). A key that was never saved returns defaultOn -
+' most toggles ship Off, but "add cell borders" ships On so the
+' generated EQ sheet looks the same as it did before #122.
+'-----------------------------------------------------------
+Public Function LoadToggle(key As String, Optional ByVal defaultOn As Boolean = False) As Boolean
+    LoadToggle = (LoadPref(key, IIf(defaultOn, "1", "0")) = "1")
+End Function
+
+Public Sub SaveToggle(key As String, ByVal isOn As Boolean)
+    SavePref key, IIf(isOn, "1", "0")
+End Sub
+
+
+'-----------------------------------------------------------
 ' Remove one preference. Not an error if it isn't set.
 '-----------------------------------------------------------
 Public Sub DeletePref(key As String)

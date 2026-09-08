@@ -38,15 +38,11 @@ Public Sub CountEquipmentRows_Internal()
     NumberEquipmentRows ws
 End Sub
 
-' Inserts the EQ COUNT column on ws and numbers its data rows.
+' Inserts the EQ COUNT column on ws (heading row 1) and numbers its data rows.
+' Reads the Purchased status straight off the sheet - the standalone "EQ Count"
+' ribbon flow.
 Public Sub NumberEquipmentRows(ws As Worksheet)
     Dim purchasedCol As Long
-    Dim lastRow As Long
-    Dim i As Long
-    Dim eqNumber As Long
-    Dim purchasedStatus As String
-    Dim maxNumber As Long
-    Dim digits As Long
 
     purchasedCol = FindHeadingIndex(GetHeadingList(ws, 1), "PURCHASED", preferRightmost:=False)
     If purchasedCol = 0 Then
@@ -54,30 +50,71 @@ Public Sub NumberEquipmentRows(ws As Worksheet)
         Exit Sub
     End If
 
-    ' Insert EQ COUNT as the leftmost column; everything to its right
-    ' (Purchased included) shifts one column right.
-    ws.Columns(EQ_COUNT_COL).Insert Shift:=xlToRight
-    ws.Cells(1, EQ_COUNT_COL).value = "EQ COUNT"
-    purchasedCol = purchasedCol + 1
+    NumberEquipmentRowsFromStatuses ws, 1, PurchasedStatuses(ws, 1, purchasedCol)
+End Sub
 
-    lastRow = ws.Cells(ws.Rows.Count, purchasedCol).End(xlUp).Row
-    If lastRow < 2 Then Exit Sub          ' heading row only - nothing to number
+' Uppercased, trimmed Purchased value for each data row (1-based from
+' headingRow + 1). Returns Array() when there are no data rows. Row count
+' comes from GetLastRow (the whole-sheet Find, #90) not the Purchased
+' column's End(xlUp) - a blank Purchased value is a valid line (#6) and the
+' last rows can legitimately be blank there.
+Public Function PurchasedStatuses(ws As Worksheet, headingRow As Long, purchasedCol As Long) As Variant
+    Dim lastRow As Long
+    Dim r As Long
+    Dim arr() As String
+
+    lastRow = GetLastRow(ws)
+    If lastRow <= headingRow Then
+        PurchasedStatuses = Array()
+        Exit Function
+    End If
+
+    ReDim arr(1 To lastRow - headingRow)
+    For r = headingRow + 1 To lastRow
+        arr(r - headingRow) = UCase$(Trim$(CStr(ws.Cells(r, purchasedCol).value)))
+    Next r
+    PurchasedStatuses = arr
+End Function
+
+' Inserts a leftmost EQ COUNT column and numbers each data row whose captured
+' status is neither PARENT nor INCLUDED, leading-zero-formatted to the highest
+' number written. statuses is passed in rather than read here so the Customer
+' EQ List flow can number after its Purchased column has been projected away
+' (#120); statuses(k) is the status of the k-th data row below headingRow.
+Public Sub NumberEquipmentRowsFromStatuses(ws As Worksheet, headingRow As Long, statuses As Variant)
+    Dim k As Long
+    Dim rowNum As Long
+    Dim eqNumber As Long
+    Dim lastDataRow As Long
+    Dim countRange As Range
+
+    ' EQ COUNT becomes the leftmost column; everything to its right shifts over.
+    ws.Columns(EQ_COUNT_COL).Insert Shift:=xlToRight
+    ws.Cells(headingRow, EQ_COUNT_COL).value = "EQ COUNT"
+
+    ' The inserted column comes in with no formatting - copy the neighbouring
+    ' heading cell's look onto it (bold, fill, borders, alignment, whatever the
+    ' sheet's column headings carry) so EQ COUNT doesn't stand out.
+    ws.Cells(headingRow, EQ_COUNT_COL + 1).Copy
+    ws.Cells(headingRow, EQ_COUNT_COL).PasteSpecial Paste:=xlPasteFormats
+    Application.CutCopyMode = False
+
+    If Not IsArray(statuses) Then Exit Sub
+    If UBound(statuses) < LBound(statuses) Then Exit Sub   ' heading row only
 
     eqNumber = 1
-    For i = 2 To lastRow
-        purchasedStatus = UCase$(Trim$(CStr(ws.Cells(i, purchasedCol).value)))
-
-        If purchasedStatus = "PARENT" Or purchasedStatus = "INCLUDED" Then
-            ws.Cells(i, EQ_COUNT_COL).value = ""
+    For k = LBound(statuses) To UBound(statuses)
+        rowNum = headingRow + k
+        If statuses(k) = "PARENT" Or statuses(k) = "INCLUDED" Then
+            ws.Cells(rowNum, EQ_COUNT_COL).value = ""
         Else
-            ws.Cells(i, EQ_COUNT_COL).value = eqNumber
+            ws.Cells(rowNum, EQ_COUNT_COL).value = eqNumber
             eqNumber = eqNumber + 1
         End If
-    Next i
+    Next k
 
-    ' Leading-zero display format, widened to the highest number written
-    maxNumber = Application.WorksheetFunction.Max( _
-        ws.Range(ws.Cells(2, EQ_COUNT_COL), ws.Cells(lastRow, EQ_COUNT_COL)))
-    digits = Len(CStr(maxNumber))
-    ws.Range(ws.Cells(2, EQ_COUNT_COL), ws.Cells(lastRow, EQ_COUNT_COL)).NumberFormat = String(digits, "0")
+    lastDataRow = headingRow + UBound(statuses)
+    Set countRange = ws.Range(ws.Cells(headingRow + 1, EQ_COUNT_COL), ws.Cells(lastDataRow, EQ_COUNT_COL))
+    countRange.NumberFormat = String(Len(CStr( _
+        Application.WorksheetFunction.Max(countRange))), "0")
 End Sub

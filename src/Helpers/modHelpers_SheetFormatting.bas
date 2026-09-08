@@ -14,8 +14,13 @@ Option Explicit
 ' which keeps its natural left alignment. The EQ List flow leaves the default
 ' "Description"; the Customer Schedule flow passes "Tasks". If that heading
 ' isn't on the row, every column is centred.
+'
+' addBorders defaults True (the historic behaviour, kept for the Schedule
+' caller and every existing path). The EQ List flow passes the user's
+' "Add cell borders" toggle so the border can be turned off (#122).
 Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long, _
-                         Optional ByVal leftAlignHeading As String = "Description")
+                         Optional ByVal leftAlignHeading As String = "Description", _
+                         Optional ByVal addBorders As Boolean = True)
     Dim lastRow As Long
     Dim lastCol As Long
     Dim dataRange As Range
@@ -44,11 +49,13 @@ Public Sub FormatEQSheet(ws As Worksheet, headingsRow As Long, _
         dataRange.HorizontalAlignment = xlCenter
     End If
 
-    With dataRange.Borders
-        .LineStyle = xlContinuous
-        .Weight = xlThin
-        .Color = RGB(0, 0, 0)
-    End With
+    If addBorders Then
+        With dataRange.Borders
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+            .Color = RGB(0, 0, 0)
+        End With
+    End If
 
 End Sub
 
