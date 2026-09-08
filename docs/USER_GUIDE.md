@@ -187,7 +187,9 @@ All of these assume the Smartsheet export is the active sheet.
 
 1. A dialog lists every column on the sheet as a checkbox. Columns from your saved
    selection are pre-ticked.
-2. Tick/untick columns, click **OK** (at least one must be ticked).
+2. Tick/untick columns, click **OK** (at least one must be ticked). **Select all**
+   / **Select none** / **Restore defaults** above the list are shortcuts —
+   *Restore defaults* re-ticks your EQ List default (or the built-in list).
 3. A new **Customer EQ List** sheet is added with:
    - only the columns you kept
    - all rows copied first, so Smartsheet's row grouping is preserved
@@ -214,7 +216,8 @@ the EQ List tab.
 
 The schedule twin of the EQ List tools.
 
-**Picker path — Sheet Tools → Create Customer Schedule:** column picker → new
+**Picker path — Sheet Tools → Create Customer Schedule:** column picker (with the
+same **Select all** / **Select none** / **Restore defaults** shortcuts) → new
 **Customer Schedule** sheet with the schedule title block, the date, the logo, and
 frozen panes. The **Tasks** column keeps its natural left alignment; everything
 else is centered.
@@ -229,7 +232,9 @@ Built for making per-vendor RFQs, but works on any column.
 **Picker path — Sheet Tools → Split Sheet by Column:**
 
 1. Pick the **group-by column** from the dropdown (e.g. `Vendor`).
-2. Tick the columns to copy into each split sheet.
+2. Tick the columns to copy into each split sheet. **Select all** / **Select
+   none** / **Restore defaults** above the list are shortcuts and apply to this
+   list only, not the group-by dropdown.
 3. **OK.** One new sheet is created per unique non-blank value in the group
    column, each populated with the matching rows (your columns only, in your
    chosen order), a bold frozen header row, and autofit columns.

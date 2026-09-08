@@ -13,6 +13,17 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Added
 
+- **Column pickers: Select all / Select none / Restore defaults**
+  ([#149](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/149)). A row of
+  buttons above the checkbox grid on all three pickers (*Create Customer EQ
+  List*, *Create Customer Schedule*, *Split Sheet by Column*) - real sheets carry
+  up to ~30 columns and ticking them one at a time was tedious. **Restore
+  defaults** resets the ticks to your configured default for that flow (from *Set
+  Defaults*), or the built-in list if you haven't set one - the same meaning the
+  button has on the *Set Defaults* tabs. On *Split Sheet by Column* the buttons
+  act on the keep-columns grid only, not the group-by dropdown. OK still saves
+  and remembers whatever is ticked.
+
 - **Set Defaults dialog: a hint under each field**
   ([#143](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/143)). Every tab
   now shows a short line under its entry field - what counts as a "column",
