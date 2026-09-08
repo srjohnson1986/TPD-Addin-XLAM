@@ -18,6 +18,20 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   now shows a short line under its entry field - what counts as a "column",
   that pasting a heading row from Excel works, and which image formats the Logo
   tab accepts. No behaviour change.
+- **Set Defaults dialog: a "Save & Run" button**
+  ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)). The
+  footer is now **Save** / **Save & Run** / **Cancel**. "Save & Run" saves your
+  defaults exactly as Save does, then closes the dialog and immediately runs the
+  open tab's one-click flow (EQ List, Schedule or Split Sheets) against the
+  active sheet - no second trip through the ribbon. It's hidden on the Logo tab,
+  which has nothing to run.
+
+### Changed
+
+- **Set Defaults dialog: "OK" is now "Save"**
+  ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)). Same
+  behaviour, clearer label now that "Save & Run" sits beside it. Both Save
+  buttons still persist all four tabs, not just the one you're looking at.
 
 ## [2.4.1] - 2026-09-07
 
