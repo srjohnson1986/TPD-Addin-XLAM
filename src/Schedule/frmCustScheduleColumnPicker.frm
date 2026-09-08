@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmCustScheduleColumnPicker 
-   Caption         =   "Customer Schedule Generator"
-   ClientHeight    =   7260
+   Caption         =   "Customer Schedule"
+   ClientHeight    =   6936
    ClientLeft      =   108
    ClientTop       =   456
-   ClientWidth     =   12552
+   ClientWidth     =   12984
    OleObjectBlob   =   "frmCustScheduleColumnPicker.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 
 
 '@Folder("TPD_Addin.Schedule")
@@ -29,9 +30,9 @@ Option Explicit
 '  checking at least one column is ticked.
 '
 '  The .frx started as a byte-clone of frmCustEQListColumnPicker.frx
-'  (#113); lblCustScheduleTitle was renamed from the EQ control
-'  name, and its "Customer EQ List Generator" design-time caption
-'  is overridden in UserForm_Initialize (#114).
+'  (#113). The shared lblTitle now carries "Customer Schedule" as a
+'  design-time caption (#118 folded in #114) - the old run-time
+'  retext hack is gone.
 '===========================================================
 
 Private Const ROWS_PER_COLUMN As Long = 10
@@ -42,9 +43,22 @@ Public Property Get Cancelled() As Boolean
     Cancelled = CancelPressed
 End Property
 
+'===========================================================
+' Chrome - brand band, help line, About links (#118). Kept
+' byte-identical to frmCustEQListColumnPicker: the two pickers
+' are visual twins.
+'===========================================================
 Private Sub UserForm_Initialize()
-    ' The .frx still holds the cloned "Customer EQ List Generator" caption (#114).
-    lblCustScheduleTitle.Caption = "Customer Schedule Generator"
+    ApplyDialogChrome lblBrandBar, lblHelp
+    InitAboutLinks lblVersion, lblUserGuide
+End Sub
+
+Private Sub lblVersion_Click()
+    modAbout.OpenReleasePage
+End Sub
+
+Private Sub lblUserGuide_Click()
+    modAbout.OpenUserGuide
 End Sub
 
 '===========================================================

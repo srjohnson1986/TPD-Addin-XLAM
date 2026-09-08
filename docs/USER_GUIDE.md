@@ -244,8 +244,9 @@ list from the Split Sheets tab of Set Defaults.
 ### Save Each Sheet to XLSX
 
 1. **Sheet Tools → Save Each Sheet to XLSX.**
-2. A small dialog asks for text to append to each filename (optional — e.g. a
-   customer name) and whether to append today's date.
+2. A dialog asks for text to append to each filename (optional — e.g. a
+   customer name) and whether to append today's date. A **Preview** underneath
+   shows the file name the active sheet would be saved as, updating as you type.
 3. **OK.** The add-in:
    - makes a folder next to the workbook, named after the workbook file
    - saves each eligible sheet into it as `<sheet name> - <your text>.xlsx`

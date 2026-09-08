@@ -42,6 +42,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- **The picker, split and export dialogs now match Set Defaults**
+  ([#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)). The
+  *Create Customer EQ List*, *Create Customer Schedule*, *Split Sheet by Column*
+  and *Save Each Sheet to XLSX* dialogs get the same house style as *Set
+  Defaults*: the TPD-grey brand band with the reversed wordmark, one bold title,
+  a short help line under it, matching fonts and margins, a consistent OK /
+  Cancel footer, and **version** / **User guide** links in the bottom corner.
+  *Save Each Sheet to XLSX* also gains a live **Preview** of the file name every
+  sheet will be saved as. No change to what any of the flows do.
 - **Set Defaults dialog: "OK" is now "Save"**
   ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)). Same
   behaviour, clearer label now that "Save & Run" sits beside it. Both Save

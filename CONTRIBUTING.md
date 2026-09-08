@@ -44,6 +44,32 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 4. In GitHub Desktop, review the diff for each changed file — this is your code review moment, even working solo.
 5. Commit with a message describing the change (not "updated code"). For anything non-trivial, push to a feature branch and open a PR against `main` rather than committing straight to `main`.
 
+## Working with UserForms (`.frm` / `.frx`)
+
+A form's control layout is placed by hand in the VBE and lives in the binary
+`.frx`; its code-behind is plain text at the bottom of the `.frm`. **Exporting a
+form writes the whole `.frm` from whatever the VBE currently holds** — so if you
+place controls in a VBE session that doesn't have the latest code-behind and then
+export, the export silently overwrites that code-behind with the older version.
+
+When the control work and the code-behind are done by different people (e.g. you
+place controls, Claude writes the handlers), do them in this order, **per form,
+per change**:
+
+1. **Controls first** — place / rename / resize controls, set design-time
+   properties, export `.frm` + `.frx` to `/src`.
+2. **Code-behind second** — written on top of that exported `.frm`, along with any
+   `.bas` modules.
+3. **Build from `/src`** — `BuildAddin` imports everything fresh, so `/src` is
+   authoritative regardless of what any VBE project holds.
+4. **Don't re-export that form** after step 2 unless you first re-import the
+   `/src` `.frm` into the VBE. Whoever touches a form last for a given change
+   wins.
+
+If step 2 turns up a control that needs adding, list it and go back to step 1 —
+same order, just a loop. A **code-only** form change (no control touched) doesn't
+need step 1. `.bas` modules have none of this hazard — edit them any time.
+
 ## Rebuilding a testable `.xlam` from `/src`
 
 1. Keep a known-good **base** file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies the worksheets, ribbon, `_Resources` sheet + embedded logo, and styles that live outside `/src`). It must be **stripped of standard code modules and UserForms** — the builder replaces standard modules cleanly but chokes trying to re-import a form that already exists, so a full add-in `.xlam` is *not* a valid base. In practice the base almost never changes; update it only when the non-`/src` content does (see "Cutting a release").
