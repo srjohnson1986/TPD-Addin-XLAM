@@ -53,6 +53,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- **Column pickers: the checkbox grid always shows its scrollbar**
+  ([#150](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/150)). The grid
+  is capped at three columns and the frame keeps a vertical scrollbar at all
+  times - a short heading set shows it idle, a long one (past ~30 columns)
+  scrolls instead of the dialog trying to grow. Columns still fill
+  top-to-bottom, then left-to-right. The third column no longer risks being
+  clipped under the scrollbar.
 - **The picker, split and export dialogs now match Set Defaults**
   ([#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)). The
   *Create Customer EQ List*, *Create Customer Schedule*, *Split Sheet by Column*
