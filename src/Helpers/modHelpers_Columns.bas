@@ -104,6 +104,36 @@ Public Function HeadingsPresentOnSheet( _
     Set HeadingsPresentOnSheet = present
 End Function
 
+' The column list a one-click ribbon button should act on: the user's saved
+' Set Defaults value (defaultKey), else the shipped list, narrowed to the
+' headings that are actually on ws. Returns Nothing - having shown the reason -
+' when none of them is, which would otherwise hand
+' DeleteUnselectedColumnsByHeading a selection matching nothing and take every
+' column with it (#96). flowName / pickerCommand name the flow and its picker
+' command in that message ("EQ List" / "Create Customer EQ List").
+'
+' Shared by the EQ List and Schedule one-click flows, which resolve columns
+' identically - only their keys, shipped list and those two labels differ.
+Public Function ResolveOneClickColumns(ByVal ws As Worksheet, _
+                                       ByVal defaultKey As String, _
+                                       ByVal shippedCsv As String, _
+                                       ByVal flowName As String, _
+                                       ByVal pickerCommand As String) As Collection
+    Dim present As Collection
+
+    ' No picker LastUsed* layer here - that one is the picker's alone (#96).
+    Set present = HeadingsPresentOnSheet(ws, 1, ResolveColumnList(Array(defaultKey), shippedCsv))
+    If present.Count = 0 Then
+        MsgBox "None of your default " & flowName & " columns were found on '" & ws.name & "'." & vbCrLf & vbCrLf & _
+               "Open TPD " & Chr$(187) & " One-click " & Chr$(187) & " Set Defaults to change the list, " & _
+               "or use " & pickerCommand & " to pick columns for this sheet.", _
+               vbExclamation, "TPD Add-in"
+        Exit Function
+    End If
+
+    Set ResolveOneClickColumns = present
+End Function
+
 Public Function GetUniqueValuesInColumn(ws As Worksheet, colIndex As Long) As Collection
 
     Dim result As New Collection

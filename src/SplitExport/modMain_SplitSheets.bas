@@ -10,78 +10,59 @@ Attribute VB_Name = "modMain_SplitSheets"
 
 Option Explicit
 
-' Ribbon callback - "Split Sheet by Column" (opens the options picker)
-Public Sub SplitSheetByColumn(control As IRibbonControl)
-    WithPerformance PERF_SPLIT_SHEET_BY_COLUMN
-End Sub
-
-' Ribbon callback - "Split Sheets" one-click: no picker, the group column
-' and kept columns come straight from the saved Set TPD Defaults values
-' (or the shipped defaults) (#96).
-Public Sub SplitSheetByColumnFromDefaults(control As IRibbonControl)
-    WithPerformance PERF_SPLIT_SHEET_BY_COLUMN_DEFAULTS
-End Sub
-
-
+' "Split Sheet by Column" - the picker path. Entered from
+' modRibbonCallbacks.SplitSheetByColumn via WithPerformance.
 Public Sub SplitSheetByColumn_Internal()
 
     Dim wsSource As Worksheet
-    Dim headings As Variant
     Dim frm As frmSplitSheetOptions
-    Dim selectedCols As Collection
-    Dim groupCol As String
 
     Set wsSource = GetFirstVisibleSheet()
     If wsSource Is Nothing Then Exit Sub
-    headings = GetHeadingList(wsSource, 1)
 
     Set frm = New frmSplitSheetOptions
-    frm.LoadColumns headings
+    frm.LoadColumns GetHeadingList(wsSource, 1)
     frm.Show
 
     If frm.Cancelled Then Exit Sub
 
-    groupCol = frm.cboGroupColumn.value
-    Set selectedCols = GetSelectedColumns(frm.fraColumns)
-
-    Dim createdCount As Long
-    Dim failures As Collection
-    Set failures = New Collection
-
-    createdCount = SplitSheetByColumn_DoWork(wsSource, groupCol, selectedCols, failures)
-
-    ReportBatchOutcome createdCount & " sheet(s) created.", failures, _
-                       "value(s) could not be split out:", _
-                       "Split finished with errors", "Split complete"
-
+    RunSplit wsSource, frm.cboGroupColumn.value, GetSelectedColumns(frm.fraColumns)
 End Sub
 
 
+' "Split Sheets" - the one-click path: the group column and kept columns come
+' straight from the saved Set Defaults values, else the shipped defaults (#96).
+' Unlike the EQ List / Schedule one-click flows this needs no "are those
+' headings even here?" pre-check - SplitSheetByColumn_DoWork already messages
+' and bails when groupCol isn't a heading on wsSource.
 Public Sub SplitSheetByColumnFromDefaults_Internal()
 
     Dim wsSource As Worksheet
-    Dim groupCol As String
-    Dim selectedCols As Collection
 
     Set wsSource = GetFirstVisibleSheet()
     If wsSource Is Nothing Then Exit Sub
 
-    ' One-click precedence: Set TPD Defaults value -> shipped default.
-    groupCol = ResolveGroupColumn(Array(PREF_SPLIT_GROUPCOL), DefaultSplitGroupColumn())
-    Set selectedCols = ResolveColumnList(Array(PREF_SPLIT_COLUMNS), DefaultSplitColumns())
+    RunSplit wsSource, _
+             ResolveGroupColumn(Array(PREF_SPLIT_GROUPCOL), DefaultSplitGroupColumn()), _
+             ResolveColumnList(Array(PREF_SPLIT_COLUMNS), DefaultSplitColumns())
+End Sub
+
+
+' Runs the split and reports it - the tail both entry points share, so the
+' picker path and the one-click path can't summarise a run differently.
+Private Sub RunSplit(ByVal wsSource As Worksheet, _
+                     ByVal groupCol As String, _
+                     ByVal selectedCols As Collection)
 
     Dim createdCount As Long
     Dim failures As Collection
-    Set failures = New Collection
 
-    ' SplitSheetByColumn_DoWork already messages and bails if groupCol
-    ' isn't a heading on wsSource.
+    Set failures = New Collection
     createdCount = SplitSheetByColumn_DoWork(wsSource, groupCol, selectedCols, failures)
 
     ReportBatchOutcome createdCount & " sheet(s) created.", failures, _
                        "value(s) could not be split out:", _
                        "Split finished with errors", "Split complete"
-
 End Sub
 
 

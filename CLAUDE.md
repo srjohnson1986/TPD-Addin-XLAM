@@ -60,11 +60,11 @@ This groups modules in Rubberduck's Code Explorer, and the export tooling sorts 
 
 ## Architecture
 
-One custom ribbon tab ("TPD") with two groups — **Sheet Tools** (the picker/custom paths: Create Customer EQ List / Create Customer Schedule / Split Sheet by Column / Save Each Sheet to XLSX) and **One-click** (the one-click "EQ List" / "Schedule" / "Split Sheets" buttons that run straight from saved defaults, beside "Set Defaults") — defined in `customUI/customUI14.xml`. The "EQ Count" flow has no ribbon button (removed for [#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)) but its code and `RunCountEquipmentRows` callback are kept. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which own the global `gRibbon` reference and `RibbonOnLoad` (triggers `modStartup.InitializeAddIn`, which stamps the running version into the registry-backed preference store; the `_Resources` sheet + embedded logo come from the base `.xlam`).
+One custom ribbon tab ("TPD") with two groups — **Sheet Tools** (the picker/custom paths: Create Customer EQ List / Create Customer Schedule / Split Sheet by Column / Save Each Sheet to XLSX) and **One-click** (the one-click "EQ List" / "Schedule" / "Split Sheets" buttons that run straight from saved defaults, beside "Set Defaults") — defined in `customUI/customUI14.xml`. The "EQ Count" flow has no ribbon button (removed for [#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)) but its code and `RunCountEquipmentRows` callback are kept. Every button's `onAction` is a one-line callback in `modRibbonCallbacks` handing `WithPerformance` the flow's `PERF_*` constant — that module holds them all (Set Defaults excepted: `RunSetTPDDefaults` does real work, so it stays in `modMain_SetTPDDefaults`) and owns the global `gRibbon` reference and `RibbonOnLoad` (triggers `modStartup.InitializeAddIn`, which stamps the running version into the registry-backed preference store; the `_Resources` sheet + embedded logo come from the base `.xlam`).
 
 Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-module map in `docs/ARCHITECTURE.md` — read it before touching a module you haven't seen):
 
-- **Ribbon** — `modRibbonCallbacks` bridges XML `onAction` callbacks to real entry points.
+- **Ribbon** — `modRibbonCallbacks` holds every XML `onAction` callback, each one line: `WithPerformance PERF_x`. Watch the naming wart: the Split button's `onAction` is `SplitSheetByColumn`, not `RunSplitSheetByColumn` like its neighbours — the ribbon XML ships inside the base `.xlam`, so renaming it means re-stamping the base file, not just editing `customUI/customUI14.xml`.
 - **EQList** — "Create Customer EQ List" (picker) + "EQ List" (one-click, `CreateCustEQListFromDefaults_Internal`) / "EQ Count" flows (`modMain_CustEQList`, `modMain_CountEquipmentRows`). Its column-picker UserForm lives in `/src/Forms`, like every other form.
 - **Schedule** — "Create Customer Schedule" (picker, `frmCustScheduleColumnPicker`) + "Schedule" (one-click, `CreateCustScheduleFromDefaults_Internal`) flows in `modMain_CustSchedule` (#112) — the twin of the EQ List flow (copy source → new `Customer Schedule` sheet before formatting, `InsertDefaultCustScheduleHeader` from `modHelpers_SheetSetup`). The picker form is a clone of `frmCustEQListColumnPicker`.
 - **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows. Their UserForms live in `/src/Forms`.
@@ -86,9 +86,8 @@ The **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-
 
 Refactoring opportunities noted but **not** yet done (no issue filed):
 
-- The ribbon layer forwards twice — `modRibbonCallbacks.RunX` → the feature module's `IRibbonControl` wrapper → `WithPerformance PERF_X`. The middle hop adds nothing.
-- The `*_Internal` / `*FromDefaults_Internal` pairs in the EQ List, Schedule and Split flows are near-identical; the two column-resolving one-click subs differ only in keys, shipped list and one word of a message.
 - The five EQ List toggles are hand-listed in four places (`LoadEqListToggles`, `SaveEqListToggles`, `cmdRestoreEqList_Click`, `SkippedPurchasedToggleNames`) — a sixth toggle means editing all four.
+- Names that no longer describe what they do: `FormatEQSheet` (the Schedule flow calls it too), `modHelpers_Export` (the only `modHelpers_*` outside the Helpers folder), `modMain_SetTPDDefaults` (a 41-line entry-point shim, not a "main").
 
 ### Regressions to guard against (all fixed — don't undo them)
 

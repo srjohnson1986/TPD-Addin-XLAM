@@ -16,11 +16,8 @@ Option Explicit
 ' internal "_" sheets and very-hidden sheets are excluded regardless.
 Private Const EXPORT_INCLUDE_HIDDEN_SHEETS As Boolean = False
 
-Public Sub ExportSheets(control As IRibbonControl)
-    WithPerformance PERF_EXPORT_SHEETS
-End Sub
-
-
+' "Save Each Sheet to XLSX". Entered from
+' modRibbonCallbacks.RunExportSheetsToXLSX via WithPerformance.
 Public Sub ExportSheets_Internal()
 
     Dim wb As Workbook

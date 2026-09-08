@@ -11,6 +11,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **The "no default columns found" message pointed at a ribbon path that no
+  longer exists.** Running the one-click *EQ List* or *Schedule* button on a
+  sheet with none of your default columns said to open "TPD > Defaults > Set TPD
+  Defaults"; the group was renamed *One-click* and the button *Set Defaults* in
+  2.4.1. Both flows now share one copy of that message, so it says "TPD >
+  One-click > Set Defaults".
+
 ### Changed
 
 - **Internal: every UserForm now lives in `/src/Forms`.** The five `.frm` /
@@ -27,6 +36,15 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   four dialogs already used.
 
 ### Removed
+
+- **Internal: one ribbon callback layer instead of two.** Each button's
+  `onAction` used to land on a forwarder in `modRibbonCallbacks` that called a
+  second forwarder in the feature module that called `WithPerformance`. The
+  feature-module hop is gone: every callback is now a single
+  `WithPerformance PERF_*` line, and they all live in `modRibbonCallbacks`.
+  The two one-click column-resolving subs collapse into the shared
+  `modHelpers_Columns.ResolveOneClickColumns`, and the Split flow's two entry
+  points now share one run-and-report tail.
 
 - **Internal: dead code.** `DeleteSheetIfExists` and `ClearAllPrefs` (no callers),
   the `AutoSelectColumns` / `ApplyColumnSelection` pass-through pair (now one
