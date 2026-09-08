@@ -54,6 +54,11 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Fixed
 
+- **EQ List column filters no longer clip the heading text**
+  ([#147](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/147)). With the
+  **Add column filters** option on, the AutoFilter is now applied before the
+  columns are auto-sized, so each column is wide enough for its dropdown button
+  instead of the arrow covering the last few characters of the heading.
 - **The EQ COUNT column heading now matches the other headings**
   ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)). The
   freshly-inserted column came in unformatted, so its heading wasn't bold /
