@@ -29,6 +29,12 @@ current="$(grep -A1 -F "$marker" "$readme" | tail -1 \
            | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
 [ "$current" = "v$ver" ] && exit 0
 
-# Rewrite just that one line; sed keeps each line's existing CRLF/LF.
-sed -i "\#${marker}#{n;s/v[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}/v${ver}/g}" "$readme"
+# Rewrite just the version token on that one line. Perl, not sed: MSYS/Git-Bash
+# sed rewrites the whole file and strips the CR from every CRLF line ending on
+# the way through, which turns a one-word change into a whole-file diff.
+perl -i -pe '
+    BEGIN { our ($m, $v) = (shift, shift); our $hit = 0 }
+    if (our $hit) { s/v\d+\.\d+\.\d+/v$v/g; $hit = 0 }
+    $hit = 1 if index($_, our $m) >= 0;
+' "$marker" "$ver" "$readme"
 echo "sync-readme-version: README download link ${current:-<none>} -> v$ver"
