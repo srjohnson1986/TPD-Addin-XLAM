@@ -12,6 +12,40 @@ Attribute VB_Name = "modHelpers_Export"
 
 Option Explicit
 
+' The filename suffix "Save Each Sheet to XLSX" appends to every sheet name:
+' the user's text, then " - " + today's date when the date box is ticked, then
+' just the date when the text is blank. One place so the frmFilenameOptions
+' live preview and the real export can't disagree (#118).
+Public Function BuildExportSuffix(ByVal userAppend As String, _
+                                  ByVal includeDate As Boolean) As String
+    Dim s As String
+
+    s = Trim$(userAppend)
+    If includeDate Then
+        If Len(s) > 0 Then s = s & " - " & GetTodaysDate() Else s = GetTodaysDate()
+    End If
+
+    BuildExportSuffix = s
+End Function
+
+' The file name one sheet would be exported as, for the frmFilenameOptions
+' preview. Mirrors ExportSheetToXLSX: "<sheet> - <suffix>.xlsx", the whole
+' thing run through SanitizeFileText.
+Public Function PreviewExportFileName(ByVal sampleSheetName As String, _
+                                     ByVal userAppend As String, _
+                                     ByVal includeDate As Boolean) As String
+    Dim base As String
+    Dim suffix As String
+
+    base = sampleSheetName
+    If Len(Trim$(base)) = 0 Then base = "Sheet1"
+
+    suffix = BuildExportSuffix(userAppend, includeDate)
+    If Len(suffix) > 0 Then base = base & " - " & suffix
+
+    PreviewExportFileName = SanitizeFileText(base) & ".xlsx"
+End Function
+
 ' Shows the end-of-run summary for a batch flow (Split Sheet by Column,
 ' Save Each Sheet to XLSX). "summary" is the lead line (already complete -
 ' e.g. "3 sheet(s) created." or "3 sheet(s) exported to:" + path). Each entry

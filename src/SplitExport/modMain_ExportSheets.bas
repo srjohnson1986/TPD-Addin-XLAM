@@ -33,6 +33,7 @@ Public Sub ExportSheets_Internal()
     ' Show the filename options form
     '---------------------------------------------
     Set frm = New frmFilenameOptions
+    frm.SampleSheetName = wb.ActiveSheet.name    ' seeds the live filename preview (#118)
     frm.Show
 
     If frm.Cancelled Then
@@ -40,15 +41,7 @@ Public Sub ExportSheets_Internal()
         Exit Sub
     End If
 
-    suffix = frm.UserAppend
-
-    If frm.IncludeDate Then
-        If Len(suffix) > 0 Then
-            suffix = suffix & " - " & GetTodaysDate()
-        Else
-            suffix = GetTodaysDate()
-        End If
-    End If
+    suffix = BuildExportSuffix(frm.UserAppend, frm.IncludeDate)
 
     Unload frm
 

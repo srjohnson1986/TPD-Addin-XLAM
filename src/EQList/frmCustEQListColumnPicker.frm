@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmCustEQListColumnPicker 
-   Caption         =   "Customer EQ List Generator"
-   ClientHeight    =   7260
+   Caption         =   "Customer EQ List"
+   ClientHeight    =   6936
    ClientLeft      =   108
    ClientTop       =   456
-   ClientWidth     =   12552
+   ClientWidth     =   12984
    OleObjectBlob   =   "frmCustEQListColumnPicker.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 
 
 '@Folder("TPD_Addin.EQList")
@@ -27,6 +28,25 @@ Private CancelPressed As Boolean
 Public Property Get Cancelled() As Boolean
     Cancelled = CancelPressed
 End Property
+
+'===========================================================
+' Chrome - brand band, help line, About links (#118). The
+' styling that lives in code rather than the .frx (so it shows
+' up in review) is shared with the other dialogs in
+' modHelpers_DialogChrome, exactly as frmSetTPDDefaults does it.
+'===========================================================
+Private Sub UserForm_Initialize()
+    ApplyDialogChrome lblBrandBar, lblHelp
+    InitAboutLinks lblVersion, lblUserGuide
+End Sub
+
+Private Sub lblVersion_Click()
+    modAbout.OpenReleasePage
+End Sub
+
+Private Sub lblUserGuide_Click()
+    modAbout.OpenUserGuide
+End Sub
 
 '===========================================================
 ' Load columns into checkboxes

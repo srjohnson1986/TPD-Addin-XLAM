@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmSplitSheetOptions 
-   Caption         =   "Split Sheet By Column"
-   ClientHeight    =   6684
+   Caption         =   "Split Sheet by Column"
+   ClientHeight    =   7836
    ClientLeft      =   108
    ClientTop       =   456
-   ClientWidth     =   12264
+   ClientWidth     =   12984
    OleObjectBlob   =   "frmSplitSheetOptions.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 
 
 '@Folder("TPD_Addin.SplitExport")
@@ -25,6 +26,23 @@ Private CancelPressed As Boolean
 Public Property Get Cancelled() As Boolean
     Cancelled = CancelPressed
 End Property
+
+'===========================================================
+' Chrome - brand band, help line, About links (#118), shared
+' with the other dialogs via modHelpers_DialogChrome.
+'===========================================================
+Private Sub UserForm_Initialize()
+    ApplyDialogChrome lblBrandBar, lblHelp
+    InitAboutLinks lblVersion, lblUserGuide
+End Sub
+
+Private Sub lblVersion_Click()
+    modAbout.OpenReleasePage
+End Sub
+
+Private Sub lblUserGuide_Click()
+    modAbout.OpenUserGuide
+End Sub
 
 '===========================================================
 ' Load columns into checkboxes + ComboBox
