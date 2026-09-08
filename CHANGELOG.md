@@ -11,6 +11,8 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-09-08
+
 ### Added
 
 - **Column pickers: Select all / Select none / Restore defaults**
