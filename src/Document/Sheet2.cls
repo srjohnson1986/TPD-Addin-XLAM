@@ -9,8 +9,3 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 '@Folder("TPD_Addin.Document")
 
-Private Sub Worksheet_SelectionChange(ByVal Target As Range)
-
-End Sub
-
-

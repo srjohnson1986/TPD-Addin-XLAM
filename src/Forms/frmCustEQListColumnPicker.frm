@@ -17,7 +17,7 @@ Attribute VB_Exposed = False
 
 
 
-'@Folder("TPD_Addin.EQList")
+'@Folder("TPD_Addin.Forms")
 
 Option Explicit
 
@@ -70,28 +70,21 @@ End Sub
 '===========================================================
 ' Load columns into checkboxes
 '===========================================================
+' Grid + pre-fill are modHelpers_ColumnPicker's job, shared with the other
+' two pickers: last-used selection, else the Set Defaults value, else the
+' shipped default list (#96, #98).
 Public Sub LoadColumns(headingList As Variant)
-
-    LayoutCheckboxes fraColumns, headingList, ROWS_PER_COLUMN, "chkCustEQ"
-
-    ' Pre-fill: this picker's own last-used selection, else the Set TPD
-    ' Defaults value, else the shipped default list (#96, #98).
-    ApplyColumnSelection fraColumns, _
-        ResolveColumnList(Array(PREF_EQLIST_PICKER_COLUMNS, PREF_EQLIST_COLUMNS), _
-                          DefaultEqListColumns())
-
+    InitColumnPicker fraColumns, headingList, ROWS_PER_COLUMN, "chkCustEQ", _
+                     PREF_EQLIST_PICKER_COLUMNS, PREF_EQLIST_COLUMNS, _
+                     DefaultEqListColumns()
 End Sub
 
 '===========================================================
 ' OK / Cancel
 '===========================================================
 Private Sub cmdOK_Click()
-    If Not HasColumnSelection(fraColumns) Then
-        MsgBox "Please select at least one column to keep.", vbExclamation
-        Exit Sub
-    End If
-
-    SaveColumnList PREF_EQLIST_PICKER_COLUMNS, GetSelectedColumns(fraColumns)
+    ' Guards "at least one column" and writes the picker-only LastUsed* key.
+    If Not CommitColumnPicker(fraColumns, PREF_EQLIST_PICKER_COLUMNS) Then Exit Sub
 
     CancelPressed = False
     Me.Hide

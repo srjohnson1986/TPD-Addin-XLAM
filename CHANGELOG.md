@@ -11,6 +11,27 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Changed
+
+- **Internal: every UserForm now lives in `/src/Forms`.** The five `.frm` /
+  `.frx` pairs were spread across four feature folders; they are now tagged
+  `'@Folder("TPD_Addin.Forms")` and export to one place, in Rubberduck's Code
+  Explorer as well as on disk. Source layout only - no behaviour change.
+
+- **Internal: the three column pickers share their code-behind.** New
+  `modHelpers_ColumnPicker` owns the grid build + pre-fill (`InitColumnPicker`)
+  and the OK-button guard + `LastUsed*` save (`CommitColumnPicker`), so the EQ
+  List, Schedule and Split pickers hold one call each instead of three copies of
+  the same twenty lines. `frmSetTPDDefaults` also drops its private copies of the
+  About-link setup in favour of the shared `modHelpers_DialogChrome` the other
+  four dialogs already used.
+
+### Removed
+
+- **Internal: dead code.** `DeleteSheetIfExists` and `ClearAllPrefs` (no callers),
+  the `AutoSelectColumns` / `ApplyColumnSelection` pass-through pair (now one
+  routine), and an empty `Worksheet_SelectionChange` stub on `Sheet2`.
+
 ## [2.4.2] - 2026-09-08
 
 ### Added

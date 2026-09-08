@@ -11,7 +11,9 @@ The repo tracks VBA **source** (`/src`), not the compiled `.xlam`. The built add
 ## Repo layout
 
 ```
-/src        VBA source of truth (.bas / .cls / .frm / .frx), organized into subfolders matching Rubberduck @Folder tags
+/src        VBA source of truth (.bas / .cls / .frm / .frx), organized into subfolders matching Rubberduck @Folder tags.
+            Every UserForm lives in /src/Forms (@Folder("TPD_Addin.Forms")), not beside the flow that shows it, so
+            they are all in one place - see the TPD_Addin.Forms section of docs/ARCHITECTURE.md
 /customUI   customUI14.xml (ribbon definition) + ribbon icons — lives outside /src, edited directly
 /assets     Source brand/logo images not read by the build — a UserForm's Picture property embeds the
             bytes straight into its .frx when set in the VBE, so these are kept so the original art is
@@ -54,6 +56,8 @@ Option Explicit
 
 This groups modules in Rubberduck's Code Explorer, and the export tooling sorts exported files into matching `/src` subfolders by the same tag. New modules should use an existing folder group, or propose a new one in `docs/ARCHITECTURE.md` if it genuinely doesn't fit.
 
+**UserForms are the one grouping that is by kind, not by feature:** every `.frm` carries `'@Folder("TPD_Addin.Forms")` and exports to `/src/Forms`, whichever feature area shows it. If you add a form, tag it `TPD_Addin.Forms` too — a form tagged with its feature area will export itself back out into that feature's folder.
+
 ## Architecture
 
 One custom ribbon tab ("TPD") with two groups — **Sheet Tools** (the picker/custom paths: Create Customer EQ List / Create Customer Schedule / Split Sheet by Column / Save Each Sheet to XLSX) and **One-click** (the one-click "EQ List" / "Schedule" / "Split Sheets" buttons that run straight from saved defaults, beside "Set Defaults") — defined in `customUI/customUI14.xml`. The "EQ Count" flow has no ribbon button (removed for [#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)) but its code and `RunCountEquipmentRows` callback are kept. Ribbon buttons call thin wrapper subs in `modRibbonCallbacks`, which own the global `gRibbon` reference and `RibbonOnLoad` (triggers `modStartup.InitializeAddIn`, which stamps the running version into the registry-backed preference store; the `_Resources` sheet + embedded logo come from the base `.xlam`).
@@ -61,11 +65,11 @@ One custom ribbon tab ("TPD") with two groups — **Sheet Tools** (the picker/cu
 Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-module map in `docs/ARCHITECTURE.md` — read it before touching a module you haven't seen):
 
 - **Ribbon** — `modRibbonCallbacks` bridges XML `onAction` callbacks to real entry points.
-- **EQList** — "Create Customer EQ List" (picker) + "EQ List" (one-click, `CreateCustEQListFromDefaults_Internal`) / "EQ Count" flows (`modMain_CustEQList`, `modMain_CountEquipmentRows`), plus the column-picker UserForm.
+- **EQList** — "Create Customer EQ List" (picker) + "EQ List" (one-click, `CreateCustEQListFromDefaults_Internal`) / "EQ Count" flows (`modMain_CustEQList`, `modMain_CountEquipmentRows`). Its column-picker UserForm lives in `/src/Forms`, like every other form.
 - **Schedule** — "Create Customer Schedule" (picker, `frmCustScheduleColumnPicker`) + "Schedule" (one-click, `CreateCustScheduleFromDefaults_Internal`) flows in `modMain_CustSchedule` (#112) — the twin of the EQ List flow (copy source → new `Customer Schedule` sheet before formatting, `InsertDefaultCustScheduleHeader` from `modHelpers_SheetSetup`). The picker form is a clone of `frmCustEQListColumnPicker`.
-- **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows, plus their UserForms.
+- **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows. Their UserForms live in `/src/Forms`.
 - **Preferences** — per-user key/value settings in the Windows registry (`SaveSetting`/`GetSetting` under `HKCU\…\TPD_Addin\Preferences`), via `modPreferences`. Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). All keys are centralized in `modPreferences_KeyMap` (`PREF_*` constants) rather than used as loose string literals — follow that pattern for any new preference. A missing key falls back to the caller's default; the built-in column lists live once in `modPreferences_Defaults` (the single source for both pickers and one-click — #98). Column defaults are **three layers** (#96): shipped (`modPreferences_Defaults`) → user one-click default (`DefaultUser*` keys, written **only** by `frmSetTPDDefaults`) → user picker last-used (`LastUsed*` keys, written by the picker forms). `modPreferences.ResolveColumnList` / `ResolveGroupColumn` walk a caller's key array in order: pickers pass `Array(LastUsed*, DefaultUser*)`, one-click passes `Array(DefaultUser*)`. Clicking OK in a picker no longer touches the one-click default. `PREF_LOGO_PATH` stores the user's chosen header logo — a file copied to `%APPDATA%\TPD_Addin\` (#95).
-- **Helpers** — shared utilities used by more than one feature area (sheet/workbook ops, header lookup, column filtering, string sanitizing, layout/formatting, checkbox-grid building, logo placement). `modGdiPlus.LoadPictureGDIP` is the **only `Declare` in the codebase** — a `#If VBA7`-guarded GDI+ picture loader for the logo preview (VBA's `LoadPicture` can't read PNG).
+- **Helpers** — shared utilities used by more than one feature area (sheet/workbook ops, header lookup, column filtering, string sanitizing, layout/formatting, checkbox-grid building, logo placement) — including the code the dialogs share, so they cannot drift apart: `modHelpers_DialogChrome` (brand band + About links, all five forms) and `modHelpers_ColumnPicker` (`InitColumnPicker` builds and pre-fills a picker grid, `CommitColumnPicker` is its OK-guard and `LastUsed*` save — the three pickers call one of each). `modGdiPlus.LoadPictureGDIP` is the **only `Declare` in the codebase** — a `#If VBA7`-guarded GDI+ picture loader for the logo preview (VBA's `LoadPicture` can't read PNG).
 - **Core** — add-in lifecycle/infra: `modPerformance.WithPerformance` (screen updating / events / calc mode wrapper around a routine), `modStartup` (init sequencing), `modExport_VBAModules` (the export macro `ExportAllVBAModules`).
 - **Document** — code-behind for `ThisWorkbook`/`Sheet1`-`3`. These are document modules: unlike standard modules they can't be removed and re-imported normally — the build macro clears and re-pastes their code text instead of a plain `VBComponents.Import`.
 
@@ -76,9 +80,15 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 ## Known open work
 
-Tracked as GitHub Issues — no open `bug`-labelled issues.
+Tracked as GitHub Issues — **there are currently no open issues.**
 
-- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — **mostly delivered.** `frmSetTPDDefaults` is a working modal (ribbon: TPD → Defaults → Set TPD Defaults) with EQ List / Schedule / Split Sheets / Logo tabs; comma-separated MultiLine TextBox per tab, normalized on paste + exit; per-tab Restore defaults; OK → `SaveAllDefaults` + status-bar confirm; Cancel/Esc/X discard. **#96 / #112 done for all three flows:** each of EQ List, Schedule (`modMain_CustSchedule`, `frmCustScheduleColumnPicker`), and Split Sheets has a picker path and a one-click ribbon button that runs from the `DefaultUser*` value (→ shipped default). Pickers write separate `LastUsed*` keys and resolve `LastUsed*` → `DefaultUser*` → shipped (three-layer model — replaced the old single-key model). **#98 done:** pickers dropped their inline default arrays. **#95 / #109 done:** the Logo tab lets you Choose image… / Use built-in logo (staged, applied on OK); the choice is copied to `%APPDATA%\TPD_Addin\` and used by every flow; `imgLogoPreview` previews a chosen image via `modGdiPlus.LoadPictureGDIP`, and falls back to its own design-time picture (`assets/tpdHeaderLogo.jpg`, loaded in the VBE) for the built-in logo. Open follow-ups, all UI-labelled: EQ List behaviour toggles ([#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97) → #119–#123); dialog layout polish ([#99](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/99)); in-page Generate buttons ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)); picker/split/export dialog refresh ([#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)); About/links ([#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)).
+The **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** cluster is delivered and shipped in `v2.4.2`: `frmSetTPDDefaults` (EQ List / Schedule / Split Sheets / Logo tabs, Save / Save & Run / Cancel footer), the three picker + one-click flow pairs and their three-layer column defaults (#96 / #98 / #112), the user-settable header logo (#95 / #109), the EQ List behaviour toggles (#97 → #119–#123), the dialog visual refresh across all five forms (#118 / #143 / #99 / #100), the picker Select all / none / Restore defaults row (#149) and the picker grid scrolling (#150).
+
+Refactoring opportunities noted but **not** yet done (no issue filed):
+
+- The ribbon layer forwards twice — `modRibbonCallbacks.RunX` → the feature module's `IRibbonControl` wrapper → `WithPerformance PERF_X`. The middle hop adds nothing.
+- The `*_Internal` / `*FromDefaults_Internal` pairs in the EQ List, Schedule and Split flows are near-identical; the two column-resolving one-click subs differ only in keys, shipped list and one word of a message.
+- The five EQ List toggles are hand-listed in four places (`LoadEqListToggles`, `SaveEqListToggles`, `cmdRestoreEqList_Click`, `SkippedPurchasedToggleNames`) — a sixth toggle means editing all four.
 
 ### Regressions to guard against (all fixed — don't undo them)
 

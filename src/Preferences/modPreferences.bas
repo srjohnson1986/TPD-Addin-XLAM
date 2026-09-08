@@ -174,17 +174,6 @@ Public Function ResolveGroupColumn(keys As Variant, ByVal fallback As String) As
 End Function
 
 
-'-----------------------------------------------------------
-' Clear every add-in preference for the current user (debug
-' aid). No-op if nothing has been saved yet.
-'-----------------------------------------------------------
-Public Sub ClearAllPrefs()
-    On Error Resume Next
-    DeleteSetting PREF_APP, PREF_SECTION
-    On Error GoTo 0
-End Sub
-
-
 '===========================================================
 '  Set TPD Defaults dialog support
 '===========================================================

@@ -25,32 +25,28 @@ End Function
 '  True if at least one checkbox in the frame is checked
 '===========================================================
 Public Function HasColumnSelection(fra As MSForms.Frame) As Boolean
-    Dim ctrl As control
-
-    For Each ctrl In fra.Controls
-        If TypeName(ctrl) = "CheckBox" Then
-            If ctrl.value = True Then
-                HasColumnSelection = True
-                Exit Function
-            End If
-        End If
-    Next ctrl
+    HasColumnSelection = (GetSelectedColumns(fra).Count > 0)
 End Function
 
 '===========================================================
-'  Auto-select checkboxes based on saved column list
+'  Check exactly the checkboxes whose caption is in `resolved`
+'  (a column list already run through
+'  modPreferences.ResolveColumnList, so the LastUsed* ->
+'  DefaultUser* -> shipped fallback chain is applied), and
+'  clear the rest. Call after the checkboxes are built. All
+'  three column pickers share this (#81, #96).
 '===========================================================
-Public Sub AutoSelectColumns(fra As MSForms.Frame, savedCols As Collection)
+Public Sub ApplyColumnSelection(fra As MSForms.Frame, resolved As Collection)
     Dim ctrl As control
     Dim v As Variant
 
-    If savedCols Is Nothing Then Exit Sub
+    If resolved Is Nothing Then Exit Sub
 
     For Each ctrl In fra.Controls
         If TypeName(ctrl) = "CheckBox" Then
             ctrl.value = False
 
-            For Each v In savedCols
+            For Each v In resolved
                 If StrComp(ctrl.Caption, CStr(v), vbTextCompare) = 0 Then
                     ctrl.value = True
                     Exit For
@@ -58,18 +54,6 @@ Public Sub AutoSelectColumns(fra As MSForms.Frame, savedCols As Collection)
             Next v
         End If
     Next ctrl
-End Sub
-
-'===========================================================
-'  Check exactly the checkboxes whose caption is in `resolved`
-'  (a column list already run through
-'  modPreferences.ResolveColumnList, so the LastUsed* ->
-'  DefaultUser* -> shipped fallback chain is applied). Call
-'  after the checkboxes are built. Both column pickers share
-'  this (#81, #96).
-'===========================================================
-Public Sub ApplyColumnSelection(fra As MSForms.Frame, resolved As Collection)
-    AutoSelectColumns fra, resolved
 End Sub
 
 '===========================================================
