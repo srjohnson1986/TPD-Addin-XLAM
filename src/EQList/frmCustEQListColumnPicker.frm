@@ -16,6 +16,7 @@ Attribute VB_Exposed = False
 
 
 
+
 '@Folder("TPD_Addin.EQList")
 
 Option Explicit
@@ -46,6 +47,24 @@ End Sub
 
 Private Sub lblUserGuide_Click()
     modAbout.OpenUserGuide
+End Sub
+
+'===========================================================
+' Column grid actions (#149). No persistence - cmdOK_Click
+' still writes PREF_EQLIST_PICKER_COLUMNS. Restore defaults
+' resolves DefaultUser* -> shipped, skipping LastUsed*, so it
+' means the same as it does on the Set Defaults EQ List tab.
+'===========================================================
+Private Sub cmdSelectAll_Click()
+    SetAllColumns fraColumns, True
+End Sub
+
+Private Sub cmdSelectNone_Click()
+    SetAllColumns fraColumns, False
+End Sub
+
+Private Sub cmdRestoreColumns_Click()
+    RestoreColumnDefaults fraColumns, PREF_EQLIST_COLUMNS, DefaultEqListColumns()
 End Sub
 
 '===========================================================
