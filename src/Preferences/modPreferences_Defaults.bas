@@ -122,7 +122,10 @@ Public Function LoadEqListToggle(ByVal key As String) As Boolean
     LoadEqListToggle = LoadToggle(key, EqListToggleShipsOn(key))
 End Function
 
-' One field of the row for key, or fallback if key isn't in the table.
+' One field of the row for key, or fallback if key isn't in the table - or if
+' the row is short a field, which a mistyped row above would be. That guard is
+' the difference between a wrong default and an unhandled subscript error
+' breaking into the debugger in front of the user.
 Private Function ToggleField(ByVal key As String, ByVal fieldIndex As Long, _
                              ByVal fallback As String) As String
     Dim toggleRows As Variant
@@ -133,7 +136,8 @@ Private Function ToggleField(ByVal key As String, ByVal fieldIndex As Long, _
     For i = LBound(toggleRows) To UBound(toggleRows)
         fields = Split(CStr(toggleRows(i)), TOGGLE_SEP)
         If StrComp(fields(TOGGLE_KEY), key, vbTextCompare) = 0 Then
-            ToggleField = fields(fieldIndex)
+            ToggleField = fallback
+            If fieldIndex <= UBound(fields) Then ToggleField = fields(fieldIndex)
             Exit Function
         End If
     Next i
