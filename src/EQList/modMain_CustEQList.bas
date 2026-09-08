@@ -134,6 +134,13 @@ Public Sub CreateCustEQList_DoWork( _
     If addCount Then NumberEquipmentRowsFromStatuses wsNew, 1, parentStatuses
 
     FormatEQSheet wsNew, 1, addBorders:=addBorders     ' #122
+
+    ' AutoFilter (#123) goes on while the heading is still row 1 and, crucially,
+    ' BEFORE the autofit - so the columns are widened to clear the dropdown
+    ' buttons instead of the arrow clipping the heading text (#147). The title
+    ' block insert below shifts the filter range down to the heading row.
+    If addFilters Then AddHeadingRowFilter wsNew, 1
+
     AutoFitUsedColumns wsNew
 
     ' Plain PARENT rows (#121): white fill + black, un-bolded text, overriding
@@ -145,10 +152,6 @@ Public Sub CreateCustEQList_DoWork( _
     ' Embedded default logo, top-right of the heading row, scaled to the
     ' header block - same call the "Default EQ List Header" command uses.
     InsertDefaultLogo wsNew, EQ_HEADER_ROW_COUNT + 1, "right-top", EQ_HEADER_ROW_COUNT
-
-    ' AutoFilter on the heading row (#123), before the freeze so the two don't
-    ' fight over it.
-    If addFilters Then AddHeadingRowFilter wsNew, EQ_HEADER_ROW_COUNT + 1
 
     SafeFreezePanes wsNew, EQ_HEADER_ROW_COUNT + 1
 
