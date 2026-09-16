@@ -11,8 +11,9 @@ Attribute VB_Name = "modHelpers_Columns"
 '
 '  Sheet-facing routines (Public Sub/Function taking a Worksheet) are thin
 '  wrappers around a pure counterpart that takes/returns plain values only -
-'  HeadingsPresentIn, UniqueValues, BuildOrderedColumnMap (#163, prep for
-'  Rubberduck unit tests). Extract new pure helpers the same way.
+'  HeadingsPresentIn, UniqueValues, BuildOrderedColumnMap, PlanColumnMoves
+'  (#163, prep for Rubberduck unit tests). Extract new pure helpers the same
+'  way.
 '===========================================================
 
 Option Explicit
@@ -53,19 +54,47 @@ End Sub
 ' flows call this straight after to honour the order set in Set TPD Defaults
 ' (#127). Cheap no-op when orderedHeadings is already in source order (e.g. the
 ' checkbox pickers, which can't express a custom order).
+'
+' Thin sheet-mutating wrapper - see PlanColumnMoves (#163).
 Public Sub ReorderColumnsByHeading(ByVal ws As Worksheet, ByVal orderedHeadings As Collection, ByVal headingsRow As Long)
+    Dim moves As Collection
+    Dim mv As Variant
+
+    Set moves = PlanColumnMoves(modHelpers_Headers.GetHeadingList(ws, headingsRow), orderedHeadings)
+
+    For Each mv In moves
+        ws.Columns(CLng(mv(0))).Cut
+        ws.Columns(CLng(mv(1))).Insert Shift:=xlToRight
+    Next mv
+End Sub
+
+' Pure (#163): the sequence of column moves - each a 1-based [from, to] pair,
+' applied in order via Cut column `from` + Insert before column `to`
+' (everything from `to` to `from`-1 shifts one column right, matching Excel's
+' actual Cut/Insert semantics) - that reorders `headings` into
+' `orderedHeadings` order. A heading in `orderedHeadings` not found at/after
+' the current target position is skipped, same as ReorderColumnsByHeading.
+Public Function PlanColumnMoves(ByVal headings As Variant, ByVal orderedHeadings As Collection) As Collection
+    Dim moves As New Collection
+    Dim arr() As String
+    Dim n As Long, i As Long
     Dim targetCol As Long
     Dim h As Variant
-    Dim j As Long
-    Dim lastCol As Long
     Dim curIdx As Long
+    Dim j As Long
+    Dim moved As String
+
+    n = UBound(headings) - LBound(headings) + 1
+    ReDim arr(1 To n)
+    For i = 1 To n
+        arr(i) = CStr(headings(LBound(headings) + i - 1))
+    Next i
 
     targetCol = 1
     For Each h In orderedHeadings
-        lastCol = GetLastCol(ws, headingsRow)
         curIdx = 0
-        For j = targetCol To lastCol
-            If StrComp(CStr(ws.Cells(headingsRow, j).value), CStr(h), vbTextCompare) = 0 Then
+        For j = targetCol To n
+            If StrComp(arr(j), CStr(h), vbTextCompare) = 0 Then
                 curIdx = j
                 Exit For
             End If
@@ -74,12 +103,21 @@ Public Sub ReorderColumnsByHeading(ByVal ws As Worksheet, ByVal orderedHeadings 
         If curIdx = targetCol Then
             targetCol = targetCol + 1
         ElseIf curIdx > targetCol Then
-            ws.Columns(curIdx).Cut
-            ws.Columns(targetCol).Insert Shift:=xlToRight
+            moves.Add Array(curIdx, targetCol)
+
+            ' Simulate the Cut+Insert so later scans see the post-move order.
+            moved = arr(curIdx)
+            For j = curIdx To targetCol + 1 Step -1
+                arr(j) = arr(j - 1)
+            Next j
+            arr(targetCol) = moved
+
             targetCol = targetCol + 1
         End If
     Next h
-End Sub
+
+    Set PlanColumnMoves = moves
+End Function
 
 ' The one-click flows use this to avoid handing DeleteUnselectedColumnsByHeading
 ' a selection that matches nothing on the source sheet - which would delete
