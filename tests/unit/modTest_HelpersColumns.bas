@@ -32,6 +32,21 @@ Private Function Coll(ParamArray items() As Variant) As Collection
     Set Coll = result
 End Function
 
+' BuildOrderedColumnMap's returned keys are the same index base as the
+' `headings` array passed in - real callers always pass
+' modHelpers_Headers.GetHeadingList's output, which is 1-based. VBA's Array()
+' function is always 0-based (even under Option Base 1), so tests that assert
+' on the actual key VALUES (column numbers) need a genuinely 1-based fixture.
+Private Function OneBasedHeadings(ParamArray items() As Variant) As Variant
+    Dim result() As Variant
+    Dim i As Long
+    ReDim result(1 To UBound(items) - LBound(items) + 1)
+    For i = LBound(items) To UBound(items)
+        result(i - LBound(items) + 1) = items(i)
+    Next i
+    OneBasedHeadings = result
+End Function
+
 Private Function JoinColl(ByVal c As Collection) As String
     Dim v As Variant
     Dim s As String
@@ -130,7 +145,7 @@ Public Sub BuildOrderedColumnMap_OrdersBySelectedHeadings_NotSourceOrder()
     Dim keys As Variant
 
     ' Source order is Vendor, Model, Qty - selection asks for Qty before Vendor.
-    headings = Array("Vendor", "Model", "Qty")
+    headings = OneBasedHeadings("Vendor", "Model", "Qty")
     Set colMap = modHelpers_Columns.BuildOrderedColumnMap(headings, Coll("Qty", "Vendor"))
 
     keys = colMap.Keys
@@ -152,7 +167,7 @@ Public Sub BuildOrderedColumnMap_SkipsHeadingNotOnSheet()
     Dim headings As Variant
     Dim colMap As Object
 
-    headings = Array("Vendor", "Model")
+    headings = OneBasedHeadings("Vendor", "Model")
     Set colMap = modHelpers_Columns.BuildOrderedColumnMap(headings, Coll("Vendor", "Serial"))
 
     Assert.AreEqual 1, colMap.Count
@@ -176,7 +191,7 @@ Public Sub BuildOrderedColumnMap_DuplicateHeading_PrefersRightmostAndDedupes()
     ' "Vendor" appears twice - FindHeadingIndex's default (preferRightmost:=True)
     ' means the rightmost (col 3) wins, matching the shared column-map logic
     ' used by the EQ List / Schedule / Split flows.
-    headings = Array("Vendor", "Model", "Vendor")
+    headings = OneBasedHeadings("Vendor", "Model", "Vendor")
     Set colMap = modHelpers_Columns.BuildOrderedColumnMap(headings, Coll("Vendor"))
 
     keys = colMap.Keys
