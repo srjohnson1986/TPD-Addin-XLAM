@@ -1,0 +1,23 @@
+name: Static checks
+
+# Text/XML checks only - no Excel/COM involved, so this runs on a normal
+# hosted runner. See tools/Test-StaticChecks.ps1 for what's actually checked,
+# and CONTRIBUTING.md for the source-vs-built-.xlam drift check, which does
+# need COM and stays a local pre-release step instead of living here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run static source checks
+        shell: pwsh
+        run: tools/Test-StaticChecks.ps1

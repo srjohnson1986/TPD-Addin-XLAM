@@ -79,7 +79,20 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 2. Run the `BuildAddin` macro in **`tools/TPD_Builder.xlsm`** (a separate driver workbook, not the add-in itself). It copies the base file, imports every module from `/src`, and writes `build/TPD_Addin.xlam`, logging to `build/build.log`. A healthy build reports every `/src` component "imported/injected, 0 skipped".
    - Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1` drives that macro via COM (paths default to this repo). Requires Trust Center → Macro Settings → "Trust access to the VBA project object model". A clean run means *a build exists*, not that it's good.
 3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and run it against the sample EQ List fixtures in `/tests`.
-4. If it checks out, this is your release candidate.
+4. `powershell -ExecutionPolicy Bypass -File tools\Test-SourceDrift.ps1` — confirms `/src` is exactly what got built into `build/TPD_Addin.xlam` (catches a VBE-only edit, or a control placed in a form, that never made it back into `/src`). Needs COM/Office like the build itself, so it's a local check, not part of CI. See "Automated checks" below.
+5. If it checks out, this is your release candidate.
+
+## Automated checks
+
+`.github/workflows/static-checks.yml` runs `tools/Test-StaticChecks.ps1` on every push/PR against `main`, on a normal GitHub-hosted runner (no Excel/COM needed — it's pure text/XML parsing). It checks:
+
+- Every `onAction`/`onLoad` callback named in `customUI/customUI14.xml` has a matching `Sub`/`Function` somewhere in `/src`.
+- Every module with code declares `Option Explicit` (code-free document modules are exempt).
+- Every module has a well-formed `'@Folder("TPD_Addin....")` tag, and every `.frm` is tagged exactly `'@Folder("TPD_Addin.Forms")`.
+
+Run it yourself any time with `powershell -ExecutionPolicy Bypass -File tools\Test-StaticChecks.ps1` — same script, same output, locally or in Actions.
+
+It deliberately does **not** check that `/src` matches a built `.xlam` — that needs Excel/COM, which hosted runners don't have. That check is `tools/Test-SourceDrift.ps1`, step 4 of "Rebuilding a testable `.xlam`" above: a local pre-release gate, not a CI job. (A self-hosted runner on a personal Windows machine could run it in Actions too, but that means GitHub Actions can execute workflow code — including from your own pushes — directly on that machine, so this repo keeps it local instead.)
 
 ## Cutting a release
 

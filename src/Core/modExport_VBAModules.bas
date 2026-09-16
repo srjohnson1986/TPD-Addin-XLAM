@@ -17,6 +17,8 @@ Attribute VB_Name = "modExport_VBAModules"
 ' the VBA project object model" must be enabled.
 '============================================================
 
+Option Explicit
+
 Public Sub ExportAllVBAModules()
 
     ' Point this at your local clone's /src folder.
