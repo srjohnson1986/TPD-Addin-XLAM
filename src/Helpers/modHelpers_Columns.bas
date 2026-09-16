@@ -8,6 +8,11 @@ Attribute VB_Name = "modHelpers_Columns"
 '  order, unique values in a column, and copying rows
 '  between sheets (all rows, or only rows matching a value in
 '  the group column) projected onto a chosen set of columns.
+'
+'  Sheet-facing routines (Public Sub/Function taking a Worksheet) are thin
+'  wrappers around a pure counterpart that takes/returns plain values only -
+'  HeadingsPresentIn, UniqueValues, BuildOrderedColumnMap (#163, prep for
+'  Rubberduck unit tests). Extract new pure helpers the same way.
 '===========================================================
 
 Option Explicit
@@ -76,23 +81,25 @@ Public Sub ReorderColumnsByHeading(ByVal ws As Worksheet, ByVal orderedHeadings 
     Next h
 End Sub
 
-' Returns the subset of `wanted` heading names that actually appear on
-' headingsRow of ws, preserving `wanted` order and its (possibly dirty)
-' spelling. The one-click flows use this to avoid handing
-' DeleteUnselectedColumnsByHeading a selection that matches nothing on
-' the source sheet - which would delete every column (#96).
+' The one-click flows use this to avoid handing DeleteUnselectedColumnsByHeading
+' a selection that matches nothing on the source sheet - which would delete
+' every column (#96). Thin sheet-reading wrapper - see HeadingsPresentIn (#163).
 Public Function HeadingsPresentOnSheet( _
         ByVal ws As Worksheet, _
         ByVal headingsRow As Long, _
         ByVal wanted As Collection) As Collection
 
+    Set HeadingsPresentOnSheet = HeadingsPresentIn(modHelpers_Headers.GetHeadingList(ws, headingsRow), wanted)
+End Function
+
+' Pure (#163): the subset of `wanted` heading names that actually appear in
+' `headings`, preserving `wanted`'s order and its (possibly dirty) spelling.
+Public Function HeadingsPresentIn(ByVal headings As Variant, ByVal wanted As Collection) As Collection
     Dim present As New Collection
-    Dim headings As Variant
     Dim onSheet As New Collection
     Dim i As Long
     Dim w As Variant
 
-    headings = modHelpers_Headers.GetHeadingList(ws, headingsRow)
     For i = LBound(headings) To UBound(headings)
         onSheet.Add CStr(headings(i))
     Next i
@@ -101,7 +108,7 @@ Public Function HeadingsPresentOnSheet( _
         If CollectionContainsText(onSheet, CStr(w)) Then present.Add CStr(w)
     Next w
 
-    Set HeadingsPresentOnSheet = present
+    Set HeadingsPresentIn = present
 End Function
 
 ' The column list a one-click ribbon button should act on: the user's saved
@@ -134,28 +141,60 @@ Public Function ResolveOneClickColumns(ByVal ws As Worksheet, _
     Set ResolveOneClickColumns = present
 End Function
 
+' Thin sheet-reading wrapper (skips the heading row) - see UniqueValues (#163).
 Public Function GetUniqueValuesInColumn(ws As Worksheet, colIndex As Long) As Collection
-
-    Dim result As New Collection
     Dim lastRow As Long
+    Dim raw() As Variant
     Dim i As Long
-    Dim cellValue As String
 
     lastRow = ws.Cells(ws.Rows.Count, colIndex).End(xlUp).Row
 
-    For i = 2 To lastRow   ' skip heading row
-        cellValue = NormalizeCellText(ws.Cells(i, colIndex).value)
+    ReDim raw(2 To lastRow)
+    For i = 2 To lastRow
+        raw(i) = ws.Cells(i, colIndex).value
+    Next i
 
-        If Len(cellValue) > 0 Then
-            If Not CollectionContainsText(result, cellValue) Then
-                result.Add cellValue
-            End If
+    Set GetUniqueValuesInColumn = UniqueValues(raw)
+End Function
+
+' Pure (#163): the distinct NormalizeCellText'd entries of `values`, skipping
+' blanks, in first-seen order.
+Public Function UniqueValues(ByVal values As Variant) As Collection
+    Dim result As New Collection
+    Dim i As Long
+    Dim v As String
+
+    For i = LBound(values) To UBound(values)
+        v = NormalizeCellText(values(i))
+        If Len(v) > 0 Then
+            If Not CollectionContainsText(result, v) Then result.Add v
         End If
     Next i
 
-    Set GetUniqueValuesInColumn = result
+    Set UniqueValues = result
 End Function
 
+
+' Pure (#163): maps `selectedHeadings` (in that order) to their column index in
+' `headings` - case-insensitive, rightmost match wins (matches
+' FindHeadingIndex's default) - skipping any heading not found in `headings`
+' and de-duplicating repeat indices. Returned as a Scripting.Dictionary so
+' insertion order (== selectedHeadings order) survives on .Keys.
+Public Function BuildOrderedColumnMap(ByVal headings As Variant, ByVal selectedHeadings As Collection) As Object
+    Dim colMap As Object
+    Dim h As Variant
+    Dim srcIdx As Long
+
+    Set colMap = CreateObject("Scripting.Dictionary")
+    For Each h In selectedHeadings
+        srcIdx = modHelpers_Headers.FindHeadingIndex(headings, CStr(h), preferRightmost:=True)
+        If srcIdx > 0 Then
+            If Not colMap.exists(srcIdx) Then colMap.Add srcIdx, headings(srcIdx)
+        End If
+    Next h
+
+    Set BuildOrderedColumnMap = colMap
+End Function
 
 Public Sub CopyFilteredRowsByColumns( _
     ByVal wsSource As Worksheet, _
@@ -168,8 +207,6 @@ Public Sub CopyFilteredRowsByColumns( _
     Dim lastRow As Long
     Dim headings As Variant
     Dim colMap As Object
-    Dim h As Variant
-    Dim srcIdx As Long
     Dim srcColIndex As Variant
     Dim destCol As Long
     Dim destRow As Long
@@ -177,18 +214,11 @@ Public Sub CopyFilteredRowsByColumns( _
 
     lastRow = GetLastRow(wsSource)
 
-    ' Build the column map by walking selectedHeadings in order (not the source
-    ' columns) so the output columns come out in the chosen order rather than
-    ' the source-sheet order (#127). Scripting.Dictionary preserves insertion
-    ' order, so colMap.Keys below is already in selectedHeadings order.
+    ' Column order comes from selectedHeadings, not the source sheet, so the
+    ' output honours the order set in Set TPD Defaults (#127) - see
+    ' BuildOrderedColumnMap (#163).
     headings = modHelpers_Headers.GetHeadingList(wsSource, headingsRow)
-    Set colMap = CreateObject("Scripting.Dictionary")
-    For Each h In selectedHeadings
-        srcIdx = modHelpers_Headers.FindHeadingIndex(headings, CStr(h), preferRightmost:=True)
-        If srcIdx > 0 Then
-            If Not colMap.exists(srcIdx) Then colMap.Add srcIdx, headings(srcIdx)
-        End If
-    Next h
+    Set colMap = BuildOrderedColumnMap(headings, selectedHeadings)
 
     ' Copy headings row
     destCol = 1

@@ -85,7 +85,9 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 ## Known open work
 
-Tracked as GitHub Issues — **there are currently no open issues.**
+Tracked as GitHub Issues — currently open:
+
+- **[#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162)** — autosize the data rows (not the inserted header/logo rows) in the EQ List, Schedule and Split Sheets output, both picker and one-click; wants shared helper logic. Not started.
 
 The **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** cluster is delivered and shipped in `v2.4.2`: `frmSetTPDDefaults` (EQ List / Schedule / Split Sheets / Logo tabs, Save / Save & Run / Cancel footer), the three picker + one-click flow pairs and their three-layer column defaults (#96 / #98 / #112), the user-settable header logo (#95 / #109), the EQ List behaviour toggles (#97 → #119–#123), the dialog visual refresh across all five forms (#118 / #143 / #99 / #100), the picker Select all / none / Restore defaults row (#149) and the picker grid scrolling (#150).
 
