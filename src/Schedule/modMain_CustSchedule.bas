@@ -76,6 +76,11 @@ Public Sub CreateCustSchedule_DoWork( _
     ' alignment, centre the rest (FormatDataTable defaults to "Description").
     FormatDataTable wsNew, 1, "Tasks"
     AutoFitUsedColumns wsNew
+    ' Row heights, not just column widths - wrapped/multi-line Tasks text can
+    ' be clipped otherwise (#162). Must run before InsertDefaultCustScheduleHeader
+    ' below, while headingsRow is still 1 and the data rows have their final
+    ' column widths.
+    AutoFitDataRowHeights wsNew, 1
 
     ' Inserts the 5 header rows, the Date text/value, and the logo.
     InsertDefaultCustScheduleHeader wsNew

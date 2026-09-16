@@ -132,6 +132,7 @@ Public Sub FormatSplitSheet(ws As Worksheet, headingsRow As Long)
     ws.Rows(headingsRow).Font.Bold = True
 
     AutoFitUsedColumns ws
+    AutoFitDataRowHeights ws, headingsRow
 
 End Sub
 
@@ -155,4 +156,26 @@ Public Sub AutoFitUsedColumns(ws As Worksheet)
 
     ' Autofit only the populated columns
     usedCols.AutoFit
+End Sub
+
+' Autofits the row height of the data table (headingsRow through the last row
+' of data) so wrapped/multi-line cell text isn't clipped (#162). Scoped to
+' headingsRow..lastRow the same way FormatDataTable's dataRange is, so it
+' never touches rows above headingsRow.
+'
+' Call this BEFORE inserting any header/logo block (InsertEQHeaderBlock /
+' InsertDefaultCustScheduleHeader) - those just insert blank rows above and
+' shift everything else down, so heights set here move down with their rows.
+' Calling it after would mean re-deriving where the block landed instead.
+'
+' Also call it AFTER AutoFitUsedColumns - row autofit measures wrapped text
+' against the CURRENT column widths, so columns need to be final first.
+Public Sub AutoFitDataRowHeights(ByVal ws As Worksheet, ByVal headingsRow As Long)
+    Dim lastRow As Long
+    Dim lastCol As Long
+
+    lastRow = GetLastRow(ws)
+    lastCol = GetLastCol(ws, headingsRow)
+
+    ws.Range(ws.Cells(headingsRow, 1), ws.Cells(lastRow, lastCol)).Rows.AutoFit
 End Sub

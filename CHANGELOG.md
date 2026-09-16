@@ -11,6 +11,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **Wrapped/multi-line cell text in generated output could be clipped at the
+  default row height.** *Create Customer EQ List* / *EQ List*, *Create
+  Customer Schedule* / *Schedule*, and *Split Sheet by Column* / *Split
+  Sheets* now autosize each data row's height after the columns are finalized,
+  the same way column width was already autofit ([#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162)).
+
 ## [2.4.3] - 2026-09-08
 
 A housekeeping release: the code was reorganised and de-duplicated after the

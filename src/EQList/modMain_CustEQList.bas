@@ -123,6 +123,11 @@ Public Sub CreateCustEQList_DoWork( _
     If addFilters Then AddHeadingRowFilter wsNew, 1
 
     AutoFitUsedColumns wsNew
+    ' Row heights, not just column widths - wrapped/multi-line data cells can
+    ' be clipped otherwise (#162). Must run before InsertEQHeaderBlock below,
+    ' while headingsRow is still 1 and the data rows have their final column
+    ' widths.
+    AutoFitDataRowHeights wsNew, 1
 
     ' Plain PARENT rows (#121): white fill + black, un-bolded text, overriding
     ' the grouping shade StripDataRowFill kept. Do it before the title block so
