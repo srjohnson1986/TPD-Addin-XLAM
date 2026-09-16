@@ -26,6 +26,11 @@ Option Explicit
 '  return an empty Collection; each picker then applies its own
 '  built-in default column list. A fresh machine still opens
 '  with sensible defaults.
+'
+'  ResolveColumnList/ResolveGroupColumn are thin registry-reading
+'  wrappers around a pure sibling (FirstNonEmptyColumnList,
+'  FirstNonEmptyValue) that just picks among already-read values -
+'  split for Rubberduck testing (#163).
 '===========================================================
 
 Private Const PREF_APP As String = "TPD_Addin"
@@ -137,40 +142,76 @@ End Function
 ' Callers pass the keys highest-priority first:
 '   one-click  -> Array(PREF_EQLIST_COLUMNS)
 '   picker     -> Array(PREF_EQLIST_PICKER_COLUMNS, PREF_EQLIST_COLUMNS)
+'
+' Thin registry-reading wrapper - see FirstNonEmptyColumnList (#163).
 '-----------------------------------------------------------
 Public Function ResolveColumnList(keys As Variant, ByVal fallbackCsv As String) As Collection
     Dim i As Long
+    Dim rawCsvs() As String
+
+    ReDim rawCsvs(LBound(keys) To UBound(keys))
+    For i = LBound(keys) To UBound(keys)
+        rawCsvs(i) = LoadPref(CStr(keys(i)), "")
+    Next i
+
+    Set ResolveColumnList = FirstNonEmptyColumnList(rawCsvs, fallbackCsv)
+End Function
+
+
+' Pure (#163): the first of candidateCsvs (raw comma-separated strings, same
+' format SaveColumnList writes, highest-priority first) that parses to a
+' non-empty column list, else fallbackCsv parsed the same way. Always returns
+' a Collection.
+Public Function FirstNonEmptyColumnList(ByVal candidateCsvs As Variant, ByVal fallbackCsv As String) As Collection
+    Dim i As Long
     Dim col As Collection
 
-    For i = LBound(keys) To UBound(keys)
-        Set col = LoadColumnList(CStr(keys(i)))
+    For i = LBound(candidateCsvs) To UBound(candidateCsvs)
+        Set col = ParseColumnCsv(CStr(candidateCsvs(i)))
         If col.Count > 0 Then
-            Set ResolveColumnList = col
+            Set FirstNonEmptyColumnList = col
             Exit Function
         End If
     Next i
 
-    Set ResolveColumnList = ParseColumnCsv(fallbackCsv)
+    Set FirstNonEmptyColumnList = ParseColumnCsv(fallbackCsv)
 End Function
 
 
 '-----------------------------------------------------------
 ' Scalar equivalent of ResolveColumnList for the Split group
 ' column: first non-empty saved value among keys, else fallback.
+'
+' Thin registry-reading wrapper - see FirstNonEmptyValue (#163).
 '-----------------------------------------------------------
 Public Function ResolveGroupColumn(keys As Variant, ByVal fallback As String) As String
     Dim i As Long
+    Dim rawValues() As String
+
+    ReDim rawValues(LBound(keys) To UBound(keys))
+    For i = LBound(keys) To UBound(keys)
+        rawValues(i) = LoadPref(CStr(keys(i)), "")
+    Next i
+
+    ResolveGroupColumn = FirstNonEmptyValue(rawValues, fallback)
+End Function
+
+
+' Pure (#163): the first of `candidates` that is non-empty after Trim$, else
+' `fallback`.
+Public Function FirstNonEmptyValue(ByVal candidates As Variant, ByVal fallback As String) As String
+    Dim i As Long
     Dim v As String
 
-    For i = LBound(keys) To UBound(keys)
-        v = Trim$(LoadPref(CStr(keys(i)), ""))
+    For i = LBound(candidates) To UBound(candidates)
+        v = Trim$(CStr(candidates(i)))
         If Len(v) > 0 Then
-            ResolveGroupColumn = v
+            FirstNonEmptyValue = v
             Exit Function
         End If
     Next i
 
-    ResolveGroupColumn = fallback
+    FirstNonEmptyValue = fallback
 End Function
 
 
