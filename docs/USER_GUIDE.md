@@ -21,6 +21,7 @@ from OneDrive/SharePoint in the browser are out of scope).
 - [Things that work this way on purpose](#things-that-work-this-way-on-purpose)
 - [Troubleshooting](#troubleshooting)
 - [Reporting a bug or requesting a feature](#reporting-a-bug-or-requesting-a-feature)
+- [License](#license)
 - [Glossary](#glossary)
 
 ---
@@ -338,7 +339,21 @@ Open an issue on the
 - what you expected (or want) instead
 - the add-in version (shown in the corner of the **Set Defaults** dialog)
 
-Attaching the workbook you were working on helps a lot.
+Attaching the workbook you were working on helps a lot — but only if it
+contains nothing confidential, since issues on this repo are public. If it does,
+describe the layout (column headings and a few made-up rows) instead.
+
+---
+
+## License
+
+The add-in's source code is open source under the
+**[MIT License](https://github.com/srjohnson1986/TPD-Addin-XLAM/blob/main/LICENSE)** —
+you're free to use, modify and share it. The one exception is the **TPD name and
+logo artwork**, which belong to TPD and are not covered by that license. If you
+find a security problem, please report it privately as described in the
+**[security policy](https://github.com/srjohnson1986/TPD-Addin-XLAM/blob/main/SECURITY.md)**
+rather than in a public issue.
 
 ---
 

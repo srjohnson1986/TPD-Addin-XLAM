@@ -14,7 +14,14 @@ Attribute VB_Name = "modGdiPlus"
 '  a placeholder. Used by the Set TPD Defaults logo preview
 '  ([#109](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109)).
 '
-'  Standard Bullen/Pearson-style GDI+ picture loader.
+'  Provenance: this follows the long-established VB/VBA idiom for
+'  turning a GDI+ bitmap into an IPicture - GdiplusStartup ->
+'  GdipCreateBitmapFromFile -> GdipCreateHBITMAPFromBitmap ->
+'  OleCreatePictureIndirect with IID_IPicture - whose API calls and
+'  structures are documented by Microsoft. The OleCreatePictureIndirect
+'  half was popularised for Excel by Stephen Bullen's PastePicture
+'  routine. This module was written for this project and does not
+'  incorporate a third-party source file; the credit is for the idiom.
 '===========================================================
 
 Option Explicit

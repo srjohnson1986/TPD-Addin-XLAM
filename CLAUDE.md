@@ -32,13 +32,13 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 **Making a change:**
 1. Edit code in the VBE, test interactively in the open workbook.
 2. Export to `/src` — either run `ExportAllVBAModules` (in `modExport_VBAModules`) to refresh the whole tree, or export just the changed component(s) from the VBE Project Explorer (right-click → Export File, overwrite the matching `/src` file).
-3. Check `src/export_log.txt` (written by `ExportAllVBAModules`) to confirm what was exported and where.
+3. Check `src/export_log.txt` (written by `ExportAllVBAModules`, gitignored) to confirm what was exported and where. `ExportAllVBAModules` locates `/src` itself (walks up from the workbook's folder to the repo root, else a folder picker) — there is no hardcoded path to edit.
 4. Review the diff before committing — this is the code review step.
 
 **Rebuilding a testable `.xlam`:**
 1. Keep a known-good base file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies worksheets, ribbon, styles, embedded logo shape that live outside `/src`). Must be **stripped of standard modules + UserForms** (the builder can't re-import a form that already exists) — a full add-in `.xlam` is not a valid base. Rarely needs updating.
 2. Run the `BuildAddin` macro in `tools/TPD_Builder.xlsm` (a separate driver workbook, not the add-in itself) → copies the base, imports all of `/src`, writes `build/TPD_Addin.xlam`, logs to `build/build.log`. Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1`.
-3. Load it as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise it against the sample EQ List fixtures.
+3. Load it as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise it against a sample workbook (synthetic data only — the shared EQ List / Schedule fixtures are not built yet, see [#164](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/164)).
 4. If it checks out, it's a release candidate.
 
 A clean build is not a passing test — there's no compile step in the macro. For a headless smoke check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`). **A clean return does NOT prove the whole project compiles** — that claim used to be here and it is wrong. On 2026-09-08 this check passed on a build whose `modPreferences_Defaults` had `Private Const` declarations sitting *after* the first procedure; every ribbon flow that touched them then died with "variable not defined". Treat the check as "the add-in loads and a macro runs", nothing more. The real thing is **Debug → Compile VBAProject** in the VBE, which needs a human.
@@ -87,7 +87,9 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 Tracked as GitHub Issues — currently open:
 
-- **[#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162)** — autosize the data rows (not the inserted header/logo rows) in the EQ List, Schedule and Split Sheets output, both picker and one-click; wants shared helper logic. Not started.
+- **[#164](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/164)** — add synthetic EQ List / Schedule test fixtures under `tests/fixtures/` (the repo is open source now, so real customer workbooks can't be shared). The next release is waiting on this.
+
+Delivered since `v2.4.3`, unreleased: data-row autosize in the EQ List / Schedule / Split Sheets output ([#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162), `modHelpers_SheetFormatting.AutoFitDataRowHeights`, Excel-confirmed), Rubberduck unit tests for the pure column / preference / EQ Count logic ([#163](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163)), CI static checks, and the open-source licensing pass (MIT; the TPD name and logo are excluded — see `assets/README.md`).
 
 The **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** cluster is delivered and shipped in `v2.4.2`: `frmSetTPDDefaults` (EQ List / Schedule / Split Sheets / Logo tabs, Save / Save & Run / Cancel footer), the three picker + one-click flow pairs and their three-layer column defaults (#96 / #98 / #112), the user-settable header logo (#95 / #109), the EQ List behaviour toggles (#97 → #119–#123), the dialog visual refresh across all five forms (#118 / #143 / #99 / #100), the picker Select all / none / Restore defaults row (#149) and the picker grid scrolling (#150).
 

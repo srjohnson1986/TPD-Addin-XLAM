@@ -9,15 +9,24 @@ This document covers the developer workflow: how the VBA source is organized, ho
 - **[Rubberduck](https://rubberduckvba.com/)** installed, matching your Office bitness (32-bit vs 64-bit — check File → Account → About Excel).
 - **GitHub Desktop** (or another git client) connected to this repo.
 
+## License and conduct
+
+The source is released under the [MIT License](LICENSE); by contributing you agree that your contribution is licensed under it too. The TPD name and logo artwork are **not** covered by that license (see [assets/README.md](assets/README.md)) — don't add other third-party or customer material to the repo, and use only fabricated data in anything you commit (fixtures, screenshots, bug-report attachments). If you paste or adapt code from elsewhere, note where it came from and make sure its license allows it.
+
+Everyone taking part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Security problems go to the private channel in [SECURITY.md](SECURITY.md), not a public issue.
+
 ## Repo layout
 
 ```
 /src        VBA source - the source of truth (.bas / .cls / .frm / .frx);
             every UserForm lives in /src/Forms
 /customUI   customUI14.xml (ribbon definition) + ribbon icons
+/assets     Source brand/logo images (TPD's - not under the MIT license)
 /build      Local build output - gitignored, never committed
 /docs       Developer documentation (this file, ARCHITECTURE.md, etc.)
-/tests      Sample EQ List fixtures + test plan
+/tests      Rubberduck unit tests (tests/unit). Synthetic EQ List / Schedule
+            fixture workbooks are planned - see issue #164
+/tools      Build / drift-check / static-check scripts + the TPD_Builder.xlsm driver
 ```
 
 The compiled `.xlam` is a **build artifact**, not source. It's never committed to the repo history — it's published as a downloadable asset on [GitHub Releases](../../releases) instead. See "Cutting a release" below.
@@ -43,7 +52,8 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
 2. When you're happy with a change, export it to `/src`:
    - Run `ExportAllVBAModules` (in `modExport_VBAModules`) to export everything and refresh the whole `/src` tree, **or**
    - Select just the component(s) you changed in the VBE's Project Explorer → right-click → **Export File** → overwrite the matching file(s) in your local `/src`.
-3. Check `export_log.txt` (written to `/src` by `ExportAllVBAModules`) to confirm what was exported and where.
+   `ExportAllVBAModules` finds your clone's `/src` itself — it walks up from the folder the workbook is saved in until it finds a folder holding both `src` and `customUI` (a build in `build/` is found immediately). If the workbook lives somewhere else, it asks you to pick the `src` folder instead. Nothing needs editing.
+3. Check `export_log.txt` (written to `/src` by `ExportAllVBAModules`) to confirm what was exported and where. It's gitignored — a local record only, never committed.
 4. In GitHub Desktop, review the diff for each changed file — this is your code review moment, even working solo.
 5. Commit with a message describing the change (not "updated code"). For anything non-trivial, push to a feature branch and open a PR against `main` rather than committing straight to `main`.
 
@@ -78,7 +88,7 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 1. Keep a known-good **base** file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies the worksheets, ribbon, `_Resources` sheet + embedded logo, and styles that live outside `/src`). It must be **stripped of standard code modules and UserForms** — the builder replaces standard modules cleanly but chokes trying to re-import a form that already exists, so a full add-in `.xlam` is *not* a valid base. In practice the base almost never changes; update it only when the non-`/src` content does (see "Cutting a release").
 2. Run the `BuildAddin` macro in **`tools/TPD_Builder.xlsm`** (a separate driver workbook, not the add-in itself). It copies the base file, imports every module from `/src`, and writes `build/TPD_Addin.xlam`, logging to `build/build.log`. A healthy build reports every `/src` component "imported/injected, 0 skipped".
    - Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1` drives that macro via COM (paths default to this repo). Requires Trust Center → Macro Settings → "Trust access to the VBA project object model". A clean run means *a build exists*, not that it's good.
-3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and run it against the sample EQ List fixtures in `/tests`.
+3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise the ribbon flows against a sample workbook of your own (made-up data only — shared fixtures are tracked in [#164](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/164)).
 4. `powershell -ExecutionPolicy Bypass -File tools\Test-SourceDrift.ps1` — confirms `/src` is exactly what got built into `build/TPD_Addin.xlam` (catches a VBE-only edit, or a control placed in a form, that never made it back into `/src`). Needs COM/Office like the build itself, so it's a local check, not part of CI. See "Automated checks" below.
 5. If it checks out, this is your release candidate.
 
