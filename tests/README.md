@@ -21,7 +21,7 @@ python tests/fixtures/generate_fixtures.py
 | File | Models | Used for |
 | ---- | ------ | -------- |
 | `fixtures/EQ_List_Sample.xlsx` | A Smartsheet-style equipment-list export: 25 columns, heading in row 1, a nested tree of PARENT and item rows (Excel row grouping, parents above children), row fills by type | Create Customer EQ List / EQ List, Split Sheet by Column / Split Sheets, Save Each Sheet to XLSX |
-| `fixtures/Schedule_Sample.xlsx` | A Smartsheet-style project schedule: 9 columns, 3-level task tree, real dates, `%` complete, status | Create Customer Schedule / Schedule |
+| `fixtures/Schedule_Sample.xlsx` | A Smartsheet-style project schedule: 16 columns (6 hidden), a task tree up to 6 levels deep, real dates, `%` complete, status | Create Customer Schedule / Schedule |
 
 Edit the **generator**, not the `.xlsx`, then regenerate and commit both. (The `.xlsx` container isn't byte-identical between runs, so expect a binary diff even when nothing changed — only regenerate when you mean to.)
 
@@ -58,11 +58,21 @@ The remaining 7 vendors are ordinary names and each gets one sheet. After a spli
 
 ## Schedule fixture — what's in it
 
-36 task rows, 3 outline levels (phases, groups, tasks), summary rows bold and shaded. Start/End Date are real Excel dates (mm/dd/yy), `% Complete` is a real percentage, and `Status` has `Complete` / `In Progress` / `Not Started` / `At Risk`. All dates are in 2030, so nothing looks like a real project.
+159 rows under the heading row: **27 summary rows**, **108 task rows** and **24 blank rows** at the end, nested up to 6 levels with Excel row grouping (parents above children) and the `Tasks` text indented by level. Summary rows are bold; the top level is shaded blue, some second-level rows light blue (one red-flagged), and the section rows grey — the fill covers the whole row.
 
-The source column order is `Tasks, Duration, Start Date, End Date, Predecessors, % Complete, Status, Assigned To, Comments` — **not** the default order (`Status, % Complete, Tasks, Start Date, End Date`) — so the output should come out in the *saved list's* order, not the source's ([#127](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/127)). `Comments` has a few long and multi-line cells for row-height autofit.
+The shipped default Schedule columns (`Status, % Complete, Tasks, Start Date, End Date`) are all present, alongside extras the default list should drop: `Duration`, `Completion Date`, `MANUFACTURER`, `Assigned To`, `Notes` and others.
 
-> The schedule layout is modelled on the add-in's default column list, not on a real export (there was no schedule sample to copy from). If a real schedule export has columns or structure that this misses, add them to the generator.
+| Case | Where | What to check |
+| ---- | ----- | ------------- |
+| **Hidden source columns** | `Computed Status`, `Predecessors`, `Baseline Start`, `Baseline Finish`, `Variance`, `Ready to Start` | The picker still lists them; choosing a hidden column puts it in the output (visible or not — note what the add-in does and whether that is what you want) |
+| Real dates and percentages | `Start Date` / `End Date` (`MM/dd/yy`, working days only), `% Complete` (`#,##0%`) | Number formats survive the copy; columns are wide enough that nothing shows as `####` |
+| Mixed-type column | `Duration` is `5d` / `2w` text on tasks and a mix of bare numbers and `Nd` on summary rows; one `Completion Date` cell is text, not a date | No type errors, consistent alignment |
+| Dependencies as text | `Predecessors`: `12`, `12FS +3d`, `12FF`, `10, 12` | Treated as plain text; no formula or date coercion |
+| Empty columns | `Computed Status`, `Notes` have no values | An all-empty column neither breaks formatting nor the column-width autofit |
+| Deep nesting | outline levels 0–5 | Grouping and indentation survive the copy |
+| Blank rows at the end | last 24 rows | Last-row detection ignores them |
+
+All dates are in 2030 and all names (`Assigned To`, `MANUFACTURER`) are made up.
 
 ## Manual smoke test
 
@@ -70,5 +80,5 @@ The source column order is `Tasks, Duration, Start Date, End Date, Predecessors,
 2. Open `EQ_List_Sample.xlsx` → **TPD › One-click › EQ List**, then **Create Customer EQ List** and pick columns. Check the new `Customer EQ List` sheet: only the chosen columns, the TPD header block and logo, grouping and fills carried over, wrapped rows tall enough, no clipped filter dropdowns.
 3. On the same file: toggle the EQ List behaviour options in **Set Defaults** and rerun.
 4. **Split Sheet by Column** on `Vendor` → check the 11 sheets above. Then **Save Each Sheet to XLSX**.
-5. Open `Schedule_Sample.xlsx` → **Schedule** and **Create Customer Schedule**; check column order, date/percent formats and row heights.
+5. Open `Schedule_Sample.xlsx` → **Schedule** and **Create Customer Schedule**; check the chosen columns (including a hidden one), the date/percent formats, the indentation and the row heights.
 6. Delete the generated output (every run adds a new sheet — that is intentional).

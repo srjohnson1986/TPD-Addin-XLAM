@@ -11,16 +11,23 @@ Writes, next to this script:
     Schedule_Sample.xlsx   a Smartsheet-style project-schedule export
 
 EVERYTHING in the output is fabricated: company names, tags, part numbers,
-people, dates. The generator is seeded, so the content is the same every run
-(the .xlsx zip container is not byte-identical - it carries write timestamps).
-Nothing here reads, copies or derives from a real customer workbook. The files
-are built from scratch (no copy-and-scrub), so they carry no author, path,
-comment or hidden-sheet metadata either.
+people, dates, task names. The generator is seeded, so the content is the same
+every run (the .xlsx zip container is not byte-identical - it carries write
+timestamps).
 
-The EQ List mirrors the *shape* of a real export - 25 columns, a nested tree of
+What IS modelled on real exports is *structure only* - column headings and
+order, column widths and which columns are hidden, the shape of the row
+hierarchy, fill colours, number formats. No cell content is copied from, or
+derived from, a real workbook. The files are built from scratch (no
+copy-and-scrub), so they carry no author, path, comment or hidden-sheet
+metadata either.
+
+The EQ List mirrors the shape of a real export - 25 columns, a nested tree of
 PARENT rows and item rows (Excel row grouping, parents above their children),
-row fills by type, centred cells, trailing blank rows - and deliberately
-includes the awkward inputs the add-in has to cope with. See tests/README.md
+row fills by type, centred cells, trailing blank rows. The Schedule mirrors a
+real schedule export - 16 columns (6 hidden), a task tree up to 6 levels deep,
+real dates and percentages. Both deliberately include the awkward inputs the
+add-in has to cope with. See tests/README.md
 for what each fixture exercises and what to expect.
 """
 import datetime as dt
@@ -40,6 +47,8 @@ PARENT_TOP = PatternFill("solid", fgColor="5FB3F9")    # level 0/1 PARENT rows
 PARENT_SUB = PatternFill("solid", fgColor="B9DDFC")    # level 2+ PARENT rows
 ITEM_FILL = PatternFill("solid", fgColor="C6E7C8")     # item rows
 REVIEW_FILL = PatternFill("solid", fgColor="FEFF85")   # "For Approval" rows
+GRAY = PatternFill("solid", fgColor="BDBDBD")          # schedule: section rows
+RED_FLAG = PatternFill("solid", fgColor="F87E7D")      # schedule: a flagged row
 BOLD = Font(bold=True)
 PLAIN = Font(bold=False)
 CENTER = Alignment(horizontal="center")
@@ -297,82 +306,76 @@ def build_eq_list():
 # Schedule
 # =============================================================================
 
-# Source column order is deliberately NOT the add-in's default order
-# (Status, % Complete, Tasks, Start Date, End Date) - the add-in reorders to the
-# saved list (#127), so the fixture should make that observable.
+# Same 16 headings, same order, as the real export. Six of them are HIDDEN in
+# the real file, and stay hidden here: the add-in has to cope with hidden
+# source columns (they should still be selectable in the picker).
 SCH_COLUMNS = [
-    ("Tasks", 46.0), ("Duration", 10.0), ("Start Date", 13.0), ("End Date", 13.0),
-    ("Predecessors", 14.0), ("% Complete", 12.0), ("Status", 14.0),
-    ("Assigned To", 20.0), ("Comments", 40.0),
+    ("Status", 13.8, False), ("Computed Status", 8.0, True), ("% Complete", 14.4, False),
+    ("Tasks", 57.0, False), ("Duration", 14.2, False), ("Start Date", 12.8, False),
+    ("End Date", 12.0, False), ("Completion Date", 14.2, False), ("Predecessors", 8.0, True),
+    ("MANUFACTURER", 25.0, False), ("Assigned To", 23.6, False), ("Baseline Start", 8.0, True),
+    ("Baseline Finish", 8.0, True), ("Variance", 8.0, True), ("Ready to Start", 8.0, True),
+    ("Notes", 30.5, False),
 ]
-SCOL = {name: i + 1 for i, (name, _) in enumerate(SCH_COLUMNS)}
+SCOL = {name: i + 1 for i, (name, _, _) in enumerate(SCH_COLUMNS)}
 
-# (level, name, working-days duration, assignee) - leaf tasks carry dates;
-# level 0/1 rows are summary (phase / group) rows and roll their children up.
-SCH_PLAN = [
-    (0, "Project Kickoff and Planning", None, None),
-    (1, "Mobilization", None, None),
-    (2, "Kickoff meeting", 1, "Project Manager"),
-    (2, "Issue RFQs", 5, "Procurement"),
-    (2, "Receive and tabulate bids", 10, "Procurement"),
-    (2, "Award purchase orders", 3, "Project Manager"),
-    (1, "Engineering", None, None),
-    (2, "Piping and instrumentation diagrams", 15, "Engineering"),
-    (2, "Equipment datasheets", 10, "Engineering"),
-    (2, "Submittal review", 8, "Engineering"),
-    (0, "Fabrication and Delivery", None, None),
-    (1, "Skid Fabrication", None, None),
-    (2, "Fabricate burner skid", 20, "Shop"),
-    (2, "Fabricate pump skid", 18, "Shop"),
-    (2, "Hydrotest and inspection", 4, "Quality"),
-    (1, "Long-Lead Equipment", None, None),
-    (2, "Boiler delivery to site", 40, "Procurement"),
-    (2, "Control panel delivery to site", 30, "Procurement"),
-    (2, "Instrument package delivery", 22, "Procurement"),
-    (0, "Site Installation", None, None),
-    (1, "Mechanical", None, None),
-    (2, "Set boiler and skids", 6, "Field Crew"),
-    (2, "Install fuel gas piping", 12, "Field Crew"),
-    (2, "Install feedwater and blowdown piping", 14, "Field Crew"),
-    (1, "Electrical and Controls", None, None),
-    (2, "Pull power and control cable", 9, "Electrical"),
-    (2, "Terminate and loop check instruments", 8, "Electrical"),
-    (2, "Panel power-up", 2, "Electrical"),
-    (0, "Commissioning and Closeout", None, None),
-    (1, "Commissioning", None, None),
-    (2, "Burner tuning and combustion test", 5, "Commissioning"),
-    (2, "Performance test with customer witness", 3, "Commissioning"),
-    (1, "Closeout", None, None),
-    (2, "Punch list walk-down", 3, "Project Manager"),
-    (2, "As-built drawings and O&M manuals", 10, "Engineering"),
-    (2, "Final acceptance and handover", 1, "Project Manager"),
-]
-SCH_COMMENTS = {
-    "Issue RFQs": "Send to the approved bidders list only.",
-    "Submittal review": "Customer has 10 working days to respond.\nEscalate to the "
-                        "project sponsor if the review runs past that.",
-    "Boiler delivery to site": "Carrier has a 2-day delivery window; site must have "
-                               "crane and laydown area available for the full week "
-                               "of arrival, per the lift plan.",
-    "Punch list walk-down": "Items carried over from the pre-commissioning walk-down "
-                            "must be closed first.",
-}
+# Outline level of every row under the heading, in order; "B" = a blank row.
+# Structure only - 27 summary rows, 108 task rows, 24 trailing blank rows. A row
+# is a summary row when the next row is nested deeper (Smartsheet's parent/child).
+SCH_LEVELS = (
+    "0 1 2 3 3 2 3 3 3 3 3 3 3 3 2 2 2 3 3 3 2 3 3 3 3 3 3 3 4 4 5 5 3 2 3 3 3 3 3 3 3 4 "
+    "4 4 1 1 2 3 3 4 4 4 3 4 4 3 4 4 3 4 4 3 4 4 3 4 4 3 4 4 2 3 3 3 3 3 3 3 2 3 3 4 3 2 "
+    "3 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 2 3 3 3 3 3 3 3 3 3 3 3 2 3 3 3 3 "
+    "3 1 1 0 1 1 1 1 1 "
+    + " ".join(["B"] * 24)
+).split()
+
+PEOPLE = ["Alex Example", "Blake Example", "Casey Example",
+          "Drew Example", "Emery Example", "Finley Example"]
+SCH_AREAS = ["Boiler Island", "Fuel Handling", "Heat Recovery", "Water Treatment",
+             "Controls and Electrical"]
+SCH_GROUPS = ["Engineering", "Procurement", "Fabrication", "Delivery", "Site Work",
+              "Installation", "Commissioning", "Closeout"]
+SCH_SUBGROUPS = ["Mechanical", "Electrical", "Piping", "Instrumentation", "Structural",
+                 "Documentation"]
+SCH_ITEMS = ["Burner skid", "Fuel gas train", "Feedwater pump set", "Economizer",
+             "Control panel", "Stack and damper", "Blowdown tank", "Strainer group",
+             "Expansion joints", "Pressure transmitters", "Isolation valves",
+             "Pilot assembly", "Day tank", "Deaerator", "Flow meters"]
+SCH_VERBS = ["Order", "Receive", "Fabricate", "Inspect", "Install", "Test",
+             "Submit documentation for", "Review drawings for", "Deliver", "Commission"]
+SCH_FAKE_TEXT_DURATION = "3 days"      # one odd text value, as in the real export
 
 
-def _workdays_between(a, b):
-    """Working days from a to b inclusive."""
-    return sum(1 for i in range((b - a).days + 1)
-               if (a + dt.timedelta(days=i)).weekday() < 5)
+def _workday(d):
+    while d.weekday() >= 5:
+        d += dt.timedelta(days=1)
+    return d
 
 
 def _add_workdays(d, n):
-    """The date n working days after d (d itself counts as day 1 for n == 1)."""
-    d = d if d.weekday() < 5 else d + dt.timedelta(days=7 - d.weekday())
-    while n > 1:
+    """The working day n-1 days after d (n=1 -> d itself); n may be 0/negative."""
+    d = _workday(d)
+    step = 1 if n >= 0 else -1
+    left = abs(n - 1) if n >= 1 else abs(n)
+    while left > 0:
+        d += dt.timedelta(days=step)
+        if d.weekday() < 5:
+            left -= 1
+    return d
+
+
+def _workdays_between(a, b):
+    """Signed working-day count from a to b (b later => positive)."""
+    if a == b:
+        return 0
+    lo, hi, sign = (a, b, 1) if a < b else (b, a, -1)
+    n, d = 0, lo
+    while d < hi:
         d += dt.timedelta(days=1)
         if d.weekday() < 5:
-            n -= 1
-    return d
+            n += 1
+    return sign * n
 
 
 def build_schedule():
@@ -382,87 +385,226 @@ def build_schedule():
     ws = wb.active
     ws.title = "0000_ Sample Site - Schedule"
     ws.sheet_properties.outlinePr = Outline(summaryBelow=False)
-    ws.sheet_format.outlineLevelRow = 2
+    ws.sheet_format.outlineLevelRow = 5
 
-    for name, width in SCH_COLUMNS:
-        ws.column_dimensions[ws.cell(1, SCOL[name]).column_letter].width = width
+    for name, width, hidden in SCH_COLUMNS:
+        letter = ws.cell(1, SCOL[name]).column_letter
+        ws.column_dimensions[letter].width = width
+        ws.column_dimensions[letter].hidden = hidden
         ws.cell(1, SCOL[name], name).font = BOLD
 
-    # Pass 1: schedule the leaf tasks back-to-back with a little float.
-    cursor = dt.date(2030, 1, 7)             # a Monday, deliberately far-future/fictional
-    sched = []                               # (level, name, start, end, dur, who)
-    for level, name, dur, who in SCH_PLAN:
-        if dur is None:
-            sched.append([level, name, None, None, None, who])
+    # ---- shape the tree ------------------------------------------------------
+    n = len(SCH_LEVELS)
+    rows = []                                        # one dict per row under the heading
+    for i, tok in enumerate(SCH_LEVELS):
+        if tok == "B":
+            rows.append({"blank": True, "level": 0, "row": i + 2})
             continue
-        start = cursor
-        end = _add_workdays(start, dur)
-        sched.append([level, name, start, end, dur, who])
-        cursor = _add_workdays(end, 2) if rng.random() < 0.7 else end + dt.timedelta(days=1)
-        while cursor.weekday() >= 5:
-            cursor += dt.timedelta(days=1)
+        level = int(tok)
+        nxt = SCH_LEVELS[i + 1] if i + 1 < n else "B"
+        summary = nxt != "B" and int(nxt) > level
+        rows.append({"blank": False, "level": level, "summary": summary,
+                     "row": i + 2})
 
-    # Pass 2: summary rows take min(start)/max(end) of their descendants.
-    for i, rec in enumerate(sched):
-        if rec[2] is not None:
+    # ---- names ---------------------------------------------------------------
+    area_i = grp_i = sub_i = 0
+    item_pool = SCH_ITEMS[:]
+    rng.shuffle(item_pool)
+    current_item = rng.choice(SCH_ITEMS)
+    for r in rows:
+        if r["blank"]:
+            continue
+        lv = r["level"]
+        if r["summary"]:
+            if lv == 0:
+                r["name"] = SCH_AREAS[area_i % len(SCH_AREAS)]
+                area_i += 1
+            elif lv == 1:
+                r["name"] = SCH_GROUPS[grp_i % len(SCH_GROUPS)]
+                grp_i += 1
+            elif lv == 2:
+                r["name"] = SCH_SUBGROUPS[sub_i % len(SCH_SUBGROUPS)]
+                sub_i += 1
+            else:
+                current_item = item_pool[0]
+                item_pool.append(item_pool.pop(0))
+                r["name"] = current_item
+        else:
+            if lv >= 4:
+                r["name"] = f"{rng.choice(SCH_VERBS)} {current_item.lower()}"
+            else:
+                r["name"] = f"{rng.choice(SCH_VERBS)} {rng.choice(SCH_ITEMS).lower()}"
+
+    # ---- dates: leaves first (working days only), then roll summaries up ------
+    project_start = dt.date(2030, 1, 7)                # a Monday; far-future, obviously fictional
+    cursor = project_start
+    leaves = [r for r in rows if not r["blank"] and not r["summary"]]
+    for r in rows:
+        if r["blank"]:
+            continue
+        if r["summary"]:
+            # each item group starts somewhere inside the project window, so groups
+            # overlap like a real schedule instead of running end to end
+            if r["level"] >= 2:
+                cursor = _add_workdays(project_start, rng.randint(1, 200))
+            continue
+        unit = rng.choices(["d", "w"], weights=[85, 15])[0]
+        count = rng.randint(1, 6) if unit == "d" else rng.randint(1, 3)
+        working = count if unit == "d" else count * 5
+        r["duration_text"] = f"{count}{unit}"
+        r["start"] = _workday(cursor)
+        r["end"] = _add_workdays(r["start"], working)
+        cursor = _add_workdays(r["end"], rng.choice([1, 1, 2]))
+        if rng.random() < 0.3:                          # overlap with the next task
+            cursor = _add_workdays(r["start"], max(1, working // 2))
+    for i, r in enumerate(rows):
+        if r["blank"] or not r["summary"]:
             continue
         kids = []
-        for later in sched[i + 1:]:
-            if later[0] <= rec[0]:
+        for later in rows[i + 1:]:
+            if later["blank"] or later["level"] <= r["level"]:
                 break
-            if later[2] is not None:
+            if not later["summary"]:
                 kids.append(later)
-        rec[2] = min(k[2] for k in kids)
-        rec[3] = max(k[3] for k in kids)
-        rec[4] = _workdays_between(rec[2], rec[3])
+        r["start"] = min(k["start"] for k in kids)
+        r["end"] = max(k["end"] for k in kids)
+        total = _workdays_between(r["start"], r["end"]) + 1
+        r["duration_text"] = total if rng.random() < 0.5 else f"{total}d"   # a mix, as in the real file
+    for r in rows:
+        if r["blank"]:
+            continue
+        # Baseline = the plan as first agreed. Variance = finish - baseline finish,
+        # so a baseline that sits later than today's dates gives a NEGATIVE
+        # variance - which is what most rows look like in the real export.
+        off_s = rng.choice([0, 0, 2, 5, 8, 12, 15, 20])
+        off_f = rng.choice([0, 3, 5, 8, 10, 12, 15, 20])
+        if rng.random() < 0.1:
+            off_f = -off_f
+        r["b_start"] = _add_workdays(r["start"], 1 + off_s)
+        r["b_finish"] = _add_workdays(r["end"], 1 + off_f)
+        slip = _workdays_between(r["b_finish"], r["end"])
+        r["variance"] = f"{slip}d"
 
-    today = dt.date(2030, 2, 18)             # fictional "as of" date for status
-    for r, (level, name, start, end, dur, who) in enumerate(sched, start=2):
-        ws.row_dimensions[r].outlineLevel = level
-        is_summary = level <= 1
-        if end < today:
-            pct, status = 1.0, "Complete"
-        elif start > today:
-            pct, status = 0.0, "Not Started"
+    # ---- status: the earliest 14 leaves are done, two more are underway --------
+    as_of = None
+    for k, r in enumerate(leaves):
+        if k < 14:
+            r["status"], r["pct"] = "Complete", 1.0
+            as_of = r["end"]
+        elif k < 16:
+            r["status"], r["pct"] = "In Progress", rng.choice([0.12, 0.21, 0.5])
         else:
-            span = max((end - start).days, 1)
-            pct, status = round((today - start).days / span, 2), "In Progress"
-        if name in ("Submittal review", "Boiler delivery to site"):
-            status = "At Risk"
-        fill = (PARENT_TOP if level == 0 else PARENT_SUB) if is_summary else None
-        row_vals = {
-            "Tasks": name,
-            "Duration": f"{dur}d",
-            "Start Date": start, "End Date": end,
-            "Predecessors": "" if is_summary or r == 4 else str(r - 1),
-            "% Complete": pct, "Status": status,
-            "Assigned To": who, "Comments": SCH_COMMENTS.get(name),
+            r["status"], r["pct"] = "Not Started", 0.0
+    as_of = as_of + dt.timedelta(days=1)
+    for i, r in enumerate(rows):
+        if r["blank"] or not r["summary"]:
+            continue
+        kids = []
+        for later in rows[i + 1:]:
+            if later["blank"] or later["level"] <= r["level"]:
+                break
+            if not later["summary"]:
+                kids.append(later)
+        pct = round(sum(k["pct"] for k in kids) / len(kids), 2)
+        r["pct"] = pct
+        r["status"] = "Complete" if pct == 1.0 else ("Not Started" if pct == 0.0 else "In Progress")
+
+    # ---- who / what / dependencies -------------------------------------------
+    leaf_rows = [r["row"] for r in leaves]
+    mfr_pool = rng.sample(MANUFACTURERS, 11)
+    owner_of_parent = {}
+    cur_mfr, cur_who = rng.choice(mfr_pool), rng.choice(PEOPLE)
+    for i, r in enumerate(rows):
+        if r["blank"]:
+            continue
+        if r["summary"] and r["level"] >= 3:
+            cur_mfr, cur_who = rng.choice(mfr_pool), rng.choice(PEOPLE)
+        r["mfr"] = cur_mfr if (not r["summary"] and r["level"] >= 3) or (
+            r["summary"] and rng.random() < 0.45) else None
+        r["who"] = cur_who if (not r["summary"] and r["level"] >= 3) or (
+            r["summary"] and rng.random() < 0.5) else (
+            rng.choice(PEOPLE) if rng.random() < 0.6 else None)
+        r["ready"] = (r["start"] - as_of).days if rng.random() < 0.97 else None
+        pred = None
+        if not r["summary"] and rng.random() < 0.75:
+            earlier = [x for x in leaf_rows if x < r["row"]]
+            if earlier:
+                prev = earlier[-1]
+                roll = rng.random()
+                pred = (prev if roll < 0.78 else
+                        f"{prev}FS +{rng.randint(1, 5)}d" if roll < 0.9 else
+                        f"{prev}FF" if roll < 0.95 else
+                        f"{earlier[-2] if len(earlier) > 1 else prev}, {prev}")
+        r["pred"] = pred
+
+    # a few completed rows carry a completion date (one is odd text)
+    done = [r for r in leaves if r["status"] == "Complete"]
+    for r in done[:12]:
+        r["completion"] = r["end"]
+    if len(done) > 12:
+        done[12]["completion"] = SCH_FAKE_TEXT_DURATION
+
+    # ---- write ---------------------------------------------------------------
+    gray_used = 0
+    red_used = False
+    for r in rows:
+        rn = r["row"]
+        ws.row_dimensions[rn].outlineLevel = r["level"]
+        fill, bold = None, False
+        if not r["blank"]:
+            lv = r["level"]
+            if r["summary"]:
+                bold = lv != 1 or rng.random() < 0.5
+                if lv == 0:
+                    fill = PARENT_TOP
+                elif lv == 1:
+                    if not red_used and r["status"] == "Not Started" and rng.random() < 0.25:
+                        fill, red_used = RED_FLAG, True
+                    elif rng.random() < 0.55:
+                        fill = PARENT_SUB
+                elif lv == 2:
+                    fill = GRAY
+                elif lv == 3:
+                    bold = True
+            elif lv == 3 and gray_used < 2 and rng.random() < 0.1:
+                fill, gray_used = GRAY, gray_used + 1
+        values = {} if r["blank"] else {
+            "Status": r["status"], "% Complete": r["pct"],
+            "Tasks": r["name"], "Duration": r["duration_text"],
+            "Start Date": r["start"], "End Date": r["end"],
+            "Completion Date": r.get("completion"), "Predecessors": r["pred"],
+            "MANUFACTURER": r["mfr"], "Assigned To": r["who"],
+            "Baseline Start": r["b_start"], "Baseline Finish": r["b_finish"],
+            "Variance": r["variance"], "Ready to Start": r["ready"],
         }
-        for cname, _ in SCH_COLUMNS:
-            v = row_vals[cname]
-            c = ws.cell(r, SCOL[cname], None if v in ("", None) else v)  # keep a real 0
-            if cname in ("Start Date", "End Date"):
-                c.number_format = "mm/dd/yy"
+        for cname, _, _ in SCH_COLUMNS:
+            v = values.get(cname)
+            c = ws.cell(rn, SCOL[cname], None if v in ("", None) else v)
+            if cname in ("Start Date", "End Date", "Completion Date",
+                         "Baseline Start", "Baseline Finish"):
+                c.number_format = "MM/dd/yy"
                 c.alignment = CENTER
             elif cname == "% Complete":
-                c.number_format = "0%"
+                c.number_format = "#,##0%;-#,##0%"
+                c.alignment = Alignment(horizontal="right")
+            elif cname == "Variance":
+                c.alignment = Alignment(horizontal="right")
+            elif cname == "Tasks":
+                c.alignment = Alignment(horizontal="left", indent=r["level"])
+            elif cname in ("Status", "Duration", "MANUFACTURER"):
                 c.alignment = CENTER
-            elif cname in ("Tasks", "Comments"):
-                c.alignment = LEFT_WRAP if cname == "Comments" else Alignment(
-                    horizontal="left", indent=level)
-            else:
-                c.alignment = CENTER
-            c.font = BOLD if is_summary else PLAIN
+            c.font = BOLD if (bold or (cname == "Completion Date" and v is not None)) else PLAIN
             if fill is not None:
                 c.fill = fill
 
     wb.save(OUT_DIR / "Schedule_Sample.xlsx")
-    return len(sched)
+    return len(rows)
 
 
 if __name__ == "__main__":
     last_row = build_eq_list()
-    n_tasks = build_schedule()
+    n_rows = build_schedule()
     print(f"EQ_List_Sample.xlsx   : {last_row} rows (incl. heading), "
           f"{len(EQ_COLUMNS)} columns")
-    print(f"Schedule_Sample.xlsx  : {n_tasks} task rows, {len(SCH_COLUMNS)} columns")
+    print(f"Schedule_Sample.xlsx  : {n_rows + 1} rows (incl. heading), "
+          f"{len(SCH_COLUMNS)} columns")
