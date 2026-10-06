@@ -11,6 +11,26 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Added
+
+- **The project is now open source under the [MIT License](LICENSE).** Also new:
+  `SECURITY.md` (private vulnerability reporting), `CODE_OF_CONDUCT.md`
+  (Contributor Covenant 2.1), a rewritten README and `assets/README.md`. The TPD
+  name and logo artwork are explicitly **excluded** from the license.
+
+### Changed
+
+- **Internal: `ExportAllVBAModules` no longer has a hardcoded local path.** It
+  finds the clone's `/src` by walking up from the workbook's folder to the repo
+  root, and falls back to a folder picker. `src/export_log.txt` is no longer
+  tracked (now in `.gitignore`).
+- **Internal: `modGdiPlus` header comment now describes where the technique
+  comes from** (the standard GDI+ → `IPicture` idiom, credit to Stephen
+  Bullen's `PastePicture` for the `OleCreatePictureIndirect` half) instead of
+  the vague "Bullen/Pearson-style". Comment-only; no code change.
+- The user guide has a **License** section, and its bug-report advice now
+  warns that issues are public, so attached workbooks must not be confidential.
+
 ### Fixed
 
 - **Wrapped/multi-line cell text in generated output could be clipped at the
