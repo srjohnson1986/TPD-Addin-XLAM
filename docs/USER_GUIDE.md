@@ -91,6 +91,12 @@ Windows user profile — so they carry across an update untouched.
 
 ### What's new
 
+**v2.4.4** — the project is now open source (see [License](#license)). The one
+thing you might notice in day-to-day use: when a generated sheet has cells with
+wrapped, multi-line text, the rows now grow to show all of it instead of clipping
+at the default row height. This applies to **EQ List**, **Schedule** and **Split
+Sheets**, picker and one-click. Nothing else about how the tools work has changed.
+
 **v2.4.3** — a housekeeping release. Nothing about how the tools work has changed.
 The one thing you might notice: when a one-click button finds none of your default
 columns on the sheet, the message it shows now points at the right place on the

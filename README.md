@@ -7,7 +7,7 @@ Windows desktop Excel only. Works on locally saved workbooks.
 ## Download
 
 <!-- download-link: version managed by tools/sync-readme-version.sh -->
-**[Download `TPD_Addin.xlam` — v2.4.3](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases/download/v2.4.3/TPD_Addin.xlam)**
+**[Download `TPD_Addin.xlam` — v2.4.4](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases/download/v2.4.4/TPD_Addin.xlam)**
 
 Older builds are on the **[Releases page](https://github.com/srjohnson1986/TPD-Addin-XLAM/releases)**. Install the `.xlam` per the guide below.
 
