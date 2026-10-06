@@ -24,8 +24,8 @@ Everyone taking part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT
 /assets     Source brand/logo images (TPD's - not under the MIT license)
 /build      Local build output - gitignored, never committed
 /docs       Developer documentation (this file, ARCHITECTURE.md, etc.)
-/tests      Rubberduck unit tests (tests/unit). Synthetic EQ List / Schedule
-            fixture workbooks are planned - see issue #164
+/tests      Rubberduck unit tests (tests/unit) + synthetic EQ List / Schedule
+            fixture workbooks (tests/fixtures) - see tests/README.md
 /tools      Build / drift-check / static-check scripts + the TPD_Builder.xlsm driver
 ```
 
@@ -88,7 +88,7 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 1. Keep a known-good **base** file at `build/_base/TPD_Addin_base.xlam` (gitignored — supplies the worksheets, ribbon, `_Resources` sheet + embedded logo, and styles that live outside `/src`). It must be **stripped of standard code modules and UserForms** — the builder replaces standard modules cleanly but chokes trying to re-import a form that already exists, so a full add-in `.xlam` is *not* a valid base. In practice the base almost never changes; update it only when the non-`/src` content does (see "Cutting a release").
 2. Run the `BuildAddin` macro in **`tools/TPD_Builder.xlsm`** (a separate driver workbook, not the add-in itself). It copies the base file, imports every module from `/src`, and writes `build/TPD_Addin.xlam`, logging to `build/build.log`. A healthy build reports every `/src` component "imported/injected, 0 skipped".
    - Headless: `powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1` drives that macro via COM (paths default to this repo). Requires Trust Center → Macro Settings → "Trust access to the VBA project object model". A clean run means *a build exists*, not that it's good.
-3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise the ribbon flows against a sample workbook of your own (made-up data only — shared fixtures are tracked in [#164](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/164)).
+3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise the ribbon flows against the synthetic fixtures in `/tests/fixtures` — the manual smoke test and what to expect are in [tests/README.md](tests/README.md). Never use real customer workbooks in anything you commit.
 4. `powershell -ExecutionPolicy Bypass -File tools\Test-SourceDrift.ps1` — confirms `/src` is exactly what got built into `build/TPD_Addin.xlam` (catches a VBE-only edit, or a control placed in a form, that never made it back into `/src`). Needs COM/Office like the build itself, so it's a local check, not part of CI. See "Automated checks" below.
 5. If it checks out, this is your release candidate.
 
