@@ -18,6 +18,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   (Contributor Covenant 2.1), a rewritten README and `assets/README.md`. The TPD
   name and logo artwork are explicitly **excluded** from the license.
 
+- **Synthetic test fixtures** ([#164](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/164)):
+  `tests/fixtures/EQ_List_Sample.xlsx` and `Schedule_Sample.xlsx`, generated from
+  scratch by `tests/fixtures/generate_fixtures.py` (all data fabricated, seeded,
+  no customer data or metadata), plus `tests/README.md` with the manual smoke
+  test and expected results. They include the awkward inputs the add-in handles:
+  PARENT/item hierarchies with row grouping, wrapped multi-line text, and
+  `Vendor` values that exercise split-sheet naming and collisions.
+
 ### Changed
 
 - **Internal: `ExportAllVBAModules` no longer has a hardcoded local path.** It
