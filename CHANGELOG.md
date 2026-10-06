@@ -11,8 +11,20 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+## [2.4.4] - 2026-10-06
+
+The project is now **open source** under the MIT License, with a fix for
+clipped wrapped text in generated sheets. Apart from that fix, nothing about how
+the add-in's tools behave has changed: the rest of this release is internal
+(refactors with unit tests, CI checks, test fixtures and project documents).
+
 ### Added
 
+- **GitHub Actions static checks** (`.github/workflows/static-checks.yml`,
+  `tools/Test-StaticChecks.ps1`) run on every push and pull request to `main`:
+  every ribbon `onAction` callback must exist as a `Sub`/`Function`, every module
+  with code must declare `Option Explicit`, and every module must carry a
+  well-formed `@Folder` tag.
 - **The project is now open source under the [MIT License](LICENSE).** Also new:
   `SECURITY.md` (private vulnerability reporting), `CODE_OF_CONDUCT.md`
   (Contributor Covenant 2.1), a rewritten README and `assets/README.md`. The TPD
@@ -28,6 +40,12 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ### Changed
 
+- **Internal: pure-logic functions split out of the sheet- and registry-facing
+  helpers, with Rubberduck unit tests** ([#163](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163)).
+  The column-list, preference, column-reorder and EQ Count numbering logic in
+  `modHelpers_Columns`, `modPreferences` and `modMain_CountEquipmentRows` now
+  has pure counterparts that can be tested without a workbook or the registry
+  (`tests/unit`). Behaviour is unchanged.
 - **Internal: `ExportAllVBAModules` no longer has a hardcoded local path.** It
   finds the clone's `/src` by walking up from the workbook's folder to the repo
   root, and falls back to a folder picker. `src/export_log.txt` is no longer
