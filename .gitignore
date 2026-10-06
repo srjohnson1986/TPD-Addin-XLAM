@@ -36,3 +36,7 @@ desktop.ini
 # the scheduler lock are not.
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
+
+# ExportAllVBAModules writes this next to /src on every run; it holds
+# machine-specific paths and a timestamp, so it is a local artifact only.
+src/export_log.txt

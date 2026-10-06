@@ -5,7 +5,10 @@ Attribute VB_Name = "modExport_VBAModules"
 ' ExportAllVBAModules - exports every VBA component to /src.
 '
 '   - Includes document modules (ThisWorkbook, Sheet1-3)
-'   - Destination is a constant you set once (DEST_ROOT)
+'   - Destination is found automatically: it walks up from the folder
+'     this workbook is saved in until it reaches a repo root (a folder
+'     holding both /src and /customUI), and falls back to a folder
+'     picker if it can't (e.g. the add-in is installed elsewhere)
 '   - One failing component logs an error and keeps going,
 '     instead of aborting the whole export
 '   - Groups output into subfolders read from each module's
@@ -21,15 +24,14 @@ Option Explicit
 
 Public Sub ExportAllVBAModules()
 
-    ' Point this at your local clone's /src folder.
-    Const DEST_ROOT As String = "C:\Users\srjoh\OneDrive\Documents\GitHub\TPD-Addin-XLAM\src\"
-
     Dim fso As Object
     Set fso = CreateObject("Scripting.FileSystemObject")
 
-    If Not fso.FolderExists(DEST_ROOT) Then
-        MsgBox "Destination folder does not exist:" & vbNewLine & DEST_ROOT & vbNewLine & _
-               "Update DEST_ROOT in this macro to point at your cloned repo's /src folder, then try again.", _
+    Dim srcRoot As String
+    srcRoot = ResolveSrcRoot(fso)
+
+    If Len(srcRoot) = 0 Then
+        MsgBox "No destination folder was chosen, so nothing was exported.", _
                vbExclamation, "Export cancelled"
         Exit Sub
     End If
@@ -43,7 +45,7 @@ Public Sub ExportAllVBAModules()
     Dim result As String
 
     For Each vbComp In vbProj.VBComponents
-        result = ExportOneComponent(vbComp, DEST_ROOT, fso)
+        result = ExportOneComponent(vbComp, srcRoot, fso)
         logLines.Add result
         If Left(result, 2) = "OK" Then
             exportedCount = exportedCount + 1
@@ -52,14 +54,49 @@ Public Sub ExportAllVBAModules()
         End If
     Next vbComp
 
-    WriteExportLog DEST_ROOT, logLines, exportedCount, skippedCount
+    WriteExportLog srcRoot, logLines, exportedCount, skippedCount
 
     MsgBox "Export complete." & vbNewLine & _
            exportedCount & " component(s) exported" & vbNewLine & _
            skippedCount & " skipped/failed" & vbNewLine & vbNewLine & _
-           "See export_log.txt in:" & vbNewLine & DEST_ROOT, vbInformation, "Export finished"
+           "See export_log.txt in:" & vbNewLine & srcRoot, vbInformation, "Export finished"
 
 End Sub
+
+Private Function ResolveSrcRoot(fso As Object) As String
+    ' Finds the clone's /src folder without any hardcoded path.
+    '   1. Walk up from this workbook's folder (a build in <repo>\build\ or
+    '      a dev copy anywhere under the clone) to the first folder that holds
+    '      both "src" and "customUI" - that is the repo root.
+    '   2. Otherwise ask the user to pick the /src folder.
+    ' Returns "" if neither works. The result always ends in a backslash.
+    Const MAX_PARENT_LEVELS As Long = 6
+
+    Dim probe As String
+    Dim level As Long
+
+    probe = ThisWorkbook.Path
+    For level = 1 To MAX_PARENT_LEVELS
+        If Len(probe) = 0 Then Exit For
+        If fso.FolderExists(fso.BuildPath(probe, "src")) And _
+           fso.FolderExists(fso.BuildPath(probe, "customUI")) Then
+            ResolveSrcRoot = fso.BuildPath(probe, "src") & "\"
+            Exit Function
+        End If
+        probe = fso.GetParentFolderName(probe)
+    Next level
+
+    Dim picked As String
+    With Application.FileDialog(4)          ' msoFileDialogFolderPicker
+        .Title = "Select the src folder of your TPD-Addin-XLAM clone"
+        .AllowMultiSelect = False
+        If .Show <> -1 Then Exit Function   ' cancelled
+        picked = .SelectedItems(1)
+    End With
+
+    If Right$(picked, 1) <> "\" Then picked = picked & "\"
+    If fso.FolderExists(picked) Then ResolveSrcRoot = picked
+End Function
 
 Private Function ExportOneComponent(vbComp As Object, destRoot As String, fso As Object) As String
     On Error GoTo Failed
