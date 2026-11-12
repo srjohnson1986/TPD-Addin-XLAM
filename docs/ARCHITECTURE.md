@@ -60,9 +60,8 @@ Use these names in new code. Don't reintroduce `header` / `headerRow` for column
 - Sheet Tools: `RunCreateCustEQList`, `RunCreateCustSchedule`, `SplitSheetByColumn`, `RunExportSheetsToXLSX`.
 - One-click: `RunQuickEqList`, `RunQuickSchedule`, `RunQuickSplitSheets`.
 - `RunCountEquipmentRows` is here too, although no button calls it ([#120]).
-- The Split button's callback is `SplitSheetByColumn`, without the `Run` prefix its neighbours have. The ribbon
-  XML ships inside the base `.xlam`, so renaming it means re-stamping the base file, not just editing
-  `customUI/customUI14.xml`.
+- The Split button's callback is `SplitSheetByColumn`, without the `Run` prefix its neighbours have. The name
+  in `customUI/customUI14.xml` and the Sub's name must match; the static checks fail if they do not.
 - Owns the global `gRibbon` reference and `RibbonOnLoad`, which triggers add-in initialization.
 
 ## TPD_Addin.EQList

@@ -20,7 +20,7 @@ Everyone taking part is expected to follow the [Code of Conduct](CODE_OF_CONDUCT
 ```
 /src        VBA source - the source of truth (.bas / .cls / .frm / .frx);
             every UserForm lives in /src/Forms
-/customUI   customUI14.xml (ribbon definition) + ribbon icons
+/customUI   customUI14.xml (ribbon definition; built-in icons only, no image files)
 /assets     Source brand/logo images (TPD's - not under the MIT license)
 /build      Local build output - gitignored, never committed
 /docs       Developer documentation (this file, ARCHITECTURE.md, etc.)
@@ -105,7 +105,8 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 **All of the automated part in one command:** `powershell -ExecutionPolicy Bypass -File tools\Test-All.ps1` runs the static checks, steps 2, 4 and 5 above, and two checks of its own, in order, stopping at the first failure:
 
 - nothing has the built add-in or the builder workbook open (the build can't overwrite a loaded add-in, so close Excel or unload the add-in first);
-- the ribbon XML inside the base `.xlam`, and inside the build, is the same as `customUI/customUI14.xml` — an edit to the repo's XML that was never stamped into the base file fails here instead of shipping the old ribbon.
+- the text in `tools/builder-src` is what is inside `tools/TPD_Builder.xlsm`, so the build macro that runs is the one that was reviewed;
+- the ribbon XML inside the build is the same as `customUI/customUI14.xml`.
 
 It ends with a short summary block to paste into the PR. Each step that drives Excel runs under a time limit; if one hangs, the script prints the text of the dialog Excel is showing, ends the Excel that step started (and no other), and stops. `-NoExcel` runs only the steps that need no Excel, for when Excel is busy — a partial result, and it says so.
 
@@ -125,6 +126,7 @@ It does not replace step 3, **Debug → Compile VBAProject**, or a Test Explorer
 8. **WithPerformance wiring** — every `PERF_*` constant has a `Case` that calls the `Sub` its value names, that `Sub` exists, and some caller passes the constant.
 9. **Constants declared** — every `UPPER_SNAKE` identifier used in code is declared in that module or `Public` in a standard module, so a mistyped `PREF_*` / `PERF_*` is caught without a compile.
 10. **Version sync** — `ADDIN_VERSION`, the README's pinned download link and the newest `CHANGELOG.md` release heading all name the same version. A release PR has to change all three together.
+11. **Scripts parse** — every `tools/*.ps1` parses. A script with a syntax error otherwise fails only when it is run, which for the Excel tools is rarely.
 
 Run it yourself any time with `powershell -ExecutionPolicy Bypass -File tools\Test-StaticChecks.ps1` — same script, same output, locally or in Actions.
 
@@ -141,7 +143,7 @@ It deliberately does **not** check that `/src` matches a built `.xlam`, and it d
 3. Once that PR has merged, on an up-to-date `main` run `powershell -ExecutionPolicy Bypass -File tools\New-Release.ps1`. It checks the repo is ready, runs `tools\Test-All.ps1`, and creates a **draft** GitHub release `vX.Y.Z` with `build\TPD_Addin.xlam` attached and the CHANGELOG section (plus an install footer with the file's SHA-256) as its notes. Run it with `-DryRun` first to see every problem and exactly what it would create, without creating anything.
    - A draft has no tag and is not public. **Publishing it on GitHub is your step**: read the draft, do the manual checks (Debug → Compile VBAProject, the fixtures smoke test), then click Publish. That creates the `vX.Y.Z` tag.
    - The README's pinned link points at `releases/download/vX.Y.Z/TPD_Addin.xlam`, so the tag name and asset name must match exactly. The script always uses those.
-4. Refresh the base **only if this release changed something outside `/src`** (ribbon XML, worksheets, styles, the `_Resources` logo shape). To do it, take a copy of the release `.xlam`, delete every standard module and UserForm from its VBA project (leaving the document modules), and save that as `build/_base/TPD_Addin_base.xlam`. If the release was `/src`-only, the existing base is still current — leave it.
+4. Refresh the base **only if this release changed a worksheet, a style or the `_Resources` logo shape** — the things that live in neither `/src` nor `customUI/`. A ribbon change does not need it: the build writes `customUI/customUI14.xml` into every build. To refresh it, run `powershell -ExecutionPolicy Bypass -File tools\New-BaseFile.ps1 -From <the release .xlam> -Force`. It strips a copy of that file down to a base (no modules or forms, document modules emptied), checks the logo shape and the ribbon part are still there, and backs up the old base beside it before replacing it. If the release changed none of those things, the existing base is still current — leave it.
 5. **Update the user guide; the wiki follows by itself.** Bring [docs/USER_GUIDE.md](docs/USER_GUIDE.md) in line with anything user-visible in this release (ribbon, dialogs, behaviour), in the release PR. When you publish the release, `.github/workflows/wiki-sync.yml` regenerates the wiki's `Home.md` from the guide as it is at that release's tag, and pushes it. It runs on publish, not on every merge, so the wiki always describes the version people can download.
    - `Home.md` is built by `tools/Sync-WikiHome.ps1` as: the guide's `# TPD Add-in — User Guide` title, then the **"Do not edit this page in the wiki editor"** notice copied from the current `Home.md`, then the rest of the guide as written. If the current page has no such notice the script stops and writes nothing.
    - To fix a typo in the guide between releases, merge the fix and run the workflow by hand (**Actions → Sync wiki from user guide → Run workflow**); that syncs from `main`.
@@ -152,6 +154,8 @@ It deliberately does **not** check that `/src` matches a built `.xlam`, and it d
 ## Known constraints to keep in mind
 
 - **Document modules** (`ThisWorkbook`, `Sheet1`, `Sheet2`, `Sheet3`) can't be removed and re-imported like standard modules — the build macro clears and re-pastes their code text instead of doing a normal `VBComponents.Import`.
-- **`customUI14.xml`** (the ribbon) and any static worksheet data (e.g. the embedded default logo shape on `_Resources`) live outside `/src` entirely. They're edited directly in the base file, or with the [Custom UI Editor for Microsoft Office](https://github.com/OfficeDev/office-custom-ui-editor) for ribbon XML specifically.
+- **`customUI14.xml`** (the ribbon) lives outside `/src`, in `customUI/`. Edit it there: `tools\Build-TPDAddin.ps1` writes it into every build after the macro has run, replacing the copy that came from the base file. It only replaces the XML, so it works because the ribbon uses Excel's built-in icons; a ribbon with its own image files would need more. Running `BuildAddin` straight from the VBE skips this step.
+- **Static worksheet data** (e.g. the embedded default logo shape on `_Resources`) also lives outside `/src`, and only in the base file. See "Cutting a release", step 4.
+- **The build macro** is in `tools/TPD_Builder.xlsm`, a binary. `tools/builder-src/modBuildAddin.bas` is its readable text. Change one and bring the other along — `tools\Import-BuilderSource.ps1` (text → workbook) or `tools\Export-BuilderSource.ps1` (workbook → text) — and commit both; the gate fails if they differ. The macro is passed the repo folder by the build script, so no path is saved in the workbook.
 - **Global preferences are shared, not per-workbook** — "set once, applies everywhere" is intentional, not a bug.
 - **Re-running a command stacks its output** (e.g. running "Create Customer EQ List" twice adds a second sheet) — also intentional.
