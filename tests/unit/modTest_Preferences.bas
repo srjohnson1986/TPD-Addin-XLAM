@@ -130,13 +130,13 @@ TestFail:
 End Sub
 
 '@TestMethod("EqListToggleTable")
-Public Sub EqListToggleKeys_RemoveBlankRowsListedFirst()
+Public Sub EqListToggleKeys_RemoveBlankRowsListedLast()
     On Error GoTo TestFail
 
     Dim keys As Variant
     keys = modPreferences_Defaults.EqListToggleKeys()
 
-    Assert.AreEqual PREF_EQLIST_REMOVE_BLANK_ROWS, keys(LBound(keys))
+    Assert.AreEqual PREF_EQLIST_REMOVE_BLANK_ROWS, keys(UBound(keys))
     Assert.AreEqual 6&, CLng(UBound(keys) - LBound(keys) + 1)
 
 TestExit:

@@ -182,12 +182,12 @@ you generate — the picker *and* the one-click button:
 
 | Checkbox | Effect | Default |
 |---|---|---|
-| **Remove blank rows** | Drops every completely empty row from the list. | **on** |
 | **Remove PARENT rows** | Drops every row marked `PARENT` in the Purchased column. | off |
 | **Add EQ Count column** | Adds the numbered **EQ COUNT** column as part of the build (same as running EQ Count afterwards). | off |
 | **Plain PARENT rows** | White fill, black un-bold text on PARENT rows, instead of the grey grouping shade. | off |
 | **Add cell borders** | The thin border around the data range. Turn off for a border-free sheet. | **on** |
 | **Add column filters** | Puts Excel's AutoFilter dropdowns on the heading row. | off |
+| **Remove blank rows** (right-hand column) | Drops every completely empty row from the list. | **on** |
 
 The three PARENT/EQ Count options read the **Purchased** column. If the sheet doesn't have one,
 those three are skipped (you get a note) and the rest of the list is still

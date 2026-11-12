@@ -89,12 +89,12 @@ End Function
 ' module, where VBA requires them - see the note there.
 Private Function EqListToggleTable() As Variant
     EqListToggleTable = Array( _
-        PREF_EQLIST_REMOVE_BLANK_ROWS & "|1|Remove blank rows|0", _
         PREF_EQLIST_REMOVE_PARENT_ROWS & "|0|Remove PARENT rows|1", _
         PREF_EQLIST_ADD_COUNT_COLUMN & "|0|Add EQ Count column|1", _
         PREF_EQLIST_PLAIN_PARENT_ROWS & "|0|Plain PARENT rows|1", _
         PREF_EQLIST_ADD_CELL_BORDERS & "|1|Add cell borders|0", _
-        PREF_EQLIST_ADD_COLUMN_FILTERS & "|0|Add column filters|0")
+        PREF_EQLIST_ADD_COLUMN_FILTERS & "|0|Add column filters|0", _
+        PREF_EQLIST_REMOVE_BLANK_ROWS & "|1|Remove blank rows|0")
 End Function
 
 ' Every toggle key, in the order the checkboxes appear on the page - so a
