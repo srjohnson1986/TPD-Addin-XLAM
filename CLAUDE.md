@@ -87,9 +87,9 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 
 Tracked as GitHub Issues — currently open:
 
-- None. The next step is cutting the release (see below) — including re-syncing the wiki `Home.md`, which needs the new **License** section from `docs/USER_GUIDE.md`.
+- None.
 
-Delivered since `v2.4.3`, unreleased: synthetic EQ List / Schedule test fixtures ([#164](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/164), `tests/fixtures`), data-row autosize in the EQ List / Schedule / Split Sheets output ([#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162), `modHelpers_SheetFormatting.AutoFitDataRowHeights`, Excel-confirmed), Rubberduck unit tests for the pure column / preference / EQ Count logic ([#163](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163)), CI static checks, and the open-source licensing pass (MIT; the TPD name and logo are excluded — see `assets/README.md`).
+Shipped in `v2.4.5`: EQ List strips carried-over font emphasis on item rows ([#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169), `StripCarriedRowFormatting`) and drops the fill on ID-less item rows ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170), `IsStructuralRow`), plus the **Remove blank rows** (ships on, [#171](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171)) and **Bold PARENT rows** (ships off, [#174](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/174)) EQ List toggles, both in the right-hand column of `fraEqListOptions`.
 
 The **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** cluster is delivered and shipped in `v2.4.2`: `frmSetTPDDefaults` (EQ List / Schedule / Split Sheets / Logo tabs, Save / Save & Run / Cancel footer), the three picker + one-click flow pairs and their three-layer column defaults (#96 / #98 / #112), the user-settable header logo (#95 / #109), the EQ List behaviour toggles (#97 → #119–#123), the dialog visual refresh across all five forms (#118 / #143 / #99 / #100), the picker Select all / none / Restore defaults row (#149) and the picker grid scrolling (#150).
 
