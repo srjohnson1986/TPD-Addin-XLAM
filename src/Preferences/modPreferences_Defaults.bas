@@ -60,7 +60,8 @@ End Function
 '
 '      key             the PREF_* constant it is stored under
 '      shipsOn         its value on a machine that has never
-'                      saved defaults - all off bar "add cell
+'                      saved defaults - all off bar "remove
+'                      blank rows" (#171) and "add cell
 '                      borders", which keeps the pre-#122 look
 '      displayName     how it is named in a message to the user
 '      needsPurchased  True when the toggle can only run if the
@@ -92,7 +93,8 @@ Private Function EqListToggleTable() As Variant
         PREF_EQLIST_ADD_COUNT_COLUMN & "|0|Add EQ Count column|1", _
         PREF_EQLIST_PLAIN_PARENT_ROWS & "|0|Plain PARENT rows|1", _
         PREF_EQLIST_ADD_CELL_BORDERS & "|1|Add cell borders|0", _
-        PREF_EQLIST_ADD_COLUMN_FILTERS & "|0|Add column filters|0")
+        PREF_EQLIST_ADD_COLUMN_FILTERS & "|0|Add column filters|0", _
+        PREF_EQLIST_REMOVE_BLANK_ROWS & "|1|Remove blank rows|0")
 End Function
 
 ' Every toggle key, in the order the checkboxes appear on the page - so a

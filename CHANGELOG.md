@@ -11,6 +11,13 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Added
+
+- **Remove blank rows** EQ List option on the Set Defaults EQ List tab, **on by
+  default** ([#171](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171)).
+  It drops every completely empty row from the source before the list is built,
+  so blank rows no longer show up in the output or get an EQ COUNT number.
+
 ### Fixed
 
 - **EQ List no longer carries bold, italic, underline, strikethrough or font

@@ -27,7 +27,7 @@ Edit the **generator**, not the `.xlsx`, then regenerate and commit both. (The `
 
 ## EQ List fixture — what's in it
 
-100 data rows under the heading row: **16 PARENT rows**, **70 item rows** and **14 blank rows** at the end. Outline levels 0–4. The shipped default EQ List columns (`INTERNAL ID, Location, TYPE1, TYPE2, SIZE, RATING, CONNECTION TYPE, Description, Manufacturer, Model, Details`) are all present, alongside extras the default list should drop (`Status`, `OWNER`, `Vendor`, `Redbox Row 1–3`, `Filename`, `PO Number` …). `Purchased` has `PARENT` / `NO` / `N/R` / `INCLUDED`, so the three PARENT-row toggles on the Set Defaults EQ List page have something to act on.
+101 data rows under the heading row: **16 PARENT rows**, **70 item rows**, **1 blank row** inside the data (row 85) and **14 blank rows** at the end. Outline levels 0–4. The shipped default EQ List columns (`INTERNAL ID, Location, TYPE1, TYPE2, SIZE, RATING, CONNECTION TYPE, Description, Manufacturer, Model, Details`) are all present, alongside extras the default list should drop (`Status`, `OWNER`, `Vendor`, `Redbox Row 1–3`, `Filename`, `PO Number` …). `Purchased` has `PARENT` / `NO` / `N/R` / `INCLUDED`, so the three PARENT-row toggles on the Set Defaults EQ List page have something to act on.
 
 Deliberately awkward inputs, and where to find them:
 
@@ -41,6 +41,7 @@ Deliberately awkward inputs, and where to find them:
 | `For Approval` item with **no INTERNAL ID or CUSTOMER ID** | row 57 | EQ List output strips its yellow like every other item row: it's an item, not a grouping row ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170)) |
 | Numeric (not text) tag | one `INTERNAL ID` / `Redbox Row 1` cell | EQ Count numbering and header lookup still work |
 | Sparse columns | `PO Number`, `PO Issue Date`, `Ship Date` empty; `Cost`, `Lead Time`, `CUSTOMER ID` mostly empty | Picker still lists them; empty columns don't break formatting |
+| Blank row inside the data | row 85 | With **Remove blank rows** on (the default) it's gone from the EQ List output and gets no EQ COUNT number. With it off, it stays ([#171](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171)) |
 | Blank rows at the end | last 14 rows | Last-row detection (`GetLastRow`) ignores them |
 | Group-column edge cases for **Split** | `Vendor`: see below | Sheet naming and collisions |
 

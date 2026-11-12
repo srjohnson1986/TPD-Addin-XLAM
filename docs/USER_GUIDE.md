@@ -187,8 +187,9 @@ you generate — the picker *and* the one-click button:
 | **Plain PARENT rows** | White fill, black un-bold text on PARENT rows, instead of the grey grouping shade. | off |
 | **Add cell borders** | The thin border around the data range. Turn off for a border-free sheet. | **on** |
 | **Add column filters** | Puts Excel's AutoFilter dropdowns on the heading row. | off |
+| **Remove blank rows** (right-hand column) | Drops every completely empty row from the list. | **on** |
 
-The first three read the **Purchased** column. If the sheet doesn't have one,
+The three PARENT/EQ Count options read the **Purchased** column. If the sheet doesn't have one,
 those three are skipped (you get a note) and the rest of the list is still
 generated. Turning them on does **not** force Purchased into the output — it
 appears only if it's in your column list.
