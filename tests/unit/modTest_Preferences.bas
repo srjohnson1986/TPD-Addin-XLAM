@@ -136,7 +136,9 @@ Public Sub EqListToggleKeys_RemoveBlankRowsListedLast()
     Dim keys As Variant
     keys = modPreferences_Defaults.EqListToggleKeys()
 
-    Assert.AreEqual PREF_EQLIST_REMOVE_BLANK_ROWS, keys(UBound(keys))
+    ' CStr both sides: an element of a String() held in a Variant can't be
+    ' passed straight to the late-bound Assert (run-time error 458).
+    Assert.AreEqual CStr(PREF_EQLIST_REMOVE_BLANK_ROWS), CStr(keys(UBound(keys)))
     Assert.AreEqual 6&, CLng(UBound(keys) - LBound(keys) + 1)
 
 TestExit:
