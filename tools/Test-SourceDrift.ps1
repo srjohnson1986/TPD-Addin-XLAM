@@ -27,6 +27,14 @@ param(
     [string]$XlamPath = (Join-Path (Split-Path $PSScriptRoot -Parent) 'build\TPD_Addin.xlam'),
     [string]$RepoRoot = (Split-Path $PSScriptRoot -Parent),
 
+    # The folder of exported source to compare against. Default: <repo>\src.
+    # tools\Test-All.ps1 also runs this script against the builder workbook:
+    #   -XlamPath tools\TPD_Builder.xlsm -SourceRoot tools\builder-src -MacrosDisabled
+    [string]$SourceRoot,
+
+    # Open the workbook with macros disabled. Exporting needs nothing to run.
+    [switch]$MacrosDisabled,
+
     # Optional: a file to write this run's Excel process id to. tools\Test-All.ps1
     # passes it so that, if the check hangs, it can end this Excel and no other.
     [string]$PidFile
@@ -40,6 +48,10 @@ if (-not (Test-Path $XlamPath)) {
 }
 
 $srcRoot  = Join-Path $RepoRoot 'src'
+if (-not [string]::IsNullOrEmpty($SourceRoot)) { $srcRoot = (Resolve-Path -LiteralPath $SourceRoot).Path }
+$XlamPath = (Resolve-Path -LiteralPath $XlamPath).Path
+$srcLabel = $srcRoot.Substring($RepoRoot.Length).TrimStart('\', '/')
+$builtLabel = Split-Path -Leaf $XlamPath
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TPD_SourceDrift_" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 
@@ -81,6 +93,7 @@ try {
     $excel.Visible = $false
     $excel.DisplayAlerts = $false
     $excel.AutomationSecurity = 1
+    if ($MacrosDisabled) { $excel.AutomationSecurity = 3 }    # msoAutomationSecurityForceDisable
 
     Write-Host "Opening $XlamPath..."
     $wb = $excel.Workbooks.Open($XlamPath, 0, $true)  # read-only
@@ -96,17 +109,17 @@ try {
 
         $match = $srcFiles | Where-Object { $_.BaseName -ieq $vbComp.Name -and $_.Extension -ieq $ext }
         if (-not $match) {
-            $mismatches.Add("In built .xlam but not found in /src: $($vbComp.Name)$ext")
+            $mismatches.Add("In $builtLabel but not found in ${srcLabel}: $($vbComp.Name)$ext")
             continue
         }
         if ($match.Count -gt 1) {
-            $mismatches.Add("Multiple /src files named $($vbComp.Name)$ext - ambiguous: $($match.FullName -join ', ')")
+            $mismatches.Add("Multiple $srcLabel files named $($vbComp.Name)$ext - ambiguous: $($match.FullName -join ', ')")
             continue
         }
 
         if (-not (Compare-NormalizedText -PathA $exportPath -PathB $match.FullName)) {
             $relPath = $match.FullName.Substring($RepoRoot.Length).TrimStart('\', '/')
-            $mismatches.Add("Source drift: $relPath does not match what's built into the .xlam (re-export from the VBE)")
+            $mismatches.Add("Source drift: $relPath does not match what is in $builtLabel")
         }
     }
 }
@@ -136,7 +149,7 @@ finally {
 foreach ($f in $srcFiles) {
     if (-not $builtNames.Contains($f.BaseName)) {
         $relPath = $f.FullName.Substring($RepoRoot.Length).TrimStart('\', '/')
-        $mismatches.Add("In /src but not found in built .xlam: $relPath")
+        $mismatches.Add("In $srcLabel but not found in ${builtLabel}: $relPath")
     }
 }
 
@@ -146,6 +159,6 @@ if ($mismatches.Count -gt 0) {
     $mismatches | ForEach-Object { Write-Host "  FAIL: $_" -ForegroundColor Red }
     exit 1
 } else {
-    Write-Host "No drift - /src matches the built .xlam ($($builtNames.Count) components)." -ForegroundColor Green
+    Write-Host "No drift - $srcLabel matches $builtLabel ($($builtNames.Count) components)." -ForegroundColor Green
     exit 0
 }

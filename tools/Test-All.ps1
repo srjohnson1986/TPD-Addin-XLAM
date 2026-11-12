@@ -10,16 +10,19 @@
       2. Static checks             tools\Test-StaticChecks.ps1
       3. Excel is free             nothing has build\TPD_Addin.xlam or the
                                    builder workbook open
-      4. Ribbon XML in base file   customUI14.xml inside the base .xlam is
-                                   the same as customUI\customUI14.xml
-      5. Build                     tools\Build-TPDAddin.ps1
+      4. Builder source            the text in tools\builder-src is what is
+                                   in tools\TPD_Builder.xlsm, so the build
+                                   macro that runs is the one that was reviewed
+      5. Build                     tools\Build-TPDAddin.ps1 (which also writes
+                                   customUI\customUI14.xml into the build)
       6. Build is complete         build.log: every /src module imported,
                                    0 skipped
-      7. Ribbon XML in the build   same comparison, against the built .xlam
+      7. Ribbon XML in the build   customUI14.xml inside the built .xlam is
+                                   the same as customUI\customUI14.xml
       8. Source drift              tools\Test-SourceDrift.ps1
       9. Unit tests                tools\Test-Unit.ps1
 
-    Steps 1-4 need no Excel. Steps 5, 8 and 9 each start a hidden Excel.
+    Steps 1 and 2 need no Excel. Steps 4, 5, 8 and 9 each start a hidden Excel.
 
     Each script runs in its own child process under a time limit. If a step
     that drives Excel runs out of time, this script prints the text of any
@@ -48,7 +51,7 @@
 param(
     [int]$StepTimeoutSeconds = 240,
 
-    # Run only the steps that need no Excel (1, 2 and 4) - for when Excel is
+    # Run only the steps that need no Excel (1 and 2) - for when Excel is
     # busy. Not a substitute for the full run.
     [switch]$NoExcel
 )
@@ -59,7 +62,8 @@ $toolsDir  = $PSScriptRoot
 $repoRoot  = Split-Path -Parent $toolsDir
 $buildDir  = Join-Path $repoRoot 'build'
 $xlamPath  = Join-Path $buildDir 'TPD_Addin.xlam'
-$basePath  = Join-Path (Join-Path $buildDir '_base') 'TPD_Addin_base.xlam'
+$builderPath = Join-Path $toolsDir 'TPD_Builder.xlsm'
+$builderSrc  = Join-Path $toolsDir 'builder-src'
 $buildLog  = Join-Path $buildDir 'build.log'
 $ribbonXml = Join-Path (Join-Path $repoRoot 'customUI') 'customUI14.xml'
 $hostExe   = (Get-Process -Id $PID).Path
@@ -221,7 +225,8 @@ $steps = @(
     @{ Name = 'Static checks self-test'; Run = { Invoke-ScriptStep -Script 'Test-StaticChecks.ps1' -ScriptArgs @('-SelfTest') -TimeoutSeconds $StepTimeoutSeconds } }
     @{ Name = 'Static checks';           Run = { Invoke-ScriptStep -Script 'Test-StaticChecks.ps1' -TimeoutSeconds $StepTimeoutSeconds } }
     @{ Name = 'Excel is free';           Excel = $true; Run = { Test-ExcelIsFree } }
-    @{ Name = 'Ribbon XML in base file'; Run = { Test-RibbonXml -Path $basePath -What 'the base file' } }
+    @{ Name = 'Builder source';          Excel = $true; Run = { Invoke-ScriptStep -Script 'Test-SourceDrift.ps1' -UsesExcel -TimeoutSeconds $StepTimeoutSeconds `
+                                                                 -ScriptArgs @('-XlamPath', "`"$builderPath`"", '-SourceRoot', "`"$builderSrc`"", '-MacrosDisabled') } }
     @{ Name = 'Build';                   Excel = $true; Run = { Invoke-ScriptStep -Script 'Build-TPDAddin.ps1' -UsesExcel -TimeoutSeconds $StepTimeoutSeconds -OkDetail 'BuildAddin ran to the end' } }
     @{ Name = 'Build is complete';       Excel = $true; Run = { Test-BuildLog } }
     @{ Name = 'Ribbon XML in the build'; Excel = $true; Run = { Test-RibbonXml -Path $xlamPath -What 'the built add-in' } }

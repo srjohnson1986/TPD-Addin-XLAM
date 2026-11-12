@@ -5,7 +5,7 @@
     or pwsh, any OS) and in GitHub Actions on a normal hosted runner.
 
 .DESCRIPTION
-    Ten checks against /src, /tests/unit, customUI/customUI14.xml, README.md and
+    Eleven checks against /src, /tests/unit, /tools, customUI/customUI14.xml, README.md and
     CHANGELOG.md. Each failure carries a short id (in brackets below), which is
     what -SelfTest asserts on.
 
@@ -44,6 +44,9 @@
       10. Version sync       [version-sync]     ADDIN_VERSION, the README's
                              pinned download link and the newest CHANGELOG
                              heading all name the same version.
+      11. Scripts parse      [ps-syntax]        every tools/*.ps1 parses. A script
+                             with a syntax error fails only when it is
+                             run, which for the Excel tools is rarely.
 
     These are text heuristics, not a compiler. They cover the mistakes this
     project has actually shipped; they do not replace Debug > Compile VBAProject.
@@ -296,7 +299,7 @@ function Invoke-StaticChecks {
     $customUIXml = Join-Path (Join-Path $Root 'customUI') 'customUI14.xml'
     $readmePath  = Join-Path $Root 'README.md'
     $changelog   = Join-Path $Root 'CHANGELOG.md'
-    $total       = 10
+    $total       = 11
 
     if (-not (Test-Path -LiteralPath $srcRoot)) {
         throw "No src folder under $Root - is RepoRoot correct?"
@@ -679,6 +682,22 @@ function Invoke-StaticChecks {
         Write-Line "  ADDIN_VERSION is $version."
     }
 
+    # -- 11 -----------------------------------------------------------------
+    Write-Line "`n[11/$total] PowerShell scripts parse (tools/*.ps1)" 'Cyan'
+
+    $toolsRoot = Join-Path $Root 'tools'
+    $scripts = @()
+    if (Test-Path -LiteralPath $toolsRoot) { $scripts = @(Get-ChildItem -LiteralPath $toolsRoot -Filter *.ps1 | Sort-Object Name) }
+    foreach ($s in $scripts) {
+        $tokens = $null
+        $parseErrors = $null
+        [void][System.Management.Automation.Language.Parser]::ParseFile($s.FullName, [ref]$tokens, [ref]$parseErrors)
+        foreach ($e in @($parseErrors)) {
+            Add-Failure 'ps-syntax' "tools/$($s.Name) line $($e.Extent.StartLineNumber) - $($e.Message)"
+        }
+    }
+    Write-Line "  Parsed $($scripts.Count) script(s)."
+
     return $modules.Count
 }
 
@@ -894,6 +913,12 @@ End Sub
 
 ## [1.2.2] - 2029-12-01
 '@
+
+    Write-FixtureFile $Root 'tools/Demo-Tool.ps1' @'
+param([string]$Name = 'world')
+$greeting = "Hello, ${Name}: welcome"
+Write-Host $greeting
+'@
 }
 
 function Invoke-SelfTest {
@@ -972,6 +997,10 @@ function Invoke-SelfTest {
            Mutate = { param($r) Edit-FixtureFile $r 'CHANGELOG.md' "## [1.2.3] - 2030-01-01`n" '' } }
         @{ Name = 'ADDIN_VERSION bumped on its own'; Expect = @('version-sync')
            Mutate = { param($r) Edit-FixtureFile $r 'src/Core/modStartup.bas' '"1.2.3"' '"1.2.4"' } }
+
+        # The real one: "$label: text" reads as a drive-qualified variable.
+        @{ Name = 'Tools script with a "$name:" syntax error'; Expect = @('ps-syntax')
+           Mutate = { param($r) Edit-FixtureFile $r 'tools/Demo-Tool.ps1' '${Name}:' '$Name:' } }
     )
 
     $work = Join-Path ([System.IO.Path]::GetTempPath()) ('TPD_StaticSelfTest_' + [Guid]::NewGuid().ToString('N'))

@@ -14,7 +14,8 @@ The repo tracks VBA **source** (`/src`), not the compiled `.xlam`. The built add
 /src        VBA source of truth (.bas / .cls / .frm / .frx), organized into subfolders matching Rubberduck @Folder tags.
             Every UserForm lives in /src/Forms (@Folder("TPD_Addin.Forms")), not beside the flow that shows it, so
             they are all in one place - see the TPD_Addin.Forms section of docs/ARCHITECTURE.md
-/customUI   customUI14.xml (ribbon definition) + ribbon icons — lives outside /src, edited directly
+/customUI   customUI14.xml (ribbon definition) — lives outside /src, edited directly; the build writes it into
+            every built .xlam. It uses only Excel's built-in icons (imageMso); there are no image files
 /assets     Source brand/logo images not read by the build — a UserForm's Picture property embeds the
             bytes straight into its .frx when set in the VBE, so these are kept so the original art is
             in version control. tpdAddinLogo.* = the wide brand-bar logo; tpdHeaderLogo.jpg = the
@@ -22,7 +23,9 @@ The repo tracks VBA **source** (`/src`), not the compiled `.xlam`. The built add
             imgLogoPreview for the built-in-logo preview (#109)
 /build      Local build output — gitignored, never committed (holds the base .xlam and build artifacts)
 /docs       ARCHITECTURE.md (module-by-module map) and other dev docs
-/tools      TPD_Builder.xlsm — driver workbook whose BuildAddin macro rebuilds the add-in; Build-TPDAddin.ps1 runs it headlessly
+/tools      TPD_Builder.xlsm — driver workbook whose BuildAddin macro rebuilds the add-in; Build-TPDAddin.ps1 runs it headlessly.
+            builder-src/ is the readable text of that workbook's VBA (Import-/Export-BuilderSource.ps1 keep the two the same;
+            the gate fails if they differ). Also the check scripts (Test-*.ps1), New-Release.ps1, New-BaseFile.ps1
 ```
 
 ## Development workflow (no CLI build/lint/test — everything happens in Excel/VBE)
@@ -77,7 +80,7 @@ One custom ribbon tab ("TPD") with two groups — **Sheet Tools** (the picker/cu
 
 Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-module map in `docs/ARCHITECTURE.md` — read it before touching a module you haven't seen):
 
-- **Ribbon** — `modRibbonCallbacks` holds every XML `onAction` callback, each one line: `WithPerformance PERF_x`. Watch the naming wart: the Split button's `onAction` is `SplitSheetByColumn`, not `RunSplitSheetByColumn` like its neighbours — the ribbon XML ships inside the base `.xlam`, so renaming it means re-stamping the base file, not just editing `customUI/customUI14.xml`.
+- **Ribbon** — `modRibbonCallbacks` holds every XML `onAction` callback, each one line: `WithPerformance PERF_x`. Watch the naming wart: the Split button's `onAction` is `SplitSheetByColumn`, not `RunSplitSheetByColumn` like its neighbours. It dates from when the ribbon XML lived only inside the base `.xlam`; the build now writes `customUI/customUI14.xml` into every build, so a rename is just the XML and the callback changed together (the static checks fail if they disagree) — but don't rename it without being asked.
 - **EQList** — "Create Customer EQ List" (picker) + "EQ List" (one-click, `CreateCustEQListFromDefaults_Internal`) / "EQ Count" flows (`modMain_CustEQList`, `modMain_CountEquipmentRows`). Its column-picker UserForm lives in `/src/Forms`, like every other form.
 - **Schedule** — "Create Customer Schedule" (picker, `frmCustScheduleColumnPicker`) + "Schedule" (one-click, `CreateCustScheduleFromDefaults_Internal`) flows in `modMain_CustSchedule` (#112) — the twin of the EQ List flow (copy source → new `Customer Schedule` sheet before formatting, `InsertDefaultCustScheduleHeader` from `modHelpers_SheetSetup`). The picker form is a clone of `frmCustEQListColumnPicker`.
 - **SplitExport** — "Split Sheet by Column" and "Save Each Sheet to XLSX" flows. Their UserForms live in `/src/Forms`.
@@ -104,7 +107,7 @@ This file holds rules, not status. Don't add "shipped in vX.Y.Z" or "currently o
 Two names are **load-bearing strings** that no compiler checks — rename either and something breaks silently:
 
 - `ClearTPDDefaultsStatusBar` — `frmSetTPDDefaults` schedules it via `Application.OnTime` by string literal (the only such reference in the codebase). Rename it and the "TPD defaults saved" status bar never clears.
-- Anything in a `customUI14.xml` `onAction` — the ribbon XML ships inside the base `.xlam`, so a rename needs the base re-stamped, not just the repo's XML edited. This is why the Split button's callback is `SplitSheetByColumn` rather than `RunSplitSheetByColumn`.
+- Anything in a `customUI14.xml` `onAction` — Excel looks the callback up by name when the button is clicked, so a rename on one side only gives a button that does nothing. `tools\Test-StaticChecks.ps1` checks every `onAction` has a matching Sub, and `tools\Build-TPDAddin.ps1` writes the repo's XML into each build, so the XML in the repo is what ships. (Running `BuildAddin` straight from the VBE skips that step and keeps the base file's ribbon; the gate's "Ribbon XML in the build" step catches the difference.)
 
 ## Regressions to guard against (all fixed — don't undo them)
 

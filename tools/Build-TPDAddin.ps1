@@ -18,9 +18,20 @@
       > check "Trust access to the VBA project object model."
 
     Requires build/_base/TPD_Addin_base.xlam (gitignored - a known-good base
-    .xlam supplying the sheets / ribbon / styles / embedded logo that live
-    outside /src). The BuildAddin macro copies it, imports every module from
-    /src, and writes build/TPD_Addin.xlam.
+    .xlam supplying the sheets / styles / embedded logo that live outside
+    /src; tools\New-BaseFile.ps1 makes one from a released .xlam). The
+    BuildAddin macro copies it, imports every module from /src, and writes
+    build/TPD_Addin.xlam.
+
+    THE RIBBON. After the macro has finished and Excel has closed, this script
+    writes customUI\customUI14.xml into the built file, replacing the copy that
+    came from the base. So the repo's XML is what ships, and editing it needs
+    no change to the base file. The ribbon uses only Excel's built-in icons
+    (imageMso); a ribbon that needed its own image files would need more than
+    this does.
+
+    The macro is told where the repo is (this script's parent folder), so the
+    build does not depend on any path saved inside the builder workbook.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File tools\Build-TPDAddin.ps1
@@ -37,9 +48,56 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+$repoRoot = Split-Path $PSScriptRoot -Parent
+
 if (-not (Test-Path $BuilderPath)) {
     Write-Error "Builder workbook not found: $BuilderPath"
     exit 1
+}
+
+# Replaces customUI/customUI14.xml inside the built .xlam (a zip) with the
+# repo's copy. Returns a short description of what it did; throws if it could not.
+function Set-RibbonXml {
+    param([string]$PackagePath, [string]$XmlPath)
+
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+    $entryName = 'customUI/customUI14.xml'
+    $newBytes  = [System.IO.File]::ReadAllBytes($XmlPath)
+    $normalize = { param($bytes) ([System.Text.Encoding]::UTF8.GetString($bytes)).TrimStart([char]0xFEFF).Replace("`r`n", "`n").Trim() }
+
+    # Excel can keep hold of the file for a moment after it has quit.
+    $zip = $null
+    for ($attempt = 1; $attempt -le 20 -and -not $zip; $attempt++) {
+        try { $zip = [System.IO.Compression.ZipFile]::Open($PackagePath, 'Update') }
+        catch { Start-Sleep -Milliseconds 500 }
+    }
+    if (-not $zip) { throw "could not open $PackagePath for writing" }
+
+    try {
+        $entry = $zip.Entries | Where-Object { $_.FullName -ieq $entryName } | Select-Object -First 1
+        if (-not $entry) {
+            throw "the built file has no $entryName part. The base file carries no ribbon, and this step can only replace one, not add one."
+        }
+
+        $buffer = New-Object System.IO.MemoryStream
+        $in = $entry.Open()
+        try { $in.CopyTo($buffer) } finally { $in.Dispose() }
+
+        if ((& $normalize $buffer.ToArray()) -ceq (& $normalize $newBytes)) {
+            return 'already the same as customUI\customUI14.xml'
+        }
+
+        $entry.Delete()
+        $fresh = $zip.CreateEntry($entryName, [System.IO.Compression.CompressionLevel]::Optimal)
+        $out = $fresh.Open()
+        try { $out.Write($newBytes, 0, $newBytes.Length) } finally { $out.Dispose() }
+        return 'replaced with customUI\customUI14.xml'
+    }
+    finally {
+        $zip.Dispose()
+    }
 }
 
 # Truncate the log so the output below is only this run's.
@@ -71,8 +129,8 @@ try {
     # Open(Filename, UpdateLinks, ReadOnly)
     $wb = $excel.Workbooks.Open($BuilderPath, 0, $false)
 
-    Write-Host 'Running BuildAddin(silent:=True)...'
-    $excel.Run('BuildAddin', $true)
+    Write-Host 'Running BuildAddin(silent:=True, repoRoot)...'
+    $excel.Run('BuildAddin', $true, $repoRoot)
 
     Write-Host 'Done. Log output:'
     Write-Host '----------------------------------------'
@@ -107,6 +165,19 @@ finally {
     Remove-Variable excel, wb -ErrorAction SilentlyContinue
     [GC]::Collect()
     [GC]::WaitForPendingFinalizers()
+}
+
+# The ribbon goes in last, with Excel closed: the repo's XML replaces the base file's.
+if ($exitCode -eq 0) {
+    try {
+        $did = Set-RibbonXml -PackagePath (Join-Path $repoRoot 'build\TPD_Addin.xlam') `
+                             -XmlPath (Join-Path $repoRoot 'customUI\customUI14.xml')
+        Write-Host "Ribbon XML in the build: $did"
+    }
+    catch {
+        Write-Warning "Could not write the ribbon XML into the build: $($_.Exception.Message)"
+        $exitCode = 3
+    }
 }
 
 exit $exitCode
