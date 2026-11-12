@@ -43,10 +43,12 @@ Prerequisites: Windows + Excel, "Trust access to the VBA project object model" e
 
 A clean build is not a passing test — there's no compile step in the macro. For a headless smoke check, open the built `.xlam` via COM and `Application.Run` a no-arg no-side-effect function (e.g. `GetTodaysDate`). **A clean return does NOT prove the whole project compiles** — that claim used to be here and it is wrong. On 2026-09-08 this check passed on a build whose `modPreferences_Defaults` had `Private Const` declarations sitting *after* the first procedure; every ribbon flow that touched them then died with "variable not defined". Treat the check as "the add-in loads and a macro runs", nothing more. The real thing is **Debug → Compile VBAProject** in the VBE, which needs a human.
 
-Two static rules worth checking by eye before you build, since neither shows up until run time:
+Two static rules that don't show up until run time. `tools\Test-StaticChecks.ps1` now checks both (plus `MySub (obj)` calls, `PERF_*` wiring, mistyped constants, file shape and version sync — the full list is in `CONTRIBUTING.md` > "Automated checks"), so **run it before you build**; it needs no Excel and takes about two seconds:
 
 - Module-level `Const` / `Dim` must be in the declarations section, **above the first `Sub`/`Function`**. Down beside the code they relate to, they read better and do not resolve.
-- Anything named by a string rather than by code — see the load-bearing strings below.
+- Anything named by a string rather than by code — see the load-bearing strings below. The script checks `Application.OnTime` / `Run` literals and ribbon `onAction` names against `/src`; it cannot see the copy of the ribbon XML inside the base `.xlam`.
+
+If you change a check, run it with `-SelfTest` and add a seeded-failure case for it.
 
 **Cutting a release:** bump `ADDIN_VERSION` in `modStartup`, tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry, update `docs/USER_GUIDE.md` for any user-visible change and re-sync it to the [wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki) (`Home.md`). Refresh `build/_base/TPD_Addin_base.xlam` only if the release changed something outside `/src` (ribbon / sheets / logo) — and then from a code-stripped copy, not the release `.xlam` directly. Full steps in `CONTRIBUTING.md`.
 

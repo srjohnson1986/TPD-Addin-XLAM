@@ -94,13 +94,24 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 
 ## Automated checks
 
-`.github/workflows/static-checks.yml` runs `tools/Test-StaticChecks.ps1` on every push/PR against `main`, on a normal GitHub-hosted runner (no Excel/COM needed — it's pure text/XML parsing). It checks:
+`.github/workflows/static-checks.yml` runs `tools/Test-StaticChecks.ps1` on every push/PR against `main`, on a normal GitHub-hosted runner (no Excel/COM needed — it's pure text/XML parsing). It covers `/src` and `/tests/unit`, and checks:
 
-- Every `onAction`/`onLoad` callback named in `customUI/customUI14.xml` has a matching `Sub`/`Function` somewhere in `/src`.
-- Every module with code declares `Option Explicit` (code-free document modules are exempt).
-- Every module has a well-formed `'@Folder("TPD_Addin....")` tag, and every `.frm` is tagged exactly `'@Folder("TPD_Addin.Forms")`.
+1. **Ribbon callbacks** — every `onAction`/`onLoad` named in `customUI/customUI14.xml` has a matching `Sub`/`Function` in `/src`.
+2. **Option Explicit** — every module with code declares it (code-free document modules are exempt).
+3. **@Folder tags** — every module has a well-formed `'@Folder("TPD_Addin....")` tag, and every `.frm` is tagged exactly `'@Folder("TPD_Addin.Forms")`.
+4. **File shape** — CRLF line endings, no BOM, `Attribute VB_Name` matches the file name, a `.frm` header names its own form and `.frx`, the `.frx` exists, and no two modules share a name. (A hand-written `.frm` that gets this wrong is imported by the builder as a plain module.)
+5. **Declarations first** — no module-level code after the first `Sub`/`Function`/`Property`. A `Const` or `Dim` down there doesn't resolve, and nothing says so until a flow reaches it at run time.
+6. **Parenthesised calls** — no `MySub (arg)` statement for a `Sub`/`Function` declared in this repo; the parens force by-value evaluation, so an object argument raises run-time 438 ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)).
+7. **String-named procedures** — every string literal passed to `Application.OnTime` / `Application.Run` names a `Sub`/`Function` in a standard module (today that is `ClearTPDDefaultsStatusBar`).
+8. **WithPerformance wiring** — every `PERF_*` constant has a `Case` that calls the `Sub` its value names, that `Sub` exists, and some caller passes the constant.
+9. **Constants declared** — every `UPPER_SNAKE` identifier used in code is declared in that module or `Public` in a standard module, so a mistyped `PREF_*` / `PERF_*` is caught without a compile.
+10. **Version sync** — `ADDIN_VERSION`, the README's pinned download link and the newest `CHANGELOG.md` release heading all name the same version. A release PR has to change all three together.
 
 Run it yourself any time with `powershell -ExecutionPolicy Bypass -File tools\Test-StaticChecks.ps1` — same script, same output, locally or in Actions.
+
+These are text heuristics, not a compiler: they cover the mistakes this project has actually made, and **Debug → Compile VBAProject** in the VBE is still the only real compile check. The line-ending part of check 4 can only fail locally — a git checkout always writes CRLF for these files — so it is there for the file you haven't committed yet.
+
+**Changing a check?** Run `tools\Test-StaticChecks.ps1 -SelfTest` afterwards (CI runs it too, before the real checks). It builds a small synthetic source tree, confirms it passes clean, then breaks it one way at a time and confirms each break is reported by exactly the expected check. Add a case there for any new check — a check that has never been seen to fail proves nothing.
 
 It deliberately does **not** check that `/src` matches a built `.xlam` — that needs Excel/COM, which hosted runners don't have. That check is `tools/Test-SourceDrift.ps1`, step 4 of "Rebuilding a testable `.xlam`" above: a local pre-release gate, not a CI job. (A self-hosted runner on a personal Windows machine could run it in Actions too, but that means GitHub Actions can execute workflow code — including from your own pushes — directly on that machine, so this repo keeps it local instead.)
 

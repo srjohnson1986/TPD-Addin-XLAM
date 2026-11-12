@@ -12,11 +12,23 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# A newer push to the same PR makes the older run pointless; runs on main are
+# left to finish so every merged commit keeps its own result.
+concurrency:
+  group: static-checks-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   static-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Proves each check still fires on a seeded mistake before trusting a
+      # clean result from the real tree.
+      - name: Self-test the checks
+        shell: pwsh
+        run: tools/Test-StaticChecks.ps1 -SelfTest
 
       - name: Run static source checks
         shell: pwsh
