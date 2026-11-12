@@ -51,6 +51,7 @@ GRAY = PatternFill("solid", fgColor="BDBDBD")          # schedule: section rows
 RED_FLAG = PatternFill("solid", fgColor="F87E7D")      # schedule: a flagged row
 BOLD = Font(bold=True)
 PLAIN = Font(bold=False)
+BOLD_ITALIC = Font(bold=True, italic=True)              # real exports flag some item rows this way
 CENTER = Alignment(horizontal="center")
 LEFT = Alignment(horizontal="left")
 LEFT_WRAP = Alignment(horizontal="left", wrap_text=True, vertical="top")
@@ -297,6 +298,18 @@ def build_eq_list():
     put(items[11], "Vendor", VENDOR_CASE_VARIANT)
     for r in (items[7], items[36], items[60]):
         put(r, "Vendor", None)
+    # bold + italic carried in from the source: one whole item row and one
+    # lone cell - the EQ List output should show both plain (#169)
+    for name, _ in EQ_COLUMNS:
+        ws.cell(items[3], COL[name]).font = BOLD_ITALIC
+    ws.cell(items[22], COL["SIZE"]).font = BOLD_ITALIC
+    # a "For Approval" item with neither ID - still an item, so the EQ List
+    # output strips its yellow like every other item row (#170)
+    put(items[45], "Status", "For Approval")
+    put(items[45], "INTERNAL ID", None)
+    put(items[45], "CUSTOMER ID", None)
+    for name, _ in EQ_COLUMNS:
+        ws.cell(items[45], COL[name]).fill = REVIEW_FILL
 
     wb.save(OUT_DIR / "EQ_List_Sample.xlsx")
     return ws.max_row

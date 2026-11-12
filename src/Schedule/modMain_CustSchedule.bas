@@ -66,7 +66,8 @@ Public Sub CreateCustSchedule_DoWork( _
 
     CopyEntireSheetRows wsSource, wsNew
     ' Schedule keeps no structural rows - strip every carried-over fill (#130).
-    modHelpers_SheetFormatting.StripDataRowFill wsNew, 1
+    ' Fonts stay: with the fills gone, bold is what marks the summary rows (#169).
+    modHelpers_SheetFormatting.StripCarriedRowFormatting wsNew, 1, clearFontEmphasis:=False
     modHelpers_Columns.DeleteUnselectedColumnsByHeading wsNew, selectedCols, 1
     ' DeleteUnselectedColumnsByHeading keeps the survivors in source order;
     ' reorder them to match the chosen column order (#127).
