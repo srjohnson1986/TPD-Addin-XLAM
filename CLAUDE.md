@@ -87,22 +87,22 @@ Feature areas, mirroring the `@Folder("TPD_Addin.X")` groups (full module-by-mod
 - **Global preferences are shared across workbooks, not per-workbook** — "set once, applies everywhere" is intentional. They persist per Windows user (registry), not per machine or per file.
 - **Re-running a command stacks its output** (e.g. running "Create Customer EQ List" twice adds a second sheet) — intentional.
 
-## Known open work
+## Where status lives (not here)
 
-Tracked as GitHub Issues — currently open:
+This file holds rules, not status. Don't add "shipped in vX.Y.Z" or "currently open" notes to it — they go stale and every PR ends up editing them.
 
-- None.
+- **Open work**: GitHub Issues (`gh issue list --repo srjohnson1986/TPD-Addin-XLAM`).
+- **What shipped, and in which version**: `CHANGELOG.md`.
+- **What each module does today**: `docs/ARCHITECTURE.md` — one `###` section per module, short bullets, no history. A change to a module's job edits that module's section only; the rules are at the top of that file.
 
-Shipped in `v2.4.5`: EQ List strips carried-over font emphasis on item rows ([#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169), `StripCarriedRowFormatting`) and drops the fill on ID-less item rows ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170), `IsStructuralRow`), plus the **Remove blank rows** (ships on, [#171](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171)) and **Bold PARENT rows** (ships off, [#174](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/174)) EQ List toggles, both in the right-hand column of `fraEqListOptions`.
-
-The **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** cluster is delivered and shipped in `v2.4.2`: `frmSetTPDDefaults` (EQ List / Schedule / Split Sheets / Logo tabs, Save / Save & Run / Cancel footer), the three picker + one-click flow pairs and their three-layer column defaults (#96 / #98 / #112), the user-settable header logo (#95 / #109), the EQ List behaviour toggles (#97 → #119–#123), the dialog visual refresh across all five forms (#118 / #143 / #99 / #100), the picker Select all / none / Restore defaults row (#149) and the picker grid scrolling (#150).
+## Load-bearing strings
 
 Two names are **load-bearing strings** that no compiler checks — rename either and something breaks silently:
 
 - `ClearTPDDefaultsStatusBar` — `frmSetTPDDefaults` schedules it via `Application.OnTime` by string literal (the only such reference in the codebase). Rename it and the "TPD defaults saved" status bar never clears.
 - Anything in a `customUI14.xml` `onAction` — the ribbon XML ships inside the base `.xlam`, so a rename needs the base re-stamped, not just the repo's XML edited. This is why the Split button's callback is `SplitSheetByColumn` rather than `RunSplitSheetByColumn`.
 
-### Regressions to guard against (all fixed — don't undo them)
+## Regressions to guard against (all fixed — don't undo them)
 
 - **`modPerformance.WithPerformance`** ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) / [#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)): the `CleanUp` handler must **always** restore `ScreenUpdating` / `EnableEvents` / `Calculation`, or they stay broken for the Excel session. Callers pass a `PERF_*` constant, not a bare string — a new flow needs a constant, a `Case` in the `Select`, and the `WithPerformance PERF_x` call in its callback.
 - **Never call a `Sub` as `MySub (obj)`** ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29)) — the parens force by-value evaluation (the default property), so a `Worksheet`/`Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop ([#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)) now reports per-value failures in its summary, so a regression there is at least visible.
