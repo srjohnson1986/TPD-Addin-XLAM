@@ -1,131 +1,749 @@
 # TPD Add-in — Architecture
 
-This is a module-level map of the add-in as of the `v2.4.2` release, organized by the same `@Folder("TPD_Addin.X")` grouping used in Rubberduck's Code Explorer and in the `/src` export layout. For the developer workflow (how to change, export, build, and release), see [CONTRIBUTING.md](../CONTRIBUTING.md).
+A module-by-module map of the add-in as it is on `main`, grouped by the same `@Folder("TPD_Addin.X")` tags used in
+Rubberduck's Code Explorer and in the `/src` folder layout. For the developer workflow (change, export, build,
+release) see [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+## How this file is kept
+
+- One `###` section per module. Bullets, one fact per line, each line short enough to read in a diff.
+- Describe what the module does **today**. What it used to be called, what was removed and which PR did it
+  belong in [CHANGELOG.md](../CHANGELOG.md) and `git log`, not here.
+- Link an issue only where it explains *why* something non-obvious is the way it is. Links are reference-style:
+  write `[#84]` in the text and add its URL to the list at the bottom of the file, in number order.
+- A change to a module's job updates that module's section and nothing else.
 
 ## Overview
 
-The add-in exposes one custom ribbon tab ("TPD") with two groups, defined in `customUI/customUI14.xml`:
+One custom ribbon tab ("TPD") with two groups, defined in `customUI/customUI14.xml`:
 
-- **Sheet Tools** — the picker (custom) paths: "Create Customer EQ List", "Create Customer Schedule", "Split Sheet by Column", plus "Save Each Sheet to XLSX".
-- **One-click** — the one-click paths ("EQ List", "Schedule", "Split Sheets" — run a flow straight from saved defaults, no picker) beside the large "Set Defaults" button.
+- **Sheet Tools** — the picker paths: "Create Customer EQ List", "Create Customer Schedule",
+  "Split Sheet by Column", plus "Save Each Sheet to XLSX".
+- **One-click** — "EQ List", "Schedule", "Split Sheets" (each runs straight from saved defaults, no picker)
+  beside the large "Set Defaults" button.
 
-The "EQ Count" flow (`modMain_CountEquipmentRows`) has no ribbon button — it was removed for [#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120) — but the module and its `RunCountEquipmentRows` callback are retained.
+How a click becomes work:
 
-Every ribbon button's `onAction` lands on a one-line callback in `modRibbonCallbacks` that hands `WithPerformance` the `PERF_*` constant naming the flow; `modPerformance` runs the flow's `*_Internal` routine in the feature module with screen updating / events / calculation managed. (Set Defaults is the exception — `RunSetTPDDefaults` is not a forwarder, so it stays in `modMain_SetTPDDefaults`.) Startup (`modStartup.InitializeAddIn`) runs from `RibbonOnLoad` and stamps the running version into the registry-backed preference store. Saved settings live in the Windows registry per user (`modPreferences`), not in the workbook. The default header logo is the embedded `_Resources` / `DefaultLogo` shape from the base `.xlam`; a user can replace it in Set TPD Defaults with their own image, which is copied to `%APPDATA%\TPD_Addin\` and used by every flow ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95)).
+- Every button's `onAction` is a one-line callback in `modRibbonCallbacks`: `WithPerformance PERF_x`.
+- `modPerformance.WithPerformance` runs that flow's `*_Internal` routine with screen updating, events and
+  calculation managed.
+- Set Defaults is the exception: `RunSetTPDDefaults` does real work, so it lives in `modSetDefaults`.
+- The "EQ Count" flow has no ribbon button, but `modMain_CountEquipmentRows` and its `RunCountEquipmentRows`
+  callback are kept ([#120]).
+
+Other things worth knowing up front:
+
+- Startup: `RibbonOnLoad` → `modStartup.InitializeAddIn`, which stamps the running version into the preference store.
+- Saved settings live in the Windows registry per user (`modPreferences`), not in any workbook.
+- The default header logo is the embedded `_Resources` / `DefaultLogo` shape from the base `.xlam`.
+- A user can replace the logo in Set Defaults; their image is copied to `%APPDATA%\TPD_Addin\` and every flow
+  uses it ([#95]).
 
 ## Naming: "header" vs. "heading"
 
-The word "header" has two unrelated meanings in this codebase, so the naming convention splits them:
+"Header" has two unrelated meanings in this codebase, so the names split them:
 
-- **`header`** — the TPD title block at the top of a sheet (`EQUIPMENT LIST` / Customer / Project / PM / Date / Rev), e.g. `InsertEQHeaderBlock`, `InsertDefaultCustScheduleHeader`.
-- **`heading`** — the column heading row of the data table, e.g. `headingsRow`, `headingList`, `colHeading`, `GetHeadingList`, `FindHeadingIndex`.
+- **`header`** — the TPD title block at the top of a sheet (`EQUIPMENT LIST` / Customer / Project / PM / Date / Rev),
+  e.g. `InsertEQHeaderBlock`, `InsertDefaultCustScheduleHeader`.
+- **`heading`** — the column heading row of the data table,
+  e.g. `headingsRow`, `headingList`, `colHeading`, `GetHeadingList`, `FindHeadingIndex`.
+- **`anchorRow`** — the logo's positioning row in `modHelpers_Logo`. It is neither: it can point at a title-block
+  row or a heading row depending on the caller.
 
-A third case, the logo's positioning anchor row in `modHelpers_Logo`, is neither — it's called `anchorRow` since it can point at either a title-block row or a heading row depending on the caller. Use these names for any new code; don't reintroduce `header`/`headerRow` for column-heading concepts.
+Use these names in new code. Don't reintroduce `header` / `headerRow` for column-heading concepts.
 
 ## TPD_Addin.Ribbon
 
-| Module | Purpose |
-|---|---|
-| `modRibbonCallbacks` | Every `customUI14.xml` `onAction` callback, in one module, each a single `WithPerformance PERF_*` line: `RunCreateCustEQList`, `RunCreateCustSchedule`, `SplitSheetByColumn`, `RunExportSheetsToXLSX`, and the One-click group's `RunQuickEqList` / `RunQuickSchedule` / `RunQuickSplitSheets`. `RunCountEquipmentRows` is here too although no button calls it any more ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)). Note the odd one out: the shipped ribbon's Split button says `onAction="SplitSheetByColumn"`, without the `Run` prefix its neighbours have — renaming it would mean re-stamping the ribbon into the base `.xlam`, not just editing `customUI/customUI14.xml`, so the callback keeps the name the ribbon asks for. Also owns the global `gRibbon` reference and `RibbonOnLoad`, which triggers add-in initialization. |
+### `modRibbonCallbacks`
+
+- Holds every `customUI14.xml` `onAction` callback. Each is a single `WithPerformance PERF_*` line.
+- Sheet Tools: `RunCreateCustEQList`, `RunCreateCustSchedule`, `SplitSheetByColumn`, `RunExportSheetsToXLSX`.
+- One-click: `RunQuickEqList`, `RunQuickSchedule`, `RunQuickSplitSheets`.
+- `RunCountEquipmentRows` is here too, although no button calls it ([#120]).
+- The Split button's callback is `SplitSheetByColumn`, without the `Run` prefix its neighbours have. The ribbon
+  XML ships inside the base `.xlam`, so renaming it means re-stamping the base file, not just editing
+  `customUI/customUI14.xml`.
+- Owns the global `gRibbon` reference and `RibbonOnLoad`, which triggers add-in initialization.
 
 ## TPD_Addin.EQList
 
-| Module | Purpose |
-|---|---|
-| `modMain_CustEQList` | Customer EQ List flow. `CreateCustEQList_Internal` (picker path) shows `frmCustEQListColumnPicker`; `CreateCustEQListFromDefaults_Internal` (one-click "EQ List" button) skips the picker and calls `modHelpers_Columns.ResolveOneClickColumns` — `PREF_EQLIST_COLUMNS` → shipped default, narrowed to the headings actually on the source, `Nothing` (after a message) when none are. The Schedule one-click shares that helper. Both hand off to `CreateCustEQList_DoWork`, which copies all rows to a new `Customer EQ List` sheet **before** any formatting, deletes unselected columns, formats, inserts the EQ header block + embedded default logo (`InsertDefaultLogo … "right-top"` — [#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82)), and freezes panes. `_DoWork` also reads the seven EQ List behaviour toggles ([#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97) / #119–#123 / [#171](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171) / [#174](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/174)) from Set Defaults and applies them: **drop blank rows** (`DeleteBlankRows`, ships on) runs first, straight after the copy, judging emptiness across every source column and before the status snapshot so its row ordinals match the sheet; **drop PARENT rows** and a **status snapshot** (`PurchasedStatuses`) happen while the Purchased column is still present, before `DeleteUnselectedColumnsByHeading`; **inline EQ Count** (`NumberEquipmentRowsFromStatuses`, snapshot-fed) goes on while the heading row is still row 1; **plain PARENT rows** (`ApplyPlainParentRows`, white/black/un-bold overriding the grouping shade `StripCarriedRowFormatting` kept) then **bold PARENT rows** (`ApplyBoldParentRows`, ships off), both straight after EQ Count and before `FormatDataTable` / the autofit so bold text is measured, not clipped; both find their rows through `ParentDataRows` from the status snapshot; **cell borders** via `FormatDataTable`'s `addBorders`; **column filters** (`AddHeadingRowFilter` on row 1, before `AutoFitUsedColumns` so the columns are widened to clear the dropdowns — [#147](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/147); the title-block insert shifts the filter range down to the heading row). The PARENT-row and EQ Count toggles need a `PURCHASED` heading — absent, they're skipped and `_DoWork` shows one `vbInformation` notice at the end. Purchased reaches the output sheet only if it's in the chosen column list, toggles or not. |
-| `modMain_CountEquipmentRows` | "EQ Count" entry point. `RunCountEquipmentRows` → `WithPerformance PERF_COUNT_EQ_ROWS` → `CountEquipmentRows_Internal` (validates the active worksheet via `RequireActiveWorkbook`) → `NumberEquipmentRows` inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or `INCLUDED` in the Purchased column, with leading-zero formatting sized to the highest number. A row with a blank Purchased value is a real equipment line whose status isn't filled in yet, so it is numbered by design ([#6](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6), closed as working-as-intended). Split into `PurchasedStatuses(ws, headingRow, col)` (snapshot the column to a 1-based `String()` array) + `NumberEquipmentRowsFromStatuses(ws, headingRow, statuses)` (insert + number from the array) so the inline EQ Count toggle ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)) can number a `Customer EQ List` sheet after its Purchased column has been projected away; `NumberEquipmentRows` is now a thin sheet-reading wrapper over the pair. The inserted EQ COUNT heading is `PasteSpecial xlPasteFormats`-matched to the neighbouring heading cell so it isn't left unformatted ([#120](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120)). `NumberEquipmentRowsFromStatuses` in turn wraps two pure functions — `ComputeEQCountValues(statuses)` (the "" / sequential-number decision per row) and `EQCountNumberFormat(values)` (the leading-zero width) — split out for Rubberduck unit tests ([#163](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163)). |
+### `modMain_CustEQList`
+
+The Customer EQ List flow.
+
+- `CreateCustEQList_Internal` (picker path) shows `frmCustEQListColumnPicker`.
+- `CreateCustEQListFromDefaults_Internal` (one-click "EQ List") skips the picker and calls
+  `modHelpers_Columns.ResolveOneClickColumns` with `PREF_EQLIST_COLUMNS` and the shipped default. It stops,
+  after a message, when none of those columns are on the sheet.
+- Both hand off to `CreateCustEQList_DoWork`.
+
+What `CreateCustEQList_DoWork` does, in order:
+
+1. Copies every row to a new `Customer EQ List` sheet **before** any formatting (`CopyEntireSheetRows`).
+2. **Remove blank rows** toggle (`DeleteBlankRows`, ships on). Runs straight after the copy, judges emptiness
+   across every source column, and comes before the status snapshot so row ordinals match the sheet ([#171]).
+3. `StripCarriedRowFormatting` with `preserveStructuralRows:=True`, while all source columns are still present.
+4. **Remove PARENT rows** toggle (`DeleteParentRows`) and the status snapshot (`PurchasedStatuses`), both while
+   the Purchased column is still there.
+5. `DeleteUnselectedColumnsByHeading`, then `ReorderColumnsByHeading`.
+6. **Add EQ Count column** toggle (`NumberEquipmentRowsFromStatuses`, fed by the snapshot) while the heading row
+   is still row 1.
+7. **Plain PARENT rows** toggle (`ApplyPlainParentRows`: white fill, black text, not bold — overriding the
+   grouping shade step 3 kept), then **Bold PARENT rows** toggle (`ApplyBoldParentRows`, ships off, [#174]).
+   Both find their rows through `ParentDataRows` from the snapshot.
+8. `FormatDataTable`; the **Add cell borders** toggle is its `addBorders` argument ([#122]).
+9. **Add column filters** toggle (`AddHeadingRowFilter` on row 1), before `AutoFitUsedColumns` so the columns
+   are widened to clear the dropdowns ([#147]).
+10. Autofit columns and data-row heights. Steps 7–8 come before this so bold text is measured, not clipped.
+11. Inserts the EQ header block and the logo (`InsertDefaultLogo … "right-top"`), then freezes panes. The
+    title-block insert shifts the filter range down to the heading row.
+
+Rules that hold across those steps:
+
+- The four PARENT-row and EQ Count toggles need a `PURCHASED` heading. If it is absent they are skipped and
+  `_DoWork` shows one `vbInformation` notice at the end (`SkippedPurchasedToggleNames`).
+- Purchased reaches the output sheet only if it is in the chosen column list, whatever the toggles say.
+- The seven toggles and their shipped values are defined once, in `modPreferences_Defaults`.
+
+### `modMain_CountEquipmentRows`
+
+The "EQ Count" flow, and the numbering the EQ List toggle reuses.
+
+- Entry: `RunCountEquipmentRows` → `WithPerformance PERF_COUNT_EQ_ROWS` → `CountEquipmentRows_Internal`, which
+  validates the active worksheet via `RequireActiveWorkbook`.
+- `NumberEquipmentRows` inserts an `EQ COUNT` column and numbers every row except those marked `PARENT` or
+  `INCLUDED` in the Purchased column. Numbers get leading zeros sized to the highest number.
+- A row with a blank Purchased value **is** numbered. It is a real equipment line whose status is not filled in
+  yet ([#6], closed as working as intended).
+- `NumberEquipmentRows` is a thin sheet-reading wrapper over two routines:
+  - `PurchasedStatuses(ws, headingRow, col)` snapshots the column to a 1-based `String()` array.
+  - `NumberEquipmentRowsFromStatuses(ws, headingRow, statuses)` inserts the column and numbers from the array.
+  - The split lets the EQ List toggle number a sheet after its Purchased column has been dropped ([#120]).
+- The inserted `EQ COUNT` heading is `PasteSpecial xlPasteFormats`-matched to the neighbouring heading cell, so
+  it is not left unformatted.
+- `NumberEquipmentRowsFromStatuses` wraps two pure functions, which have Rubberduck unit tests ([#163]):
+  - `ComputeEQCountValues(statuses)` — the `""` or next-number decision per row.
+  - `EQCountNumberFormat(values)` — the leading-zero width.
 
 ## TPD_Addin.Schedule
 
-| Module | Purpose |
-|---|---|
-| `modMain_CustSchedule` | Customer Schedule flow ([#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)) — the schedule twin of `modMain_CustEQList`. `CreateCustSchedule_Internal` (picker path, "Create Customer Schedule" in Sheet Tools) shows `frmCustScheduleColumnPicker`; `CreateCustScheduleFromDefaults_Internal` (one-click "Schedule" in the One-click group) calls the same `modHelpers_Columns.ResolveOneClickColumns` the EQ List one-click does, with `PREF_SCHEDULE_COLUMNS` and `DefaultScheduleColumns()`. Both call `CreateCustSchedule_DoWork`: copy all rows to a new `Customer Schedule` sheet **before** any formatting, drop unselected columns, `FormatDataTable wsNew, 1, "Tasks"`, `AutoFitUsedColumns`, `InsertDefaultCustScheduleHeader` (header rows + Date text + logo in one call), then `SafeFreezePanes` at `SCHEDULE_HEADER_ROW_COUNT + 1`. |
+### `modMain_CustSchedule`
 
-The header builder `InsertDefaultCustScheduleHeader` (+ `SCHEDULE_HEADER_ROW_COUNT`) lives in `modHelpers_SheetSetup`. The `modMain_CustSchedule` placeholder that was removed in [#48](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/48) is now the real module; "Default Schedule Header" (`modMain_CustScheduleHeader`) was removed in [#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96).
+The Customer Schedule flow — the schedule twin of `modMain_CustEQList` ([#112]).
+
+- `CreateCustSchedule_Internal` (picker path, "Create Customer Schedule") shows `frmCustScheduleColumnPicker`.
+- `CreateCustScheduleFromDefaults_Internal` (one-click "Schedule") calls the same
+  `modHelpers_Columns.ResolveOneClickColumns` the EQ List one-click does, with `PREF_SCHEDULE_COLUMNS` and
+  `DefaultScheduleColumns()`.
+- Both call `CreateCustSchedule_DoWork`, which:
+  1. Copies every row to a new `Customer Schedule` sheet **before** any formatting.
+  2. Calls `StripCarriedRowFormatting` with its defaults for rows and `clearFontEmphasis:=False`.
+  3. Drops unselected columns, then puts the rest in the chosen order (`ReorderColumnsByHeading`).
+  4. `FormatDataTable wsNew, 1, "Tasks"`, then `AutoFitUsedColumns` and `AutoFitDataRowHeights`.
+  5. `InsertDefaultCustScheduleHeader` — header rows, Date text and logo in one call.
+  6. `SafeFreezePanes` at `SCHEDULE_HEADER_ROW_COUNT + 1`.
+- The header builder and `SCHEDULE_HEADER_ROW_COUNT` live in `modHelpers_SheetSetup`.
 
 ## TPD_Addin.SplitExport
 
-| Module | Purpose |
-|---|---|
-| `modMain_SplitSheets` | Split-sheet flow. `SplitSheetByColumn_Internal` (picker path) prompts via `frmSplitSheetOptions`; `SplitSheetByColumnFromDefaults_Internal` (one-click "Split Sheets" button) skips the picker, resolving the group column from `PREF_SPLIT_GROUPCOL` and columns from `PREF_SPLIT_COLUMNS` (each → shipped default) via `ResolveGroupColumn` / `ResolveColumnList`. Both then call the module-private `RunSplit`, which runs `SplitSheetByColumn_DoWork` and reports the outcome — one shared tail, so the two paths can't summarise a run differently. `SplitSheetByColumn_DoWork` creates or clears one sheet per unique value in the group column and copies matching rows in (it messages and bails if the group column isn't on the sheet), which is why this flow needs no `ResolveOneClickColumns`-style pre-check. |
-| `modMain_ExportSheets` | "Save Each Sheet to XLSX" entry point. Prompts for a filename suffix/date via `frmFilenameOptions`, then saves each eligible worksheet to its own `.xlsx` in a per-workbook export folder. `ShouldExportSheet` skips `_`-prefixed internal sheets and very-hidden sheets always, and plain-hidden sheets unless the source-level `EXPORT_INCLUDE_HIDDEN_SHEETS` flag is turned on ([#8](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8)). Per-sheet failures are collected and reported in one summary rather than aborting the run ([#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15)). |
-| `modExport_Files` | Creates/locates the export folder next to the workbook, named after the workbook file (`EnsureExportFolder`; returns `""` after a message if the workbook is unsaved or the folder can't be made), and copies a single worksheet out to its own `.xlsx` file (`ExportSheetToXLSX`, returns `""` on success or a reason string on failure). If a sheet's target name collides with an already-open workbook it gets a ` (export)` suffix; an existing target file on disk is overwritten without prompting ([#64](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/64)); any `SaveAs` failure is caught, the temporary `ws.Copy` workbook is closed without saving, and the reason is returned ([#15](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15)). (`ReportBatchOutcome`, the summary box both batch flows show, moved out to `modHelpers_Reporting` — this module is export-only, which is why it is no longer called `modHelpers_Export`.) `BuildExportSuffix(userAppend, includeDate)` builds the "<text> - <date>" suffix once; `PreviewExportFileName(sampleSheet, userAppend, includeDate)` renders the "<sheet> - <suffix>.xlsx" a sheet would be saved as — the `frmFilenameOptions` live preview and the real export share both so they can't disagree ([#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)). |
+### `modMain_SplitSheets`
+
+The Split Sheet by Column flow.
+
+- `SplitSheetByColumn_Internal` (picker path) prompts via `frmSplitSheetOptions`.
+- `SplitSheetByColumnFromDefaults_Internal` (one-click "Split Sheets") skips the picker. It resolves the group
+  column from `PREF_SPLIT_GROUPCOL` and the columns from `PREF_SPLIT_COLUMNS`, each falling back to the shipped
+  default, via `ResolveGroupColumn` / `ResolveColumnList`.
+- Both call the module-private `RunSplit`, which runs `SplitSheetByColumn_DoWork` and reports the outcome. One
+  shared tail, so the two paths cannot summarise a run differently.
+- `SplitSheetByColumn_DoWork` creates or clears one sheet per unique value in the group column and copies the
+  matching rows in.
+- It shows a message and stops if the group column is not on the sheet. That is why this flow needs no
+  `ResolveOneClickColumns`-style pre-check.
+- `SplitOneGroup` builds one value's sheet and raises on failure; the caller records the failure against that
+  value, so one bad value does not stop the run ([#32]).
+- `UniqueRunName` adds a ` (2)` / ` (3)` suffix when two values sanitize to the same sheet name, trimming the
+  base so the result stays within Excel's 31-character limit ([#57]).
+
+### `modMain_ExportSheets`
+
+The "Save Each Sheet to XLSX" flow.
+
+- Prompts for a filename suffix and date via `frmFilenameOptions`.
+- Saves each eligible worksheet to its own `.xlsx` in a per-workbook export folder.
+- `ShouldExportSheet` decides eligibility ([#8]):
+  - `_`-prefixed internal sheets and very-hidden sheets are always skipped.
+  - Plain-hidden sheets are skipped unless the source-level `EXPORT_INCLUDE_HIDDEN_SHEETS` flag is on.
+- Per-sheet failures are collected and reported in one summary; they do not abort the run ([#15]).
+
+### `modExport_Files`
+
+File and folder work for the export flow.
+
+- `EnsureExportFolder` creates or finds the export folder next to the workbook, named after the workbook file.
+  It returns `""`, after a message, if the workbook is unsaved or the folder cannot be made.
+- `ExportSheetToXLSX` copies one worksheet out to its own `.xlsx`. It returns `""` on success or a reason
+  string on failure.
+  - If the target name collides with an already-open workbook, the file gets a ` (export)` suffix.
+  - An existing target file on disk is overwritten without prompting ([#64]).
+  - Any `SaveAs` failure is caught, the temporary `ws.Copy` workbook is closed without saving, and the reason
+    is returned ([#15]).
+- `BuildExportSuffix(userAppend, includeDate)` builds the `<text> - <date>` suffix once.
+- `PreviewExportFileName(sampleSheet, userAppend, includeDate)` renders the `<sheet> - <suffix>.xlsx` name a
+  sheet would be saved as.
+- The `frmFilenameOptions` live preview and the real export share both functions, so they cannot disagree.
 
 ## TPD_Addin.Preferences
 
-| Module | Purpose |
-|---|---|
-| `modPreferences` | Per-user key/value preference storage in the Windows registry via `SaveSetting`/`GetSetting` (`HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`). Registry rather than a sheet inside the `.xlam` because Excel never saves an add-in on exit, so in-workbook writes were silently lost on quit ([#84](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84)). `SavePref`/`LoadPref`/`DeletePref` plus `SaveColumnList`/`LoadColumnList` for comma-separated column lists; a missing key returns the caller's default. `ResolveColumnList(keys, fallbackCsv)` / `ResolveGroupColumn(keys, fallback)` walk a caller-supplied key array in priority order and return the first non-empty saved value, else the shipped default — the pickers pass `Array(LastUsed*, DefaultUser*)`, the one-click flows pass `Array(DefaultUser*)` ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)). Each is a thin registry-reading wrapper around a pure sibling — `FirstNonEmptyColumnList` / `FirstNonEmptyValue` — that just picks among already-read candidate values, split out for Rubberduck testing ([#163](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163)). Generic multi-key helpers: `SavePrefs` (write an array of key/value pairs, returns `False` if any write failed, no rollback) and `AllPrefsUnset` (True iff every listed key reads back empty). `LoadToggle(key, defaultOn)` / `SaveToggle(key, isOn)` store a boolean as `"1"`/`"0"` — the EQ List behaviour toggles ([#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97)). Also the Set TPD Defaults dialog support: `NormalizeColumnList` (tabs/CR/LF → `, `, drop empties, keep dupes), `CollapseWhitespace` (a header name's compare form — tabs → spaces, then delegates to `modHelpers_Strings.NormalizeCellText`), `SaveAllDefaults` and `DefaultsNeverSaved` — thin callers of `SavePrefs`/`AllPrefsUnset` over the one shared list of the four dialog keys ([#102](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/102)). |
-| `modPreferences_KeyMap` | Central list of every preference key so keys never float as loose string literals. Column defaults are three layers ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)): **shipped** (`modPreferences_Defaults`, no key); **user one-click** — the `DefaultUser*` keys (`PREF_EQLIST_COLUMNS`, `PREF_SCHEDULE_COLUMNS`, `PREF_SPLIT_COLUMNS`, `PREF_SPLIT_GROUPCOL`), written **only** by the Set TPD Defaults dialog, read by the one-click buttons; **user picker** — the `LastUsed*` keys (`PREF_EQLIST_PICKER_COLUMNS`, `PREF_SCHEDULE_PICKER_COLUMNS`, `PREF_SPLIT_PICKER_COLUMNS`, `PREF_SPLIT_PICKER_GROUPCOL`), written by the picker forms on OK. Pickers resolve `LastUsed*` → `DefaultUser*` → shipped; one-click resolves `DefaultUser*` → shipped. Plus `PREF_LOGO_PATH` (the user's chosen header logo — [#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95)), `PREF_SETDEFAULTS_LAST_TAB` (the Set Defaults dialog's last-shown tab — [#135](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/135)), the five `PREF_EQLIST_*` behaviour toggles (`"1"`/`"0"`, [#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97) — **not** in `DefaultsPrefKeys`, so they can't trip the first-run notice) and `PREF_VERSION`. |
-| `modPreferences_Defaults` | The hard-coded shipped column lists (`DefaultEqListColumns`, `DefaultScheduleColumns`, `DefaultSplitColumns`, `DefaultSplitGroupColumn`), comma-separated. The single source: they seed the dialog's first run, back its per-page "Restore defaults", are the value `LoadPref` returns for an unsaved key, and are the final `ResolveColumnList` / `ResolveGroupColumn` fallback for both the pickers and the one-click flows ([#98](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/98) — the pickers no longer carry their own arrays). |
-| `modPreferences_Initializer` | `InitializePreferences` — stamps `PREF_VERSION` with `ADDIN_VERSION` when it changes (support/diagnostics). No value seeding: `LoadPref` returns the caller's default for any unset key. |
-| `modSetDefaults` | The "Set Defaults" ribbon entry point (was `modMain_SetTPDDefaults` — a 41-line shim is not a "main", and the ribbon has said "Set Defaults" since v2.4.1). `RunSetTPDDefaults` shows `frmSetTPDDefaults` modally, then (for the "Save & Run" button — [#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)) runs `WithPerformance gPendingDefaultsFlow` **after** `Unload`, so the perf wrapper's screen/calc toggling happens with no modal form in memory. `gPendingDefaultsFlow` is a public `String` the form sets to a `PERF_*_DEFAULTS` constant (cleared before show and before run). `ClearTPDDefaultsStatusBar` is the `Application.OnTime` target that wipes the save confirmation (must be a standard-module sub — `OnTime` can't call into a form). **Its name is load-bearing:** the form schedules it by string literal, the only such reference in the codebase, so renaming it would silently stop the status bar clearing. |
+### `modPreferences`
+
+Per-user key/value preference storage.
+
+- Stored in the Windows registry via `SaveSetting` / `GetSetting`, under
+  `HKCU\Software\VB and VBA Program Settings\TPD_Addin\Preferences`.
+- Registry, not a sheet inside the `.xlam`: Excel never saves an add-in on exit, so in-workbook writes were
+  silently lost on quit ([#84]).
+- `SavePref` / `LoadPref` / `DeletePref` for single values. A missing key returns the caller's default.
+- `SaveColumnList` / `LoadColumnList` for comma-separated column lists.
+- `ResolveColumnList(keys, fallbackCsv)` and `ResolveGroupColumn(keys, fallback)` walk a caller-supplied key
+  array in priority order and return the first non-empty saved value, else the shipped default ([#96]).
+  - Pickers pass `Array(LastUsed*, DefaultUser*)`.
+  - One-click flows pass `Array(DefaultUser*)`.
+- Each of those two is a thin registry-reading wrapper around a pure sibling — `FirstNonEmptyColumnList` /
+  `FirstNonEmptyValue` — that picks among already-read values. The pure ones have unit tests ([#163]).
+- `SavePrefs` writes an array of key/value pairs. It returns `False` if any write failed; there is no rollback.
+- `AllPrefsUnset` is `True` only if every listed key reads back empty.
+- `LoadToggle(key, defaultOn)` / `SaveToggle(key, isOn)` store a boolean as `"1"` / `"0"`.
+
+Support for the Set Defaults dialog:
+
+- `NormalizeColumnList` — tabs / CR / LF become `, `, empties are dropped, duplicates are kept.
+- `CollapseWhitespace` — a heading name's compare form: tabs to spaces, then
+  `modHelpers_Strings.NormalizeCellText`.
+- `SaveAllDefaults` and `DefaultsNeverSaved` — thin callers of `SavePrefs` / `AllPrefsUnset` over the one shared
+  list of the four dialog keys, `DefaultsPrefKeys` ([#102]).
+
+### `modPreferences_KeyMap`
+
+Every preference key, as a `PREF_*` constant, so keys never float as loose string literals.
+
+Column defaults are three layers ([#96]):
+
+| Layer | Keys | Written by | Read by |
+|---|---|---|---|
+| Shipped | none — `modPreferences_Defaults` | — | everything, as the last fallback |
+| User one-click (`DefaultUser*`) | `PREF_EQLIST_COLUMNS`, `PREF_SCHEDULE_COLUMNS`, `PREF_SPLIT_COLUMNS`, `PREF_SPLIT_GROUPCOL` | **only** the Set Defaults dialog | one-click buttons; pickers as their second choice |
+| User picker (`LastUsed*`) | `PREF_EQLIST_PICKER_COLUMNS`, `PREF_SCHEDULE_PICKER_COLUMNS`, `PREF_SPLIT_PICKER_COLUMNS`, `PREF_SPLIT_PICKER_GROUPCOL` | the picker forms, on OK | pickers, as their first choice |
+
+- Pickers resolve `LastUsed*` → `DefaultUser*` → shipped.
+- One-click resolves `DefaultUser*` → shipped.
+
+Other keys:
+
+- `PREF_LOGO_PATH` — the user's chosen header logo ([#95]).
+- `PREF_SETDEFAULTS_LAST_TAB` — the Set Defaults dialog's last-shown tab ([#135]).
+- Seven EQ List behaviour toggles, stored `"1"` / `"0"`: `PREF_EQLIST_REMOVE_BLANK_ROWS`,
+  `PREF_EQLIST_REMOVE_PARENT_ROWS`, `PREF_EQLIST_ADD_COUNT_COLUMN`, `PREF_EQLIST_PLAIN_PARENT_ROWS`,
+  `PREF_EQLIST_BOLD_PARENT_ROWS`, `PREF_EQLIST_ADD_CELL_BORDERS`, `PREF_EQLIST_ADD_COLUMN_FILTERS`.
+  - They are **not** in `DefaultsPrefKeys`, so they cannot trip the dialog's first-run notice.
+- `PREF_VERSION` — the add-in version last run by this user.
+
+### `modPreferences_Defaults`
+
+What the add-in ships as, before a user saves anything. The single source for both pickers and one-click ([#98]).
+
+- The shipped column lists, comma-separated: `DefaultEqListColumns`, `DefaultScheduleColumns`,
+  `DefaultSplitColumns`, `DefaultSplitGroupColumn`.
+- They seed the dialog's first run, back its per-page "Restore defaults", are the value `LoadPref` returns for
+  an unsaved key, and are the final `ResolveColumnList` / `ResolveGroupColumn` fallback.
+
+The EQ List toggle table (`EqListToggleTable`) holds one row per toggle:
+
+| Toggle | Ships | Needs a `PURCHASED` column |
+|---|---|---|
+| Remove PARENT rows | off | yes |
+| Add EQ Count column | off | yes |
+| Plain PARENT rows | off | yes |
+| Add cell borders | **on** | no |
+| Add column filters | off | no |
+| Remove blank rows | **on** | no |
+| Bold PARENT rows | off | yes |
+
+- Each row is a `key|shipsOn|display name|needsPurchased` string. Keep it a flat array of delimited strings:
+  an earlier array-of-arrays version raised an unhandled error in the lookup and the cause was never found.
+- Readers: `EqListToggleKeys` (every key, in checkbox order), `EqListToggleShipsOn`, `EqListToggleName`,
+  `EqListToggleNeedsPurchased`, and `LoadEqListToggle` (saved value, else the shipped one).
+- Adding a toggle = a `PREF_*` constant, a row here, a checkbox, and one line each in the form's
+  `LoadEqListToggles` / `SaveEqListToggles`.
+- The `TOGGLE_*` field-position constants sit at the top of the module. Module-level constants below the
+  first procedure do not resolve.
+
+### `modPreferences_Initializer`
+
+- `InitializePreferences` stamps `PREF_VERSION` with `ADDIN_VERSION` when it changes (for support and
+  diagnostics).
+- It seeds no values: `LoadPref` returns the caller's default for any unset key.
+
+### `modSetDefaults`
+
+The "Set Defaults" ribbon entry point.
+
+- `RunSetTPDDefaults` shows `frmSetTPDDefaults` modally.
+- For the dialog's "Save & Run" button it then runs `WithPerformance gPendingDefaultsFlow` **after** `Unload`,
+  so the perf wrapper's screen and calculation toggling happens with no modal form in memory ([#100]).
+- `gPendingDefaultsFlow` is a public `String` the form sets to a `PERF_*_DEFAULTS` constant. It is cleared
+  before the form shows and before the flow runs.
+- `ClearTPDDefaultsStatusBar` is the `Application.OnTime` target that wipes the save confirmation. It must be
+  a sub in a standard module, because `OnTime` cannot call into a form.
+- **Its name is load-bearing.** The form schedules it by string literal — the only such reference in the
+  codebase — so renaming it would silently stop the status bar clearing. `tools/Test-StaticChecks.ps1` checks
+  that the name still resolves.
 
 ## TPD_Addin.Forms
 
-Every UserForm lives here — `src/Forms` on disk, `TPD_Addin.Forms` in Rubberduck's Code Explorer — rather than beside the flow that shows it, so all five are in one place. Each form still belongs to a feature area — which flow shows it is documented in that feature's section above.
+Every UserForm lives here — `src/Forms` on disk, `TPD_Addin.Forms` in Code Explorer — and not beside the flow
+that shows it, so all five are in one place. Which flow shows a form is in that flow's section above.
 
-Shared code-behind lives in the Helpers group: `modHelpers_DialogChrome` (brand band + About links, all five forms), `modHelpers_ColumnPicker` (grid build, pre-fill, OK-guard and save — the three pickers), `modHelpers_CheckboxLayout` / `modHelpers_CheckboxSelection` (the checkbox grid itself). What stays on a form is its controls, its event handlers (a standard module can't wire an event) and whatever is genuinely its own.
+What is shared, and where it lives (all in Helpers):
 
-| Form | Purpose |
-|---|---|
-| `frmCustEQListColumnPicker` | UserForm for choosing which columns to keep when creating a Customer EQ List. `LoadColumns` is one call to `modHelpers_ColumnPicker.InitColumnPicker` with this picker's control prefix, keys and shipped list (`PREF_EQLIST_PICKER_COLUMNS`, `PREF_EQLIST_COLUMNS`, `DefaultEqListColumns()`) — grid build and pre-fill are shared with the other two pickers ([#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81), [#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)); no inline default array any more ([#98](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/98)). `cmdOK_Click` is one call to `CommitColumnPicker`, which guards "at least one column ticked" ([#104](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/104)) and writes the picker-only `PREF_EQLIST_PICKER_COLUMNS` key (never the shared Set-Defaults key). Controls: `fraColumns`, `cmdOK`, `cmdCancel`, and — since [#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118) — the house-style chrome shared with `frmSetTPDDefaults`: `lblBrandBar` + `imgBrandLogo`, `lblTitle` ("Customer EQ List", replacing the old bold `lblCustEQListTitle`), `lblHelp`, and `lblVersion` / `lblUserGuide` links bottom-left. `UserForm_Initialize` calls `modHelpers_DialogChrome.ApplyDialogChrome` + `InitAboutLinks`; the two link `_Click`s call `modAbout`. Since [#149](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/149) a `cmdSelectAll` / `cmdSelectNone` / `cmdRestoreColumns` row above `fraColumns` (`SetAllColumns` / `RestoreColumnDefaults PREF_EQLIST_COLUMNS, DefaultEqListColumns()`). (The [#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82) `txtImgPath` / `cmdBrowse` / `lblSelectLogo` vestiges were removed in the VBE.) |
-| `frmCustScheduleColumnPicker` | UserForm for choosing which columns to keep — its `.frx` started as a byte-clone of `frmCustEQListColumnPicker.frx` ([#113](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/113)); since [#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118) the shared `lblTitle` carries "Customer Schedule" as a **design-time** caption (folding in [#114](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/114) — the run-time retext hack is gone). Visual twin of `frmCustEQListColumnPicker`: identical chrome (`lblBrandBar` / `imgBrandLogo` / `lblHelp` / `lblVersion` / `lblUserGuide`, same `UserForm_Initialize` block). `LoadColumns` / `cmdOK_Click` are the same single `InitColumnPicker` / `CommitColumnPicker` calls the EQ picker makes, with `PREF_SCHEDULE_PICKER_COLUMNS`, `PREF_SCHEDULE_COLUMNS` and `DefaultScheduleColumns()`. Same `cmdSelectAll` / `cmdSelectNone` / `cmdRestoreColumns` row as the EQ picker ([#149](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/149)), `RestoreColumnDefaults PREF_SCHEDULE_COLUMNS, DefaultScheduleColumns()`. |
-| `frmSplitSheetOptions` | UserForm for choosing the group-by column and which columns to keep when splitting a sheet. `LoadColumns` calls `InitColumnPicker` for the checkbox grid (`PREF_SPLIT_PICKER_COLUMNS`, `PREF_SPLIT_COLUMNS`, `DefaultSplitColumns()`), then does its own part — populates the group dropdown and `SelectGroupColumn` selects the resolved group value (`ResolveGroupColumn(Array(PREF_SPLIT_PICKER_GROUPCOL, PREF_SPLIT_GROUPCOL), DefaultSplitGroupColumn())`), matching on the `NormalizeCellText` compare form of both sides so a whitespace-dirty saved preference still resolves ([#103](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/103)); falls back to the first column if not found (the "Vendor" literal is gone — [#98](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/98)). `cmdOK_Click` validates the group column itself, then hands the columns to `CommitColumnPicker` (the "at least one column" guard plus the `PREF_SPLIT_PICKER_COLUMNS` write — [#10](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10)) and saves `PREF_SPLIT_PICKER_GROUPCOL` alongside it ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)). Since [#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118) it also carries the house-style chrome (`lblBrandBar` / `imgBrandLogo` / `lblTitle` "Split Sheet by Column" / `lblHelp` / `lblVersion` / `lblUserGuide`, `lblGroupColumn` reworded "Group rows by") via the same `modHelpers_DialogChrome` calls, and a `cmdSelectAll` / `cmdSelectNone` / `cmdRestoreColumns` row ([#149](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/149)) that acts on `fraColumns` only, never `cboGroupColumn` (`RestoreColumnDefaults PREF_SPLIT_COLUMNS, DefaultSplitColumns()`). |
-| `frmFilenameOptions` | UserForm for appending free text and/or today's date to exported filenames (`UserAppend` / `IncludeDate` / `Cancelled` outputs). Since [#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118): the compact form of the house style (`lblBrandBar` / `imgBrandLogo` / `lblTitle` "Filename Options" / `lblHelp` / `lblVersion` / `lblUserGuide`) plus a live **Preview** — `lblFullFilename` inside `fraPreview`, recomputed by `RefreshPreview` on every `txtAppend_Change` / `chkIncludeDate_Click` via `modHelpers_Export.PreviewExportFileName`. The caller seeds `frm.SampleSheetName = wb.ActiveSheet.Name` before `.Show`. |
-| `frmSetTPDDefaults` | The "Set TPD Defaults" dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25), [#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)). MultiPage (`mpgPages`) with EQ List / Schedule / Split Sheets / Logo tabs. Each column tab is a MultiLine TextBox of plain comma-separated header names, normalized on paste (Ctrl+V caught on `KeyUp`) and on `Exit`; per-tab "Restore defaults" resets from `modPreferences_Defaults`. The footer is **Save** / **Save & Run** / **Cancel** ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)): `cmdOK_Click` (the relabelled "Save") and `cmdSaveRun_Click` share `CommitDefaults()` (normalize → empty guard → staged logo → `SaveAllDefaults`, returns `False` having already shown the reason); Save & Run then sets `modMain_SetTPDDefaults.gPendingDefaultsFlow` from `PerfConstForActivePage()` before `Me.Hide` so the open tab's one-click flow runs after unload. `SyncSaveRunVisibility` (called on load and from `mpgPages_Change`) hides `cmdSaveRun` on the Logo tab. Save blocks with a message if any of the three column-list fields is empty (an empty list is never meaningful — every consumer reads it as "use the built-in defaults" — so "Restore defaults" is the way to get the built-in list; the Split group-column field is allowed empty — [#104](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/104)), then `SaveAllDefaults` → status-bar confirm (no MsgBox on success); a write failure keeps the form open with a `vbCritical` box. Cancel / Esc / title-bar X all discard silently. `lblFirstRunNotice` (the "these are the built-in defaults" banner) is a **form-level** control above `mpgPages`, not a child of `pgEqList` — `ApplyFirstRunNoticeLayout` shows it only while `DefaultsNeverSaved()`, and when shown drops `mpgPages` down / shrinks it by the banner's height so the tabs don't jump ([#99](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/99)). The dialog reopens on the tab it last showed — `mpgPages_Change` writes `PREF_SETDEFAULTS_LAST_TAB`, `SavedTabIndex` reads it back (clamped, default 0) in `UserForm_Initialize`; `mInitializing` guards the load from bouncing through the change handler ([#135](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/135)). The **Logo tab** ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95) / [#109](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109)): **Choose image…** (`Application.FileDialog`, PNG/JPG/GIF/BMP) and **Use built-in logo** *stage* a change — `imgLogoPreview` (zoomed) previews it via `modGdiPlus.LoadPictureGDIP` and `lblLogoStatus` says "On OK: …" — that OK's `cmdOk_Click` applies via `ApplyPendingLogo` → `modHelpers_Logo.SetUserLogo` / `ClearUserLogo` *before* the column save; Cancel discards. When the built-in logo is active `imgLogoPreview` shows its own design-time picture (set in the VBE from `assets/tpdHeaderLogo.jpg`, cached in `mBuiltInLogoPic`) — there's no reliable Shape-to-`Picture` path for the `_Resources` shape. In the bottom corner (outside `mpgPages`, so on every tab) two link-style labels — `lblVersion` (`v<ADDIN_VERSION>` → this version's GitHub release page) and `lblUserGuide` (→ the wiki). Captions, tooltips, the blue/underline look and the brand band all come from `modHelpers_DialogChrome` (`ApplyDialogChrome` + `InitAboutLinks`), the same calls the other four dialogs make — the form's own private copies of that code are gone; only the two `_Click` handlers into `modAbout` stay on it ([#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94), [#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)). Each tab carries a muted hint label under its field (`lblEqListHelp` / `lblScheduleHelp` / `lblSplitColsHelp` / `lblSplitGroupHelp` / `lblLogoHelp`); `SetHelperText` sets their captions and grey colour in code, same source-visibility reason as the About links ([#143](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/143)). The EQ List page also has five behaviour checkboxes (`cbxRemoveParentRows` / `cbxAddItemCountColumn` / `cbxPlainParentRows` / `cbxAddCellBorders` / `cbxAddColumnFilters` — [#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97)); `LoadEqListToggles` fills them, `SaveEqListToggles` (called from `CommitDefaults` after the column keys) persists them via `modPreferences.SaveToggle`, and `cmdRestoreEqList_Click` resets them (all off bar "Add cell borders"). |
+- `modHelpers_DialogChrome` — brand band and About links, on all five forms.
+- `modHelpers_ColumnPicker` — grid build, pre-fill, OK-guard and save, for the three pickers.
+- `modHelpers_CheckboxLayout` / `modHelpers_CheckboxSelection` — the checkbox grid itself.
+
+What stays on a form: its controls, its event handlers (a standard module cannot wire an event), and whatever
+is genuinely its own.
+
+Chrome common to all five forms:
+
+- Controls `lblBrandBar`, `imgBrandLogo`, `lblTitle`, `lblHelp`, and the `lblVersion` / `lblUserGuide` links.
+- `UserForm_Initialize` calls `ApplyDialogChrome` and `InitAboutLinks`.
+- The two link `_Click` handlers call `modAbout`.
+
+Common to the three column pickers:
+
+- `LoadColumns` is one call to `InitColumnPicker` with that picker's keys and shipped list.
+- `cmdOK_Click` hands the ticked columns to `CommitColumnPicker`, which refuses an empty selection ([#104])
+  and writes the picker's own `LastUsed*` key — never the Set Defaults key.
+- A `cmdSelectAll` / `cmdSelectNone` / `cmdRestoreColumns` row above `fraColumns` calls `SetAllColumns` /
+  `RestoreColumnDefaults` ([#149]).
+- Other controls: `fraColumns`, `cmdOK`, `cmdCancel`.
+
+### `frmCustEQListColumnPicker`
+
+Chooses which columns to keep for a Customer EQ List.
+
+- Title: "Customer EQ List".
+- Keys: `PREF_EQLIST_PICKER_COLUMNS` (its own), `PREF_EQLIST_COLUMNS` (the Set Defaults one).
+- Shipped list: `DefaultEqListColumns()`.
+
+### `frmCustScheduleColumnPicker`
+
+Chooses which columns to keep for a Customer Schedule. A visual twin of the EQ List picker.
+
+- Title: "Customer Schedule", set as a design-time caption.
+- Keys: `PREF_SCHEDULE_PICKER_COLUMNS`, `PREF_SCHEDULE_COLUMNS`.
+- Shipped list: `DefaultScheduleColumns()`.
+
+### `frmSplitSheetOptions`
+
+Chooses the group-by column and which columns to keep when splitting a sheet.
+
+- Title: "Split Sheet by Column". The dropdown `cboGroupColumn` is labelled "Group rows by" (`lblGroupColumn`).
+- Column grid keys: `PREF_SPLIT_PICKER_COLUMNS`, `PREF_SPLIT_COLUMNS`; shipped list `DefaultSplitColumns()`.
+- `LoadColumns` calls `InitColumnPicker`, then fills the group dropdown itself.
+- `SelectGroupColumn` selects
+  `ResolveGroupColumn(Array(PREF_SPLIT_PICKER_GROUPCOL, PREF_SPLIT_GROUPCOL), DefaultSplitGroupColumn())`.
+  - It matches on the `NormalizeCellText` compare form of both sides, so a whitespace-dirty saved value still
+    resolves ([#103]).
+  - It falls back to the first column if the value is not found.
+- `cmdOK_Click` validates the group column itself, then calls `CommitColumnPicker` ([#10]) and saves
+  `PREF_SPLIT_PICKER_GROUPCOL` alongside.
+- The Select all / none / Restore defaults row acts on `fraColumns` only, never on `cboGroupColumn`.
+
+### `frmFilenameOptions`
+
+Appends free text and/or today's date to exported filenames.
+
+- Outputs: `UserAppend`, `IncludeDate`, `Cancelled`.
+- Title: "Filename Options". It uses the compact form of the shared chrome.
+- Live **Preview**: `lblFullFilename` inside `fraPreview`, recomputed by `RefreshPreview` on every
+  `txtAppend_Change` / `chkIncludeDate_Click` via `modExport_Files.PreviewExportFileName`.
+- The caller seeds `frm.SampleSheetName = wb.ActiveSheet.Name` before `.Show`.
+- The first preview is drawn in `UserForm_Activate`, not `UserForm_Initialize`. Assigning `SampleSheetName` is
+  the caller's first member access, so `Initialize` runs before that value lands ([#154]).
+
+### `frmSetTPDDefaults`
+
+The "Set Defaults" dialog ([#25]).
+
+Layout:
+
+- A MultiPage (`mpgPages`) with EQ List / Schedule / Split Sheets / Logo tabs.
+- Footer: **Save** (`cmdOK`) / **Save & Run** (`cmdSaveRun`) / **Cancel** ([#100]).
+- `lblVersion` and `lblUserGuide` sit in the bottom corner, outside `mpgPages`, so they show on every tab.
+- Each tab has a muted hint label under its field: `lblEqListHelp`, `lblScheduleHelp`, `lblSplitColsHelp`,
+  `lblSplitGroupHelp`, `lblLogoHelp`.
+- `SetHelperText` sets those captions and their grey colour in code, so the text stays visible in review
+  instead of hiding in the `.frx` ([#143]).
+
+Column tabs:
+
+- Each is a MultiLine TextBox of plain comma-separated heading names.
+- Text is normalized on paste (Ctrl+V caught on `KeyUp`) and on `Exit`.
+- A per-tab "Restore defaults" button resets from `modPreferences_Defaults`.
+
+EQ List behaviour toggles ([#97]):
+
+- Seven checkboxes: `cbxRemoveBlankRows`, `cbxRemoveParentRows`, `cbxAddItemCountColumn`, `cbxPlainParentRows`,
+  `cbxBoldParentRows`, `cbxAddCellBorders`, `cbxAddColumnFilters`.
+- They sit in the frame `fraEqListOptions`. `cbxRemoveBlankRows` and `cbxBoldParentRows` are in its right-hand
+  column.
+- `LoadEqListToggles` fills them. `SaveEqListToggles` persists them via `modPreferences.SaveToggle`; it is
+  called from `CommitDefaults` after the column keys.
+- `cmdRestoreEqList_Click` resets each to its shipped value (`EqListToggleShipsOn`).
+
+Saving:
+
+- `cmdOK_Click` and `cmdSaveRun_Click` share `CommitDefaults()`: normalize → empty guard → staged logo →
+  `SaveAllDefaults`. It returns `False` having already shown the reason.
+- Save is blocked, with a message, if any of the three column-list fields is empty ([#104]).
+  - An empty list is never meaningful: every consumer reads it as "use the built-in defaults", so
+    "Restore defaults" is the way to get the built-in list.
+  - The Split group-column field **is** allowed to be empty.
+- On success there is a status-bar confirmation and no MsgBox. `ClearTPDDefaultsStatusBar` clears it later.
+- A write failure keeps the form open and shows a `vbCritical` box.
+- Cancel, Esc and the title-bar X all discard silently.
+- Save & Run sets `modSetDefaults.gPendingDefaultsFlow` from `PerfConstForActivePage()` before `Me.Hide`, so the
+  open tab's one-click flow runs after the form unloads.
+- `SyncSaveRunVisibility` (called on load and from `mpgPages_Change`) hides `cmdSaveRun` on the Logo tab.
+
+First-run notice ([#99]):
+
+- `lblFirstRunNotice` ("these are the built-in defaults") is a **form-level** control above `mpgPages`, not a
+  child of `pgEqList`.
+- `ApplyFirstRunNoticeLayout` shows it only while `DefaultsNeverSaved()`. When shown, it moves `mpgPages` down
+  and shrinks it by the banner's height so the tabs do not jump.
+
+Remembered tab ([#135]):
+
+- `mpgPages_Change` writes `PREF_SETDEFAULTS_LAST_TAB`.
+- `SavedTabIndex` reads it back in `UserForm_Initialize` (clamped, default 0).
+- `mInitializing` stops the load from bouncing through the change handler.
+
+Logo tab ([#95], [#109]):
+
+- **Choose image…** (`Application.FileDialog`; PNG / JPG / GIF / BMP) and **Use built-in logo** only *stage*
+  a change.
+- `imgLogoPreview` (zoomed) previews the staged image via `modGdiPlus.LoadPictureGDIP`, and `lblLogoStatus`
+  says "On OK: …".
+- Save applies it through `ApplyPendingLogo` → `modHelpers_Logo.SetUserLogo` / `ClearUserLogo`, *before* the
+  column save. Cancel discards it.
+- When the built-in logo is active, `imgLogoPreview` shows its own design-time picture, set in the VBE from
+  `assets/tpdHeaderLogo.jpg` and cached in `mBuiltInLogoPic`. There is no reliable Shape-to-`Picture` path for
+  the `_Resources` shape.
 
 ## TPD_Addin.Helpers
 
-Shared utilities used across more than one feature area.
+Shared utilities used by more than one feature area.
 
-| Module | Purpose |
+### `modHelpers_Workbook`
+
+Sheet and workbook utilities.
+
+- `RequireActiveWorkbook` — the standard "stop with a message if no workbook is open" guard.
+- `GetFirstVisibleSheet` — guards no-workbook and no-visible-sheet; returns `Nothing` after a message.
+- `CreateNewSheetAfterLast`, `CreateOrClearSheet` — add a named sheet, or reuse and empty an existing one.
+- `GetNextAvailableSheetName` — the next free sheet name for a base name.
+- `SheetExists(wb, name)` — use `SheetExists(ThisWorkbook, name)` for "does this sheet exist in the add-in".
+- `IsWorkbookOpen(fileName)`.
+- `GetLastRow` — the last row with content in *any* column. `Find`-based and safe on an empty sheet.
+  - This is the "end of the data table" helper. Use a per-column `.End(xlUp)` only when you mean that one
+    column ([#89]).
+- `GetLastCol` — the last-column equivalent.
+
+### `modHelpers_Headers`
+
+- `GetHeadingList` reads a worksheet's heading row into an array.
+- `FindHeadingIndex` finds a heading's column index.
+  - It scans right-to-left by default, so the authoritative "Vendor" column wins over decoy columns ([#45]).
+  - Pass `preferRightmost:=False` for a plain left-to-right lookup.
+
+### `modHelpers_Columns`
+
+Column selection, ordering and row copying.
+
+- `CollectionContainsText` — collection-membership test.
+- `DeleteUnselectedColumnsByHeading` — deletes columns not in a selected-headings list.
+- `ReorderColumnsByHeading` — cut/inserts the kept columns into a chosen heading order. EQ List and Schedule
+  call it after the delete, so the order set in Set Defaults is honoured ([#127]).
+- `HeadingsPresentOnSheet` — the subset of a wanted list that actually appears on a sheet's heading row, so a
+  default list matching nothing cannot delete every column ([#96]).
+- `ResolveOneClickColumns(ws, defaultKey, shippedCsv, flowName, pickerCommand)` — for the one-click buttons:
+  saved Set Defaults value → shipped list → narrowed to the sheet. Returns `Nothing` after one shared
+  "none of your default *flowName* columns were found" message.
+- `GetUniqueValuesInColumn` — the unique values in a column.
+- `CopyFilteredRowsByColumns` — copies matching rows across sheets, projected onto a column selection in the
+  selection's order ([#127]). **Values only**; formatting is the caller's job.
+- `CopyEntireSheetRows` — copies every row verbatim. A whole-row copy carries row grouping across.
+
+Four of these are thin `Worksheet`-facing wrappers around a pure sibling that takes and returns plain values
+only. The pure ones have Rubberduck unit tests in `/tests/unit`, which `BuildAddin` never imports ([#163]):
+
+| Sheet-facing | Pure |
 |---|---|
-| `modHelpers_Workbook` | Sheet/workbook utilities: `RequireActiveWorkbook` (the standard "bail with a message if no workbook is open" guard), `GetFirstVisibleSheet` (guards no-workbook / no-visible-sheet, returns `Nothing`), create-or-clear a sheet by name, next available sheet name, last-row (`GetLastRow` — last row with content in *any* column, `Find`-based, safe on an empty sheet; the "end of the data table" helper, vs a per-column `.End(xlUp)` which you use only when you mean that one column — [#89](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/89)) / last-column lookups, and `IsWorkbookOpen(fileName)`. |
-| `modHelpers_Headers` | Reads a worksheet's heading row into an array; finds a heading's column index. `FindHeadingIndex` defaults to a right-to-left scan so the authoritative "Vendor" column wins over decoy columns; pass `preferRightmost:=False` for a plain left-to-right lookup ([#45](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/45)). |
-| `modHelpers_Columns` | Collection-membership helper; deletes columns not in a selected-headings list; `ReorderColumnsByHeading` cut/inserts the kept columns into a chosen heading order (EQ List / Schedule call it after the delete so the order set in Set TPD Defaults is honoured — [#127](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/127)); `HeadingsPresentOnSheet` returns the subset of a wanted list that actually appears on a sheet's heading row, so a default list matching nothing can't delete every column ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)); `ResolveOneClickColumns(ws, defaultKey, shippedCsv, flowName, pickerCommand)` wraps that for the one-click buttons — saved Set Defaults value → shipped list → narrowed to the sheet, returning `Nothing` after one shared "none of your default *flowName* columns were found" message (the EQ List and Schedule one-clicks were carrying a copy each); gets unique values in a column; `CopyFilteredRowsByColumns` copies matching rows across sheets projected onto a column selection in the selection's order ([#127](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/127); data only — formatting is the caller's job); `CopyEntireSheetRows` copies every row verbatim (whole-row copy carries row grouping across). Four of these are thin `Worksheet`-facing wrappers around a pure sibling taking/returning plain values only — `HeadingsPresentOnSheet`/`HeadingsPresentIn`, `GetUniqueValuesInColumn`/`UniqueValues`, the column-map building inside `CopyFilteredRowsByColumns`/`BuildOrderedColumnMap`, and `ReorderColumnsByHeading`/`PlanColumnMoves` (the cut/insert move sequence) — the first module split this way as prep for Rubberduck unit tests ([#163](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163); tests live in `/tests/unit`, never imported by `BuildAddin`). |
-| `modHelpers_Strings` | String sanitizing helpers: `SanitizeSheetName`, `SanitizeFileText`, and `NormalizeCellText` (first physical line, NBSP→space, collapsed spaces, trimmed — used wherever cell values are compared or deduped). |
-| `modHelpers_SheetSetup` | Header-block construction: `InsertEQHeaderBlock` (the EQ title block; the Customer EQ List flow adds the logo + freeze separately) and `InsertDefaultCustScheduleHeader` (the schedule title block + Date text + logo in one call, used by the Customer Schedule flow). Owns `EQ_HEADER_ROW_COUNT` / `SCHEDULE_HEADER_ROW_COUNT`, `InsertRows`, and `GetTodaysDate`. |
-| `modHelpers_SheetFormatting` | Formats generated EQ / schedule / split sheets (borders, alignment, fonts), freezes panes, autofits used columns and data-row heights. `AutoFitDataRowHeights(ws, headingsRow)` autofits row height from `headingsRow` through the last data row so wrapped/multi-line cell text isn't clipped ([#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162)) — called right after `AutoFitUsedColumns` (row height depends on final column width) and, for the EQ List / Schedule flows, **before** their header/logo block is inserted (`InsertEQHeaderBlock` / `InsertDefaultCustScheduleHeader` just insert blank rows above and shift the rest down, so heights set here move down with their rows); Split Sheet has no header block, so `FormatSplitSheet` calls it directly. Note: Split Sheet's `CopyFilteredRowsByColumns` copies cell **values** only, not formatting, so a source column's `WrapText` never reaches the split output — the autofit call is harmless there but currently a no-op for wrapped text specifically, unlike EQ List/Schedule's whole-row copy which does carry `WrapText` over. `FormatDataTable(ws, headingsRow, leftAlignHeading, addBorders)` (called `FormatEQSheet` until the naming pass — the Schedule flow calls it too, so the name was a lie) centres every column except `leftAlignHeading` (default `"Description"`; the schedule flow passes `"Tasks"`), which keeps its natural left alignment; `addBorders` (default `True`) gates the thin data-range border so the EQ List "Add cell borders" toggle can drop it ([#122](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/122)). `StripCarriedRowFormatting(ws, headingsRow, preserveStructuralRows, clearFontEmphasis)` (was `StripDataRowFill`) removes the formatting a row-for-row copy carries over from the source sheet: the fill on every row and, on data rows, the font emphasis too (bold / italic / underline / strikethrough / colour → automatic, [#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169)). The EQ List / Schedule `_DoWork` call it right after `CopyEntireSheetRows`, **before** any columns are dropped so the `PURCHASED` / `INTERNAL ID` / `CUSTOMER ID` lookups still see the full source. `preserveStructuralRows:=True` (EQ List) leaves the rows the pure `IsStructuralRow` picks untouched, fill and font both. With a `PURCHASED` column, that's `PARENT` rows only. With no `PURCHASED` column, it falls back to rows with neither ID ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170)). The default (Schedule) clears every row. The Schedule also passes `clearFontEmphasis:=False`, because once every fill is gone, bold is what marks its summary rows. Replaced an order-sensitive column-A guard that made the picker and one-click outputs disagree ([#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130)). |
-| `modGdiPlus` | `LoadPictureGDIP(fileName)` — loads any raster image (PNG / JPG / GIF / BMP / TIFF) into an `stdole.IPictureDisp` for an MSForms `Image` control; VBA's built-in `LoadPicture` can't read PNG. The codebase's **only `Declare`** — isolated here, `#If VBA7` guarded, and every failure path returns `Nothing` (never raises). Backs the Set TPD Defaults logo preview ([#109](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109)). |
-| `modHelpers_Logo` | Positions/resizes the header logo: `InsertDefaultLogo` (alignment keywords, optional scale-to-max-rows) inserts the user's chosen image via `Shapes.AddPicture` when `EffectiveLogoPath()` is set, otherwise copies the embedded `DefaultLogoShape()` (`_Resources` / `DefaultLogo`, resolved in one place — [#105](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/105)); `ResizeImageToMaxRows` is the scaler. User-logo management ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95)): `SetUserLogo` (validate + copy into `UserLogoDir()` = `%APPDATA%\TPD_Addin\` + save `PREF_LOGO_PATH`), `ClearUserLogo`, `EffectiveLogoPath` (the copy if it still exists, else `""`), `LogoPreviewPicture` (for the dialog). The file-path `InsertLogoAtRight` pair went in [#82](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/82); the dead `PastePicture` stub in [#105](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/105). |
-| `modHelpers_CheckboxLayout` | Builds the checkbox grid shared by the three column-picker forms — one box per heading, **at most 3** columns, filled top-to-bottom then left-to-right (column-major). More headings than fit in 3 columns at `rowsPerColumn` height → the columns grow taller, never a 4th column ([#47](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47)). `NormalizeFrameScroll` gives `fraColumns` an **always-on** vertical scrollbar (`fmScrollBarsVertical` + `KeepScrollBarsVisible`, `ScrollHeight` = content or interior height, whichever is larger) so a short list shows an idle bar and a long one scrolls instead of the form growing ([#150](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/150)); column width subtracts a `SCROLLBAR_ALLOWANCE` so the third column clears the bar. Never resizes the frame or form. |
-| `modHelpers_CheckboxSelection` | Reads which checkboxes are checked into a `Collection` (`GetSelectedColumns`), tests whether any are checked (`HasColumnSelection`), and `ApplyColumnSelection(fra, resolved)` — checks exactly the boxes in `resolved` and clears the rest, a list the caller has already run through `modPreferences.ResolveColumnList` (both pickers call it after building the grid — [#81](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81), [#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)). `SetAllColumns(fra, isChecked)` and `RestoreColumnDefaults(fra, defaultUserKey, shippedCsv)` back the three pickers' Select all / none / Restore defaults row ([#149](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/149)); `RestoreColumnDefaults` resolves a **single** key (`DefaultUser*` → shipped), skipping the picker's `LastUsed*` so it matches the Set Defaults tabs' meaning. Neither persists — `cmdOK_Click` still writes `LastUsed*`. |
-| `modHelpers_ColumnPicker` | The column-picker behaviour the three picker forms share, so it is written once instead of three times. `InitColumnPicker(fra, headingList, rowsPerColumn, baseName, pickerKey, defaultKey, shippedCsv)` builds the grid (`LayoutCheckboxes`) and ticks the resolved selection (`ResolveColumnList(Array(pickerKey, defaultKey), shippedCsv)` → `ApplyColumnSelection`). `CommitColumnPicker(fra, pickerKey)` is the OK-button guard and save: `False` (having shown the reason) when nothing is ticked, otherwise it writes the ticked set to the picker's own `LastUsed*` key and returns `True` — the one-click `DefaultUser*` key is never touched here. |
-| `modHelpers_Reporting` | `ReportBatchOutcome(summary, failures, failureNoun, errTitle, okTitle)` — the end-of-run summary box both batch flows show ("N done" plus a list of `'name': reason` failures, a warning when there are any and an info box when there aren't). Used by Split Sheet by Column and Save Each Sheet to XLSX; it lived in `modHelpers_Export` until the naming pass moved the one genuinely shared routine there into Helpers. |
-| `modHelpers_DialogChrome` | Shared run-time chrome for all five dialogs, `frmSetTPDDefaults` included, so they cannot drift apart ([#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)). `ApplyDialogChrome(brandBar, helpLabel)` — TPD-grey `lblBrandBar` fill + blank caption, `#4A4A4A` help colour. `InitAboutLinks(lblVersion, lblUserGuide)` — captions (`v<ADDIN_VERSION>` / "User guide"), `ControlTipText` (`modAbout.AboutReleaseUrl()` / `ABOUT_USER_GUIDE_URL`) and the blue-underline link look. Both `Nothing`-safe. Same "styling in code, not the `.frx`, so it stays in review" reason as `frmSetTPDDefaults`; the two `_Click` handlers stay on each form (a standard module can't wire an event). |
+| `HeadingsPresentOnSheet` | `HeadingsPresentIn` |
+| `GetUniqueValuesInColumn` | `UniqueValues` |
+| `CopyFilteredRowsByColumns` (its column map) | `BuildOrderedColumnMap` |
+| `ReorderColumnsByHeading` (its move sequence) | `PlanColumnMoves` |
+
+### `modHelpers_Strings`
+
+- `SanitizeSheetName`, `SanitizeFileText` — make text safe for a sheet name or a file name.
+- `NormalizeCellText` — first physical line, NBSP to space, collapsed spaces, trimmed. Used wherever cell
+  values are compared or de-duplicated.
+
+### `modHelpers_SheetSetup`
+
+Header-block construction.
+
+- `InsertEQHeaderBlock` — the EQ title block. The EQ List flow adds the logo and freezes panes separately.
+- `InsertDefaultCustScheduleHeader` — the schedule title block, Date text and logo in one call.
+- Owns `EQ_HEADER_ROW_COUNT` / `SCHEDULE_HEADER_ROW_COUNT`, `InsertRows` and `GetTodaysDate`.
+
+### `modHelpers_SheetFormatting`
+
+Formats the generated EQ List, Schedule and Split sheets: borders, alignment, fonts, frozen panes, column
+widths and row heights.
+
+`FormatDataTable(ws, headingsRow, leftAlignHeading, addBorders)`:
+
+- Centres every column except `leftAlignHeading`, which keeps its natural left alignment.
+- `leftAlignHeading` defaults to `"Description"`; the Schedule flow passes `"Tasks"`.
+- `addBorders` (default `True`) gates the thin data-range border, so the EQ List "Add cell borders" toggle
+  can drop it ([#122]).
+
+`StripCarriedRowFormatting(ws, headingsRow, preserveStructuralRows, clearFontEmphasis)`:
+
+- Removes the formatting a row-for-row copy carries over from the source sheet: the fill on every row and, on
+  data rows, the font emphasis too — bold, italic, underline, strikethrough, colour back to automatic ([#169]).
+- The EQ List and Schedule `_DoWork` call it right after `CopyEntireSheetRows`, **before** any columns are
+  dropped, so the `PURCHASED` / `INTERNAL ID` / `CUSTOMER ID` lookups still see the full source.
+- `preserveStructuralRows:=True` (EQ List) leaves the rows the pure `IsStructuralRow` picks untouched, fill and
+  font both:
+  - With a `PURCHASED` column, that is `PARENT` rows only.
+  - With no `PURCHASED` column, it falls back to rows with neither ID ([#170]).
+- The default (Schedule) clears the fill on every row.
+- The Schedule also passes `clearFontEmphasis:=False`: once every fill is gone, bold is what marks its
+  summary rows.
+- The rule is deliberately independent of row order, so the picker and one-click outputs agree ([#130]).
+
+`AutoFitDataRowHeights(ws, headingsRow)`:
+
+- Autofits row height from `headingsRow` through the last data row, so wrapped or multi-line text is not
+  clipped ([#162]).
+- Called right after `AutoFitUsedColumns`, because row height depends on the final column width.
+- For EQ List and Schedule it runs **before** the header/logo block is inserted. That insert only adds blank
+  rows above and shifts the rest down, so the heights move with their rows.
+- Split Sheet has no header block, so `FormatSplitSheet` calls it directly.
+- In Split output it currently does nothing for wrapped text: `CopyFilteredRowsByColumns` copies **values**
+  only, so a source column's `WrapText` never arrives. EQ List and Schedule copy whole rows, which does carry
+  `WrapText`.
+
+Also here: `FormatSplitSheet`, `SafeFreezePanes`, `AutoFitUsedColumns`.
+
+### `modGdiPlus`
+
+- `LoadPictureGDIP(fileName)` loads any raster image (PNG / JPG / GIF / BMP / TIFF) into an
+  `stdole.IPictureDisp` for an MSForms `Image` control. VBA's built-in `LoadPicture` cannot read PNG.
+- It is the codebase's **only `Declare`**: isolated here and `#If VBA7` guarded.
+- Every failure path returns `Nothing`; it never raises.
+- It backs the Set Defaults logo preview ([#109]).
+
+### `modHelpers_Logo`
+
+Places and sizes the header logo, and manages the user's own logo.
+
+- `InsertDefaultLogo` (alignment keywords, optional scale-to-max-rows):
+  - inserts the user's image via `Shapes.AddPicture` when `EffectiveLogoPath()` is set;
+  - otherwise copies the embedded `DefaultLogoShape()` — `_Resources` / `DefaultLogo`, resolved in that one
+    place ([#105]).
+- `ResizeImageToMaxRows` is the scaler.
+- User-logo management ([#95]):
+  - `SetUserLogo` — validates, copies into `UserLogoDir()` (`%APPDATA%\TPD_Addin\`) and saves `PREF_LOGO_PATH`.
+  - `ClearUserLogo`.
+  - `EffectiveLogoPath` — the copy if it still exists, else `""`.
+  - `LogoPreviewPicture` — for the dialog.
+
+### `modHelpers_CheckboxLayout`
+
+Builds the checkbox grid the three column pickers share (`LayoutCheckboxes`).
+
+- One box per heading, in **at most 3** columns, filled top-to-bottom then left-to-right (column-major).
+- More headings than fit in 3 columns at `rowsPerColumn` height make the columns taller, never add a 4th
+  column ([#47]).
+- `NormalizeFrameScroll` gives `fraColumns` an **always-on** vertical scrollbar (`fmScrollBarsVertical` plus
+  `KeepScrollBarsVisible`; `ScrollHeight` is the larger of content and interior height). A short list shows
+  an idle bar and a long one scrolls; the form never grows ([#150]).
+- Column width subtracts `SCROLLBAR_ALLOWANCE`, so the third column clears the bar.
+- It never resizes the frame or the form.
+
+### `modHelpers_CheckboxSelection`
+
+Reads and sets which checkboxes are ticked.
+
+- `GetSelectedColumns` — the ticked boxes, as a `Collection`.
+- `HasColumnSelection` — whether any box is ticked.
+- `ApplyColumnSelection(fra, resolved)` — ticks exactly the boxes in `resolved` and clears the rest. The
+  caller has already run the list through `modPreferences.ResolveColumnList` ([#81], [#96]).
+- `SetAllColumns(fra, isChecked)` — Select all / Select none.
+- `RestoreColumnDefaults(fra, defaultUserKey, shippedCsv)` — resolves a **single** key (`DefaultUser*` →
+  shipped), skipping the picker's `LastUsed*`, so it means the same as "Restore defaults" in Set Defaults.
+- Neither of the last two saves anything. `cmdOK_Click` still writes `LastUsed*`.
+
+### `modHelpers_ColumnPicker`
+
+The behaviour the three picker forms share, written once.
+
+- `InitColumnPicker(fra, headingList, rowsPerColumn, baseName, pickerKey, defaultKey, shippedCsv)`:
+  - builds the grid (`LayoutCheckboxes`);
+  - ticks the resolved selection: `ResolveColumnList(Array(pickerKey, defaultKey), shippedCsv)` →
+    `ApplyColumnSelection`.
+- `CommitColumnPicker(fra, pickerKey)` is the OK-button guard and save:
+  - returns `False`, having shown the reason, when nothing is ticked;
+  - otherwise writes the ticked set to the picker's own `LastUsed*` key and returns `True`.
+  - The one-click `DefaultUser*` key is never touched here.
+
+### `modHelpers_Reporting`
+
+- `ReportBatchOutcome(summary, failures, failureNoun, errTitle, okTitle)` — the end-of-run summary box.
+- It shows "N done" plus a list of `'name': reason` failures: a warning box when there are failures, an info
+  box when there are none.
+- Used by Split Sheet by Column and Save Each Sheet to XLSX.
+
+### `modHelpers_DialogChrome`
+
+Run-time chrome for all five dialogs, so they cannot drift apart ([#118]).
+
+- `ApplyDialogChrome(brandBar, helpLabel)` — TPD-grey `lblBrandBar` fill with a blank caption, and the
+  `#4A4A4A` help colour.
+- `InitAboutLinks(lblVersion, lblUserGuide)` — the captions (`v<ADDIN_VERSION>` / "User guide"), the
+  `ControlTipText` (`modAbout.AboutReleaseUrl()` / `ABOUT_USER_GUIDE_URL`) and the blue-underline link look.
+- Both are `Nothing`-safe.
+- Styling is done in code, not in the `.frx`, so it shows up in review.
+- The two `_Click` handlers stay on each form, because a standard module cannot wire an event.
 
 ## TPD_Addin.Core
 
-Add-in lifecycle and infrastructure — not directly user-facing.
+Add-in lifecycle and infrastructure. Not directly user-facing.
 
-| Module | Purpose |
-|---|---|
-| `modPerformance` | `WithPerformance` wrapper: disables `ScreenUpdating`/`EnableEvents` and sets manual calculation around a named internal routine, then restores them afterward. On an error inside the wrapped routine, `CleanUp` still restores all three settings and then surfaces `Err.Description` in a `MsgBox` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7)). The routine is selected by a `PERF_*` string constant passed by the ribbon callback, so a mistyped name fails to compile rather than hitting the `Unknown action` branch at run time ([#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36)). The Customer EQ List / Schedule / Split flows each contribute a picker `PERF_*` and a one-click `PERF_*_DEFAULTS` constant + `Case` ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96), [#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)). |
-| `modStartup` | `ADDIN_VERSION` constant + `InitializeAddIn`, called from `RibbonOnLoad`; runs `InitializePreferences` (registry version stamp). (`_Resources` + the embedded logo come from the base `.xlam`; the code-side fallback `modResources` was removed in [#62](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/62).) |
-| `modExport_VBAModules` | The VBA export macro `ExportAllVBAModules` that supports the source-control workflow itself. |
-| `modAbout` | The outbound links on the Set Defaults dialog ([#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)) — the two URLs (this version's GitHub release page via `AboutReleaseUrl` = `…/releases/tag/v<ADDIN_VERSION>`; the user guide `ABOUT_USER_GUIDE_URL` = the wiki) in one place, opened by `OpenReleasePage` / `OpenUserGuide` through a private `ThisWorkbook.FollowHyperlink` wrapper that swallows errors. Not a network call of our own — `FollowHyperlink` hands off to the default browser; the add-in still never checks GitHub for updates. |
+### `modPerformance`
 
-For "does this sheet exist in the add-in", use `SheetExists(ThisWorkbook, name)` from `modHelpers_Workbook` (the old single-purpose `modHelpers_Diagnostics.SheetExists2` was removed in [#50](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/50) — no callers, and it did nothing `SheetExists` didn't).
+- `WithPerformance` turns off `ScreenUpdating` and `EnableEvents` and sets manual calculation around one
+  internal routine, then restores all three.
+- On an error inside the routine, `CleanUp` still restores all three, then shows `Err.Description` in a
+  `MsgBox` ([#7]).
+- The routine is chosen by a `PERF_*` string constant, so a mistyped name fails to compile and never reaches
+  the `Unknown action` branch at run time ([#36]).
+- The EQ List, Schedule and Split flows each have a picker `PERF_*` and a one-click `PERF_*_DEFAULTS` constant,
+  each with a `Case`.
+- Adding a flow = a `PERF_*` constant, a `Case`, and a callback that passes it. `tools/Test-StaticChecks.ps1`
+  checks all three line up.
+
+### `modStartup`
+
+- Holds the `ADDIN_VERSION` constant.
+- `InitializeAddIn`, called from `RibbonOnLoad`, runs `InitializePreferences` (the registry version stamp).
+- `_Resources` and the embedded logo come from the base `.xlam`, not from code.
+
+### `modExport_VBAModules`
+
+- `ExportAllVBAModules` exports every component, document modules included, to `/src`. It is the macro behind
+  the source-control workflow.
+- Each file goes into the subfolder named by its module's `@Folder` tag.
+- It finds `/src` itself: it walks up from the workbook's folder to the repo root (a folder holding both `src`
+  and `customUI`), and falls back to a folder picker.
+- One failing component is logged and the export carries on. `export_log.txt` records what happened.
+
+### `modAbout`
+
+The outbound links on the dialogs ([#94]).
+
+- Holds the two URLs in one place:
+  - `AboutReleaseUrl` — this version's GitHub release page, `…/releases/tag/v<ADDIN_VERSION>`.
+  - `ABOUT_USER_GUIDE_URL` — the user guide on the wiki.
+- `OpenReleasePage` / `OpenUserGuide` open them through a private `ThisWorkbook.FollowHyperlink` wrapper that
+  swallows errors.
+- This is not a network call of the add-in's own: `FollowHyperlink` hands off to the default browser. The
+  add-in never checks GitHub for updates.
 
 ## TPD_Addin.Document
 
-Document modules — code-behind tied to the workbook/sheet objects rather than standalone modules. These can't be removed and re-imported the way standard modules can (see CONTRIBUTING.md).
+Document modules — code-behind tied to the workbook and sheet objects. They cannot be removed and re-imported
+the way standard modules can (see CONTRIBUTING.md).
 
-| Module | Purpose |
-|---|---|
-| `ThisWorkbook` | Workbook-level code-behind. Currently minimal. |
-| `Sheet1`, `Sheet2`, `Sheet3` | Sheet-level code-behind. `Sheet2` has an empty `Worksheet_SelectionChange` stub; the others are currently empty. |
+### `ThisWorkbook`, `Sheet1`, `Sheet2`, `Sheet3`
 
-## Known open work
+- Workbook-level and sheet-level code-behind.
+- All four are currently code-free: each holds only its `@Folder` tag.
 
-Tracked as GitHub Issues — no open `bug`-labelled issues.
+## Regressions to guard against
 
-- **Set TPD Defaults dialog ([#25](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25))** — **mostly delivered.** The dialog (`frmSetTPDDefaults` + `modMain_SetTPDDefaults` + the `modPreferences` / `modPreferences_Defaults` support) is built and wired. The one-click feature buttons ([#96](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96)), the Customer Schedule flow ([#112](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112)), the pickers-off-`modPreferences_Defaults` cleanup ([#98](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/98)), and the user-settable header logo + working preview ([#95](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95) / [#109](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109)) are all done. Still open, as a UI-cluster (label `UI`): the EQ List behaviour toggles ([#97](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97) → #119–#123); dialog layout polish ([#99](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/99)); in-page Generate buttons ([#100](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100)); the picker/split/export dialog refresh ([#118](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118)); About/links ([#94](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94)).
+All fixed. Don't undo them.
 
-### Regressions to guard against (all fixed — don't undo them)
+- **`modPerformance.WithPerformance`** ([#7], [#36]) — the `CleanUp` handler must **always** restore
+  `ScreenUpdating` / `EnableEvents` / `Calculation`, or they stay broken for the Excel session after any
+  error. Callers pass a `PERF_*` constant, not a bare string.
+- **Never call a `Sub` as `MySub (obj)`** ([#29]) — the parens force by-value evaluation (the default
+  property), so a `Worksheet` / `Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`.
+- **Split Sheet by Column** ([#32]) — the loop reports per-value failures in its summary, so a regression
+  there is at least visible.
 
-- **`modPerformance.WithPerformance` ([#7](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7) / [#36](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36))** — the `CleanUp` handler must **always** restore `ScreenUpdating` / `EnableEvents` / `Calculation`, or they stay broken for the Excel session on any error. Callers pass a `PERF_*` constant, not a bare string.
-- **Never call a `Sub` as `MySub (obj)` ([#29](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29))** — the parens force by-value evaluation (the default property), so a `Worksheet`/`Workbook` argument raises run-time 438. Use `MySub obj` or `Call MySub(obj)`. The `Split Sheet by Column` loop ([#32](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32)) now reports per-value failures in its summary, so a regression there is at least visible.
+Open work is tracked in [GitHub Issues](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues). The history of
+fixed defects is in [CHANGELOG.md](../CHANGELOG.md).
 
-For the full history of fixed defects (EQC-10, GEN-04, EXP-07, SPL-11, CORE-01, EXP-08, CEQ-06, UI-01, #29–#68), see `CHANGELOG.md`.
+[#6]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/6
+[#7]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/7
+[#8]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/8
+[#10]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/10
+[#15]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/15
+[#25]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/25
+[#29]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/29
+[#32]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/32
+[#36]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/36
+[#45]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/45
+[#47]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/47
+[#57]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/57
+[#64]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/64
+[#81]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/81
+[#84]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/84
+[#89]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/89
+[#94]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/94
+[#95]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/95
+[#96]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/96
+[#97]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/97
+[#98]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/98
+[#99]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/99
+[#100]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/100
+[#102]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/102
+[#103]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/103
+[#104]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/104
+[#105]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/105
+[#109]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/109
+[#112]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/112
+[#118]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/118
+[#120]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/120
+[#122]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/122
+[#127]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/127
+[#130]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130
+[#135]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/135
+[#143]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/143
+[#147]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/147
+[#149]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/149
+[#150]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/150
+[#154]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/154
+[#162]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162
+[#163]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/163
+[#169]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169
+[#170]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170
+[#171]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171
+[#174]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/174
