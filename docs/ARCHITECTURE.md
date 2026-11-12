@@ -163,7 +163,8 @@ The Split Sheet by Column flow.
 - `SplitOneGroup` builds one value's sheet and raises on failure; the caller records the failure against that
   value, so one bad value does not stop the run ([#32]).
 - `UniqueRunName` adds a ` (2)` / ` (3)` suffix when two values sanitize to the same sheet name, trimming the
-  base so the result stays within Excel's 31-character limit ([#57]).
+  base so the result stays within Excel's 31-character limit ([#57]). It is `Public` only so its unit tests
+  can call it.
 
 ### `modMain_ExportSheets`
 
@@ -192,6 +193,7 @@ File and folder work for the export flow.
 - `PreviewExportFileName(sampleSheet, userAppend, includeDate)` renders the `<sheet> - <suffix>.xlsx` name a
   sheet would be saved as.
 - The `frmFilenameOptions` live preview and the real export share both functions, so they cannot disagree.
+- Both have unit tests in `/tests/unit`.
 
 ## TPD_Addin.Preferences
 
@@ -501,6 +503,7 @@ only. The pure ones have Rubberduck unit tests in `/tests/unit`, which `BuildAdd
 - `SanitizeSheetName`, `SanitizeFileText` — make text safe for a sheet name or a file name.
 - `NormalizeCellText` — first physical line, NBSP to space, collapsed spaces, trimmed. Used wherever cell
   values are compared or de-duplicated.
+- All three have unit tests in `/tests/unit`.
 
 ### `modHelpers_SheetSetup`
 

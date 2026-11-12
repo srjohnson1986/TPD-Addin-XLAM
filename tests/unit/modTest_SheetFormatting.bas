@@ -16,11 +16,11 @@ Attribute VB_Name = "modTest_SheetFormatting"
 Option Explicit
 Option Private Module
 
-Private Assert As Object
+Private Assert As clsTestAssert
 
 '@ModuleInitialize
 Public Sub ModuleInitialize()
-    Set Assert = CreateObject("Rubberduck.PermissiveAssertClass")
+    Set Assert = NewTestAssert()
 End Sub
 
 '@TestMethod("IsStructuralRow")
