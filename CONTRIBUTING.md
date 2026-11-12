@@ -55,7 +55,16 @@ If you add a new module, give it a `@Folder` tag matching one of the existing gr
    `ExportAllVBAModules` finds your clone's `/src` itself — it walks up from the folder the workbook is saved in until it finds a folder holding both `src` and `customUI` (a build in `build/` is found immediately). If the workbook lives somewhere else, it asks you to pick the `src` folder instead. Nothing needs editing.
 3. Check `export_log.txt` (written to `/src` by `ExportAllVBAModules`) to confirm what was exported and where. It's gitignored — a local record only, never committed.
 4. In GitHub Desktop, review the diff for each changed file — this is your code review moment, even working solo.
-5. Commit with a message describing the change (not "updated code"). For anything non-trivial, push to a feature branch and open a PR against `main` rather than committing straight to `main`.
+5. Commit with a message describing the change (not "updated code"), push to a short-lived branch and open a PR against `main`. `main` does not accept direct pushes — see "Merging" below.
+
+## Merging
+
+A ruleset on `main` ("main: pull request + static checks") requires that every change arrives through a pull request and that the `static-checks` job has passed on it. No approving review is required, so working solo you can merge your own PR as soon as the check is green. Squash is the only merge method, and the head branch is deleted on GitHub when the PR merges.
+
+- **Auto-merge** is enabled. `gh pr merge --auto --squash` (or **Enable auto-merge** on the PR page) queues the PR to merge by itself the moment the check passes, so you don't have to wait and click.
+- The PR branch does **not** have to be up to date with `main` to merge. If you want it current anyway, use **Update branch** on the PR page.
+- New PRs start from `.github/pull_request_template.md`. The check only covers what can be seen in the text of the source; the template's checklist is where you record the Excel-side testing (compile, Test Explorer, fixtures) that no runner can do.
+- The ruleset has no bypass list, so it applies to repository admins too. To change it: **Settings → Rules → Rulesets**.
 
 ## Working with UserForms (`.frm` / `.frx`)
 
