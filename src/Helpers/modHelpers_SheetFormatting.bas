@@ -62,28 +62,38 @@ Public Sub FormatDataTable(ws As Worksheet, headingsRow As Long, _
 
 End Sub
 
-' Strips the background fill carried over from the source sheet by a
-' row-for-row copy. Call BEFORE any columns are dropped, so the heading
-' lookups below still see the full source column set (the picker and the
-' one-click flows would otherwise disagree - the old column-A guard here
-' kept fill wherever the leftmost *kept* column was blank, and the two
-' flows order their columns differently, #130).
+' Strips the formatting a row-for-row copy carries over from the source
+' sheet: the background fill, and on data rows the font emphasis too (bold,
+' italic, underline, strikethrough, colour back to automatic - #169). A
+' whole-row Rows.Copy brings every cell's look across; Split Sheets copies
+' values only, so its output never had this. Font colour goes with the fill
+' because a source rule like white-on-dark would otherwise leave invisible
+' text once the fill is gone. The heading row loses its fill but keeps its
+' font.
 '
-' preserveStructuralRows:=True (the Customer EQ List) keeps the fill on
-' rows that act as a visual grouping cue:
-'   - PURCHASED = "PARENT", or
-'   - INTERNAL ID and CUSTOMER ID both blank.
-' All three headings are looked up case-insensitively and are optional: no
-' PURCHASED column falls back to the both-IDs-blank test, and with none of
-' the three present every data row is cleared. The Customer Schedule flow
-' takes the default (False) and clears every row.
-Public Sub StripDataRowFill(ws As Worksheet, headingsRow As Long, _
-                            Optional ByVal preserveStructuralRows As Boolean = False)
+' Call BEFORE any columns are dropped, so the heading lookups below still see
+' the full source column set (the picker and the one-click flows would
+' otherwise disagree - the old column-A guard here kept fill wherever the
+' leftmost *kept* column was blank, and the two flows order their columns
+' differently, #130).
+'
+' preserveStructuralRows:=True (the Customer EQ List) leaves rows that act as
+' a visual grouping cue untouched - fill and font both, so a bold PARENT row
+' stays bold ("Plain PARENT rows", #121, is the switch for that). Which rows
+' count is IsStructuralRow's call. The Customer Schedule flow takes the
+' default (False) and clears every row.
+'
+' clearFontEmphasis:=False keeps the font and strips fill only - the Customer
+' Schedule passes it, because once every fill is gone bold is the only thing
+' still marking its summary rows.
+Public Sub StripCarriedRowFormatting(ws As Worksheet, headingsRow As Long, _
+                                     Optional ByVal preserveStructuralRows As Boolean = False, _
+                                     Optional ByVal clearFontEmphasis As Boolean = True)
     Dim headings As Variant
     Dim purchasedCol As Long, internalIdCol As Long, customerIdCol As Long
     Dim lastRow As Long
     Dim r As Long
-    Dim keepFill As Boolean
+    Dim keepRow As Boolean
 
     If preserveStructuralRows Then
         headings = modHelpers_Headers.GetHeadingList(ws, headingsRow)
@@ -94,25 +104,55 @@ Public Sub StripDataRowFill(ws As Worksheet, headingsRow As Long, _
 
     lastRow = GetLastRow(ws)
 
-    For r = headingsRow To lastRow
-        keepFill = False
+    ws.Rows(headingsRow).Interior.ColorIndex = xlNone
 
-        If preserveStructuralRows And r > headingsRow Then
-            If purchasedCol > 0 Then
-                If UCase$(Trim$(CStr(ws.Cells(r, purchasedCol).value))) = "PARENT" Then keepFill = True
-            End If
-            If Not keepFill Then
-                If internalIdCol > 0 And customerIdCol > 0 Then
-                    If Trim$(CStr(ws.Cells(r, internalIdCol).value)) = "" _
-                       And Trim$(CStr(ws.Cells(r, customerIdCol).value)) = "" Then keepFill = True
-                End If
-            End If
+    For r = headingsRow + 1 To lastRow
+        keepRow = False
+        If preserveStructuralRows Then
+            keepRow = IsStructuralRow(purchasedCol > 0, CellText(ws, r, purchasedCol), _
+                                      internalIdCol > 0 And customerIdCol > 0, _
+                                      CellText(ws, r, internalIdCol), CellText(ws, r, customerIdCol))
         End If
 
-        If Not keepFill Then ws.Rows(r).Interior.ColorIndex = xlNone
+        If Not keepRow Then
+            ws.Rows(r).Interior.ColorIndex = xlNone
+            If clearFontEmphasis Then
+                With ws.Rows(r).Font
+                    .Bold = False
+                    .Italic = False
+                    .Underline = xlUnderlineStyleNone
+                    .Strikethrough = False
+                    .ColorIndex = xlColorIndexAutomatic
+                End With
+            End If
+        End If
     Next r
 
 End Sub
+
+' True when an EQ List data row is a grouping cue whose source look is kept
+' (#130). Pure - the caller reads the cells - so it can be unit-tested.
+'
+'   - With a PURCHASED column, that column decides alone: PARENT rows only.
+'     An item row is an item even when both its IDs are blank (#170 - a real
+'     "For Approval" row with no IDs used to keep its yellow).
+'   - With no PURCHASED column, fall back to INTERNAL ID and CUSTOMER ID
+'     both blank (hasIdCols = both headings present).
+'   - With neither, nothing is structural.
+Public Function IsStructuralRow(ByVal hasPurchasedCol As Boolean, ByVal purchasedText As String, _
+                                ByVal hasIdCols As Boolean, ByVal internalIdText As String, _
+                                ByVal customerIdText As String) As Boolean
+    If hasPurchasedCol Then
+        IsStructuralRow = (UCase$(Trim$(purchasedText)) = "PARENT")
+    ElseIf hasIdCols Then
+        IsStructuralRow = (Trim$(internalIdText) = vbNullString And Trim$(customerIdText) = vbNullString)
+    End If
+End Function
+
+' The cell's text for IsStructuralRow, or "" when col is 0 (heading absent).
+Private Function CellText(ByVal ws As Worksheet, ByVal r As Long, ByVal col As Long) As String
+    If col > 0 Then CellText = CStr(ws.Cells(r, col).value)
+End Function
 
 Public Sub FormatSplitSheet(ws As Worksheet, headingsRow As Long)
     Dim lastRow As Long

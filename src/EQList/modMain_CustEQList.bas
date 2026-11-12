@@ -79,11 +79,11 @@ Public Sub CreateCustEQList_DoWork( _
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
 
     CopyEntireSheetRows wsSource, wsNew
-    ' Drop the source row fill now, while every source column is still here for
-    ' the PURCHASED / INTERNAL ID / CUSTOMER ID lookup - keep it only on PARENT
-    ' rows and rows with no IDs at all (#130). Same call, same result whether we
-    ' got here from the picker or the one-click button.
-    modHelpers_SheetFormatting.StripDataRowFill wsNew, 1, preserveStructuralRows:=True
+    ' Drop the carried-over source row fill and font emphasis now, while every
+    ' source column is still here for the PURCHASED / INTERNAL ID / CUSTOMER ID
+    ' lookup - PARENT rows keep their look (#130 / #169 / #170). Same call, same
+    ' result whether we got here from the picker or the one-click button.
+    modHelpers_SheetFormatting.StripCarriedRowFormatting wsNew, 1, preserveStructuralRows:=True
 
     ' The PARENT-row toggles all read the Purchased column, which the chosen
     ' column list can drop. Act on it now, while it's still here: delete the
@@ -130,7 +130,7 @@ Public Sub CreateCustEQList_DoWork( _
     AutoFitDataRowHeights wsNew, 1
 
     ' Plain PARENT rows (#121): white fill + black, un-bolded text, overriding
-    ' the grouping shade StripDataRowFill kept. Do it before the title block so
+    ' the grouping shade StripCarriedRowFormatting kept. Do it before the title block so
     ' the snapshot's data-row ordinals map straight onto sheet rows.
     If plainParents Then ApplyPlainParentRows wsNew, 1, parentStatuses
 

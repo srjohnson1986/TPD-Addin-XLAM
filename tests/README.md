@@ -4,7 +4,7 @@ Two kinds of test live here.
 
 | Folder | What | How it runs |
 | ------ | ---- | ----------- |
-| `unit/` | [Rubberduck](https://rubberduckvba.com/) unit tests for the pure VBA logic (column lists, preferences, EQ Count numbering) | Rubberduck's Test Explorer, in a workbook that has the add-in's modules loaded (see `docs/ARCHITECTURE.md`) |
+| `unit/` | [Rubberduck](https://rubberduckvba.com/) unit tests for the pure VBA logic (column lists, preferences, EQ Count numbering, which EQ List rows count as structural) | Rubberduck's Test Explorer, in a workbook that has the add-in's modules loaded (see `docs/ARCHITECTURE.md`) |
 | `fixtures/` | **Synthetic** sample workbooks to run the ribbon flows against by hand | Open a fixture, click through the TPD ribbon, compare with the expectations below |
 
 Everything in `fixtures/` is **made up**: company names, tags, part numbers, people and dates. There is no customer data in the repo and there must never be — see [CONTRIBUTING.md](../CONTRIBUTING.md#license-and-conduct).
@@ -35,8 +35,10 @@ Deliberately awkward inputs, and where to find them:
 | ---- | ----- | ------------- |
 | Wrapped, multi-line text | `Details`, rows 22, 43, 62 | After EQ List / Schedule / Split, those rows are tall enough to show all the text, header/logo rows keep their height ([#162](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/162)) |
 | Embedded line break in a normal cell | `TYPE2`, row 13 | Survives the copy; doesn't break the filter dropdown or column widths |
-| `For Approval` rows (yellow) | rows with `Status = For Approval` (2) | Fill treatment; `Status` isn't a default column, so it's dropped |
+| `For Approval` rows (yellow) | rows with `Status = For Approval` (3) | Fill treatment; `Status` isn't a default column, so it's dropped |
 | `INCLUDED` purchase status | 1 item row | Treated as an item, not a PARENT |
+| Bold + italic carried in from the source | item row 8 (whole row), row 31 (`SIZE` cell only) | EQ List output shows both plain, like Split Sheets ([#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169)) |
+| `For Approval` item with **no INTERNAL ID or CUSTOMER ID** | row 57 | EQ List output strips its yellow like every other item row: it's an item, not a grouping row ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170)) |
 | Numeric (not text) tag | one `INTERNAL ID` / `Redbox Row 1` cell | EQ Count numbering and header lookup still work |
 | Sparse columns | `PO Number`, `PO Issue Date`, `Ship Date` empty; `Cost`, `Lead Time`, `CUSTOMER ID` mostly empty | Picker still lists them; empty columns don't break formatting |
 | Blank rows at the end | last 14 rows | Last-row detection (`GetLastRow`) ignores them |

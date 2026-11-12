@@ -11,6 +11,23 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **EQ List no longer carries bold, italic, underline, strikethrough or font
+  colour over from the source** on item rows
+  ([#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169)). The
+  EQ List copies whole rows (to keep row grouping), so the source formatting
+  came across with them; only the fill was being removed. Item rows now come
+  out plain, matching Split Sheets. PARENT rows keep their look, as before.
+  The Customer Schedule still removes fill only: once the fill is gone, bold is
+  what marks its summary rows.
+- **EQ List removes the status fill from item rows that have no INTERNAL ID or
+  CUSTOMER ID** ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170)).
+  When the sheet has a Purchased column, that column alone decides which rows
+  keep their shading (PARENT rows only). The "both IDs blank" test now applies
+  only to sheets with no Purchased column, as
+  [#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130) intended.
+
 ## [2.4.4] - 2026-10-06
 
 The project is now **open source** under the MIT License, with a fix for
