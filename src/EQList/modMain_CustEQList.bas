@@ -7,8 +7,8 @@ Attribute VB_Name = "modMain_CustEQList"
 '  columns, formats it, and adds the EQ header block + the
 '  embedded default logo + frozen panes. _DoWork is the
 '  testable core (no UI) and also reads the EQ List behaviour
-'  toggles from Set Defaults (#97 / #119-#123): drop PARENT
-'  rows, inline EQ Count, plain PARENT rows, cell borders,
+'  toggles from Set Defaults (#97 / #119-#123 / #171): drop
+'  blank rows, drop PARENT rows, inline EQ Count, plain PARENT rows, cell borders,
 '  column filters. The three PARENT-row toggles need the
 '  Purchased column, so _DoWork acts on it (and snapshots each
 '  row's status) before the column projection drops it.
@@ -64,8 +64,10 @@ Public Sub CreateCustEQList_DoWork( _
 
     ' EQ List behaviour toggles (#97). Read here so the picker and the
     ' one-click flow - both land in _DoWork - honour them the same way.
+    Dim removeBlanks As Boolean
     Dim removeParents As Boolean, addCount As Boolean, plainParents As Boolean
     Dim addBorders As Boolean, addFilters As Boolean
+    removeBlanks = LoadEqListToggle(PREF_EQLIST_REMOVE_BLANK_ROWS)
     removeParents = LoadEqListToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
     addCount = LoadEqListToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
     plainParents = LoadEqListToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
@@ -79,6 +81,11 @@ Public Sub CreateCustEQList_DoWork( _
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
 
     CopyEntireSheetRows wsSource, wsNew
+    ' Blank rows go first (#171): judged across every source column, before
+    ' the projection can make a row only look empty, and before the status
+    ' snapshot below so its row ordinals match the sheet. Also keeps a blank
+    ' row from being handed an EQ COUNT number.
+    If removeBlanks Then DeleteBlankRows wsNew, 1
     ' Drop the carried-over source row fill and font emphasis now, while every
     ' source column is still here for the PURCHASED / INTERNAL ID / CUSTOMER ID
     ' lookup - PARENT rows keep their look (#130 / #169 / #170). Same call, same
@@ -155,6 +162,18 @@ Private Sub DeleteParentRows(ByVal ws As Worksheet, ByVal headingRow As Long, By
 
     For r = GetLastRow(ws) To headingRow + 1 Step -1
         If UCase$(Trim$(CStr(ws.Cells(r, purchasedCol).value))) = "PARENT" Then ws.Rows(r).Delete
+    Next r
+End Sub
+
+' Deletes every data row (below headingRow) with nothing in any cell, across
+' the whole sheet width (#171). Bottom-up, like DeleteParentRows. Rows past
+' the last row of data are never visited, so trailing blank rows are left
+' alone - they never reach the output anyway.
+Private Sub DeleteBlankRows(ByVal ws As Worksheet, ByVal headingRow As Long)
+    Dim r As Long
+
+    For r = GetLastRow(ws) To headingRow + 1 Step -1
+        If Application.WorksheetFunction.CountA(ws.Rows(r)) = 0 Then ws.Rows(r).Delete
     Next r
 End Sub
 

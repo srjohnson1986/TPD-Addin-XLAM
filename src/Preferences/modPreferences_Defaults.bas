@@ -60,7 +60,8 @@ End Function
 '
 '      key             the PREF_* constant it is stored under
 '      shipsOn         its value on a machine that has never
-'                      saved defaults - all off bar "add cell
+'                      saved defaults - all off bar "remove
+'                      blank rows" (#171) and "add cell
 '                      borders", which keeps the pre-#122 look
 '      displayName     how it is named in a message to the user
 '      needsPurchased  True when the toggle can only run if the
@@ -88,6 +89,7 @@ End Function
 ' module, where VBA requires them - see the note there.
 Private Function EqListToggleTable() As Variant
     EqListToggleTable = Array( _
+        PREF_EQLIST_REMOVE_BLANK_ROWS & "|1|Remove blank rows|0", _
         PREF_EQLIST_REMOVE_PARENT_ROWS & "|0|Remove PARENT rows|1", _
         PREF_EQLIST_ADD_COUNT_COLUMN & "|0|Add EQ Count column|1", _
         PREF_EQLIST_PLAIN_PARENT_ROWS & "|0|Plain PARENT rows|1", _

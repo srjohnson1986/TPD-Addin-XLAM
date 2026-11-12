@@ -42,13 +42,14 @@ Public Const PREF_SPLIT_COLUMNS As String = "DefaultUserSplitSheetsColumns"
 Public Const PREF_SPLIT_PICKER_GROUPCOL As String = "LastUsedSplitSheetsGroupColumn"
 Public Const PREF_SPLIT_PICKER_COLUMNS As String = "LastUsedSplitSheetsColumns"
 
-' ---- EQ List behaviour toggles (#97 / #119-#123) ----
+' ---- EQ List behaviour toggles (#97 / #119-#123 / #171) ----
 ' Stored as "1"/"0" via modPreferences.LoadToggle / SaveToggle. Written only
 ' by frmSetTPDDefaults (the checkboxes on the EQ List page); honoured by
 ' modMain_CustEQList.CreateCustEQList_DoWork, which both the picker and the
 ' one-click flow run through. Deliberately NOT in DefaultsPrefKeys - a toggle
 ' must not make DefaultsNeverSaved() / the first-run notice think defaults
 ' have been saved.
+Public Const PREF_EQLIST_REMOVE_BLANK_ROWS As String = "EqListRemoveBlankRows"
 Public Const PREF_EQLIST_REMOVE_PARENT_ROWS As String = "EqListRemoveParentRows"
 Public Const PREF_EQLIST_ADD_COUNT_COLUMN As String = "EqListAddCountColumn"
 Public Const PREF_EQLIST_PLAIN_PARENT_ROWS As String = "EqListPlainParentRows"

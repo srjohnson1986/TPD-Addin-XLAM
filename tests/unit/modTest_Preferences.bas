@@ -4,9 +4,11 @@ Attribute VB_Name = "modTest_Preferences"
 
 '===========================================================
 '  Rubberduck unit tests for modPreferences's pure functions
-'  (#163): FirstNonEmptyColumnList, FirstNonEmptyValue. Not
-'  part of /src - never imported by BuildAddin, never shipped
-'  in the .xlam. Import this file plus modPreferences into a
+'  (#163): FirstNonEmptyColumnList, FirstNonEmptyValue - and
+'  the EQ List toggle table in modPreferences_Defaults (#171).
+'  Not part of /src - never imported by BuildAddin, never
+'  shipped in the .xlam. Import this file plus modPreferences,
+'  modPreferences_Defaults and modPreferences_KeyMap into a
 '  scratch workbook that has a reference to Rubberduck, then
 '  run from the VBE (Rubberduck > Run All Tests). See
 '  CONTRIBUTING.md for the rest of the dev workflow.
@@ -104,6 +106,38 @@ Public Sub FirstNonEmptyValue_AllCandidatesEmpty_FallsBack()
     result = modPreferences.FirstNonEmptyValue(Array("", "   "), "Vendor")
 
     Assert.AreEqual "Vendor", result
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("EqListToggleTable")
+Public Sub EqListToggle_RemoveBlankRows_ShipsOnAndNeedsNoPurchased()
+    On Error GoTo TestFail
+
+    Assert.IsTrue modPreferences_Defaults.EqListToggleShipsOn(PREF_EQLIST_REMOVE_BLANK_ROWS)
+    Assert.IsFalse modPreferences_Defaults.EqListToggleNeedsPurchased(PREF_EQLIST_REMOVE_BLANK_ROWS)
+    Assert.AreEqual "Remove blank rows", modPreferences_Defaults.EqListToggleName(PREF_EQLIST_REMOVE_BLANK_ROWS)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("EqListToggleTable")
+Public Sub EqListToggleKeys_RemoveBlankRowsListedFirst()
+    On Error GoTo TestFail
+
+    Dim keys As Variant
+    keys = modPreferences_Defaults.EqListToggleKeys()
+
+    Assert.AreEqual PREF_EQLIST_REMOVE_BLANK_ROWS, keys(LBound(keys))
+    Assert.AreEqual 6&, CLng(UBound(keys) - LBound(keys) + 1)
 
 TestExit:
     Exit Sub

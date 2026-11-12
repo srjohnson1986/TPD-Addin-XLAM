@@ -82,12 +82,14 @@ EQ_COLUMNS = [
 COL = {name: i + 1 for i, (name, _) in enumerate(EQ_COLUMNS)}
 
 # Shape of the tree (outline level + P=PARENT row / i=item row / B=blank row),
-# three top-level sections then trailing blank rows. Structure only.
+# three top-level sections then trailing blank rows. Structure only. The one
+# "2B" mid-tree is a blank row inside the data, for "Remove blank rows" (#171);
+# blank rows draw nothing from the RNG, so adding it changes no other content.
 EQ_TREE = (
     "0P 1P 2i 1P 2i 2i 2i 2i 2i 2i 2i 2i 1P 2P 3i 3i 3i 3i 3i 3i 3i 3i 2P 3P "
     "4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 4i 3P 4i 4i 4i 4i 4i 4i 4i "
     "0P 1P 2i 2i 3i 2i 2i 2i 2i 2i 2i 2i 2i 2i 1P 2P 3i 3i 2P 3i 3i 3i 3i 3i "
-    "3i 3i 2P 3i 3i 3i 3i 1P 2i 2i 2i 1P 2i 2i "
+    "3i 3i 2P 3i 3i 3i 3i 1P 2i 2i 2i 2B 1P 2i 2i "
     + " ".join(["0B"] * 14)
 ).split()
 
