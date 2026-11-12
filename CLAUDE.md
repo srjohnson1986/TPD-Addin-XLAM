@@ -50,6 +50,8 @@ Two static rules worth checking by eye before you build, since neither shows up 
 
 **Cutting a release:** bump `ADDIN_VERSION` in `modStartup`, tag `vX.Y.Z`, publish a GitHub Release with the built `.xlam` attached, add a `CHANGELOG.md` entry, update `docs/USER_GUIDE.md` for any user-visible change and re-sync it to the [wiki](https://github.com/srjohnson1986/TPD-Addin-XLAM/wiki) (`Home.md`). Refresh `build/_base/TPD_Addin_base.xlam` only if the release changed something outside `/src` (ribbon / sheets / logo) — and then from a code-stripped copy, not the release `.xlam` directly. Full steps in `CONTRIBUTING.md`.
 
+**Branches:** only `main` is long-lived. Every change goes through a PR on a short-lived branch and is **squash-merged**; releases are marked by `vX.Y.Z` tags, not branches. The repo has GitHub's **Automatically delete head branches** turned on, so a merged PR's branch is deleted on GitHub automatically (and a PR stacked on it is retargeted to `main`). Local copies stay behind — merge with `gh pr merge --squash --delete-branch`, or clean up with `git fetch --prune` and `git branch -D` (squash merges mean `-d` refuses; first confirm the branch's tree matches its squash commit on `main`). A merged branch can be brought back from its PR page (**Restore branch**).
+
 ## Module organization convention
 
 Every module starts with a Rubberduck folder annotation as a plain VBA comment (the leading `'` is required, or VBA throws a compile error on `@`):
