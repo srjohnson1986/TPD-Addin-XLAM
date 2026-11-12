@@ -5,7 +5,8 @@ Attribute VB_Name = "modTest_Preferences"
 '===========================================================
 '  Rubberduck unit tests for modPreferences's pure functions
 '  (#163): FirstNonEmptyColumnList, FirstNonEmptyValue - and
-'  the EQ List toggle table in modPreferences_Defaults (#171).
+'  the EQ List toggle table in modPreferences_Defaults (#171 /
+'  #174).
 '  Not part of /src - never imported by BuildAddin, never
 '  shipped in the .xlam. Import this file plus modPreferences,
 '  modPreferences_Defaults and modPreferences_KeyMap into a
@@ -130,14 +131,38 @@ TestFail:
 End Sub
 
 '@TestMethod("EqListToggleTable")
-Public Sub EqListToggleKeys_RemoveBlankRowsListedLast()
+Public Sub EqListToggleKeys_MatchCheckboxTabOrder()
     On Error GoTo TestFail
 
     Dim keys As Variant
-    keys = modPreferences_Defaults.EqListToggleKeys()
+    Dim expected As Variant
+    Dim i As Long
 
-    Assert.AreEqual PREF_EQLIST_REMOVE_BLANK_ROWS, keys(UBound(keys))
-    Assert.AreEqual 6&, CLng(UBound(keys) - LBound(keys) + 1)
+    keys = modPreferences_Defaults.EqListToggleKeys()
+    expected = Array(PREF_EQLIST_REMOVE_PARENT_ROWS, PREF_EQLIST_ADD_COUNT_COLUMN, _
+                     PREF_EQLIST_PLAIN_PARENT_ROWS, PREF_EQLIST_ADD_CELL_BORDERS, _
+                     PREF_EQLIST_ADD_COLUMN_FILTERS, PREF_EQLIST_REMOVE_BLANK_ROWS, _
+                     PREF_EQLIST_BOLD_PARENT_ROWS)
+
+    Assert.AreEqual CLng(UBound(expected) - LBound(expected) + 1), CLng(UBound(keys) - LBound(keys) + 1)
+    For i = 0 To UBound(expected)
+        Assert.AreEqual expected(i), keys(LBound(keys) + i)
+    Next i
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("EqListToggleTable")
+Public Sub EqListToggle_BoldParentRows_ShipsOffAndNeedsPurchased()
+    On Error GoTo TestFail
+
+    Assert.IsFalse modPreferences_Defaults.EqListToggleShipsOn(PREF_EQLIST_BOLD_PARENT_ROWS)
+    Assert.IsTrue modPreferences_Defaults.EqListToggleNeedsPurchased(PREF_EQLIST_BOLD_PARENT_ROWS)
+    Assert.AreEqual "Bold PARENT rows", modPreferences_Defaults.EqListToggleName(PREF_EQLIST_BOLD_PARENT_ROWS)
 
 TestExit:
     Exit Sub

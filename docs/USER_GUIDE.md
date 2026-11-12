@@ -138,7 +138,7 @@ Tabs:
 
 | Tab | What it holds |
 |---|---|
-| **EQ List** | Your default column list for the EQ List tools, plus five behaviour checkboxes (see below). |
+| **EQ List** | Your default column list for the EQ List tools, plus seven behaviour checkboxes (see below). |
 | **Schedule** | Your default column list for the Schedule tools. |
 | **Split Sheets** | Your default column list **and** the default group-by column for the Split tools. |
 | **Logo** | Your header logo — **Choose image…** (PNG / JPG / GIF / BMP) or **Use built-in logo**. |
@@ -188,9 +188,10 @@ you generate — the picker *and* the one-click button:
 | **Add cell borders** | The thin border around the data range. Turn off for a border-free sheet. | **on** |
 | **Add column filters** | Puts Excel's AutoFilter dropdowns on the heading row. | off |
 | **Remove blank rows** (right-hand column) | Drops every completely empty row from the list. | **on** |
+| **Bold PARENT rows** (right-hand column) | Bold text on PARENT rows. Combine it with Plain PARENT rows for white rows with bold black text. | off |
 
-The three PARENT/EQ Count options read the **Purchased** column. If the sheet doesn't have one,
-those three are skipped (you get a note) and the rest of the list is still
+The PARENT-row and EQ Count options read the **Purchased** column. If the sheet doesn't have one,
+those are skipped (you get a note) and the rest of the list is still
 generated. Turning them on does **not** force Purchased into the output — it
 appears only if it's in your column list.
 

@@ -7,8 +7,9 @@ Attribute VB_Name = "modMain_CustEQList"
 '  columns, formats it, and adds the EQ header block + the
 '  embedded default logo + frozen panes. _DoWork is the
 '  testable core (no UI) and also reads the EQ List behaviour
-'  toggles from Set Defaults (#97 / #119-#123 / #171): drop
-'  blank rows, drop PARENT rows, inline EQ Count, plain PARENT rows, cell borders,
+'  toggles from Set Defaults (#97 / #119-#123 / #171 / #174):
+'  drop blank rows, drop PARENT rows, inline EQ Count, bold
+'  PARENT rows, plain PARENT rows, cell borders,
 '  column filters. The three PARENT-row toggles need the
 '  Purchased column, so _DoWork acts on it (and snapshots each
 '  row's status) before the column projection drops it.
@@ -66,16 +67,18 @@ Public Sub CreateCustEQList_DoWork( _
     ' one-click flow - both land in _DoWork - honour them the same way.
     Dim removeBlanks As Boolean
     Dim removeParents As Boolean, addCount As Boolean, plainParents As Boolean
+    Dim boldParents As Boolean
     Dim addBorders As Boolean, addFilters As Boolean
     removeBlanks = LoadEqListToggle(PREF_EQLIST_REMOVE_BLANK_ROWS)
     removeParents = LoadEqListToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
     addCount = LoadEqListToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
     plainParents = LoadEqListToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
+    boldParents = LoadEqListToggle(PREF_EQLIST_BOLD_PARENT_ROWS)
     addBorders = LoadEqListToggle(PREF_EQLIST_ADD_CELL_BORDERS)
     addFilters = LoadEqListToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
 
     Dim wantsPurchasedToggle As Boolean
-    wantsPurchasedToggle = removeParents Or addCount Or plainParents
+    wantsPurchasedToggle = removeParents Or addCount Or plainParents Or boldParents
 
     newSheetName = GetNextAvailableSheetName("Customer EQ List")
     Set wsNew = CreateNewSheetAfterLast(ActiveWorkbook, newSheetName)
@@ -106,6 +109,7 @@ Public Sub CreateCustEQList_DoWork( _
             modHelpers_Headers.GetHeadingList(wsNew, 1), "PURCHASED", preferRightmost:=False)
         If purchasedCol = 0 Then
             removeParents = False: addCount = False: plainParents = False
+            boldParents = False
         Else
             If removeParents Then DeleteParentRows wsNew, 1, purchasedCol
             parentStatuses = PurchasedStatuses(wsNew, 1, purchasedCol)
@@ -121,6 +125,15 @@ Public Sub CreateCustEQList_DoWork( _
     ' while the heading row is still row 1, before the title block goes on top.
     If addCount Then NumberEquipmentRowsFromStatuses wsNew, 1, parentStatuses
 
+    ' PARENT-row look, from the status snapshot - so before the title block,
+    ' while the snapshot's data-row ordinals map straight onto sheet rows, and
+    ' before the autofit, so bold text is measured rather than clipped (#174).
+    ' Plain PARENT rows (#121): white fill + black, un-bolded text, overriding
+    ' the grouping shade StripCarriedRowFormatting kept. Bold PARENT rows runs
+    ' after it, so with both on the rows come out white with bold black text.
+    If plainParents Then ApplyPlainParentRows wsNew, 1, parentStatuses
+    If boldParents Then ApplyBoldParentRows wsNew, 1, parentStatuses
+
     FormatDataTable wsNew, 1, addBorders:=addBorders     ' #122
 
     ' AutoFilter (#123) goes on while the heading is still row 1 and, crucially,
@@ -135,11 +148,6 @@ Public Sub CreateCustEQList_DoWork( _
     ' while headingsRow is still 1 and the data rows have their final column
     ' widths.
     AutoFitDataRowHeights wsNew, 1
-
-    ' Plain PARENT rows (#121): white fill + black, un-bolded text, overriding
-    ' the grouping shade StripCarriedRowFormatting kept. Do it before the title block so
-    ' the snapshot's data-row ordinals map straight onto sheet rows.
-    If plainParents Then ApplyPlainParentRows wsNew, 1, parentStatuses
 
     InsertEQHeaderBlock wsNew
     ' Embedded default logo, top-right of the heading row, scaled to the
@@ -177,28 +185,56 @@ Private Sub DeleteBlankRows(ByVal ws As Worksheet, ByVal headingRow As Long)
     Next r
 End Sub
 
-' White fill, black non-bold text on each PARENT data row. statuses(k) is the
-' Purchased status of the k-th data row below headingRow (from PurchasedStatuses,
-' captured before the column was dropped). Column widths / borders / row height
-' are left alone (#121).
+' White fill, black non-bold text on each PARENT data row. Column widths /
+' borders / row height are left alone (#121).
 Private Sub ApplyPlainParentRows(ByVal ws As Worksheet, ByVal headingRow As Long, ByVal statuses As Variant)
+    Dim rowsToStyle As Range
+
+    Set rowsToStyle = ParentDataRows(ws, headingRow, statuses)
+    If rowsToStyle Is Nothing Then Exit Sub
+
+    rowsToStyle.Interior.Color = vbWhite
+    rowsToStyle.Font.Color = vbBlack
+    rowsToStyle.Font.Bold = False
+End Sub
+
+' Bold text on each PARENT data row (#174). Fill and colour are left alone -
+' that's Plain PARENT rows' job.
+Private Sub ApplyBoldParentRows(ByVal ws As Worksheet, ByVal headingRow As Long, ByVal statuses As Variant)
+    Dim rowsToStyle As Range
+
+    Set rowsToStyle = ParentDataRows(ws, headingRow, statuses)
+    If Not rowsToStyle Is Nothing Then rowsToStyle.Font.Bold = True
+End Sub
+
+' The PARENT data rows, across the used width, as one range - Nothing when
+' there are none. statuses(k) is the Purchased status of the k-th data row
+' below headingRow (from PurchasedStatuses, captured before the column was
+' dropped).
+Private Function ParentDataRows(ByVal ws As Worksheet, ByVal headingRow As Long, _
+                                ByVal statuses As Variant) As Range
     Dim k As Long
     Dim lastCol As Long
     Dim rowRange As Range
+    Dim result As Range
 
-    If Not IsArray(statuses) Then Exit Sub
-    If UBound(statuses) < LBound(statuses) Then Exit Sub
+    If Not IsArray(statuses) Then Exit Function
+    If UBound(statuses) < LBound(statuses) Then Exit Function
 
     lastCol = GetLastCol(ws, headingRow)
     For k = LBound(statuses) To UBound(statuses)
         If statuses(k) = "PARENT" Then
             Set rowRange = ws.Range(ws.Cells(headingRow + k, 1), ws.Cells(headingRow + k, lastCol))
-            rowRange.Interior.Color = vbWhite
-            rowRange.Font.Color = vbBlack
-            rowRange.Font.Bold = False
+            If result Is Nothing Then
+                Set result = rowRange
+            Else
+                Set result = Union(result, rowRange)
+            End If
         End If
     Next k
-End Sub
+
+    Set ParentDataRows = result
+End Function
 
 ' Turns on AutoFilter for the heading row across the used width. Clears any
 ' existing filter first so a re-run doesn't just toggle it back off.
