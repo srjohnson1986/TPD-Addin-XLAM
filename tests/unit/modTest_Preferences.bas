@@ -146,7 +146,9 @@ Public Sub EqListToggleKeys_MatchCheckboxTabOrder()
 
     Assert.AreEqual CLng(UBound(expected) - LBound(expected) + 1), CLng(UBound(keys) - LBound(keys) + 1)
     For i = 0 To UBound(expected)
-        Assert.AreEqual expected(i), keys(LBound(keys) + i)
+        ' CStr both sides: an element of a String() held in a Variant can't be
+        ' passed straight to the late-bound Assert (run-time error 458).
+        Assert.AreEqual CStr(expected(i)), CStr(keys(LBound(keys) + i))
     Next i
 
 TestExit:
