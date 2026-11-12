@@ -1,0 +1,60 @@
+name: Sync wiki from user guide
+
+# The wiki's Home.md is docs/USER_GUIDE.md plus a "do not edit" notice (see
+# tools/Sync-WikiHome.ps1). This regenerates it when a release is PUBLISHED,
+# from the guide as it is at that release's tag - so the wiki describes the
+# version people can download, never work that has merged but not shipped.
+#
+# Publishing a draft release (the last, manual step of tools/New-Release.ps1)
+# is what fires it. "Run workflow" by hand re-syncs from main, for fixing a
+# typo in the guide between releases.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# Needed to push to this repository's wiki. Nothing else is written.
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      # On a release this is the release's tag; on a manual run, main.
+      - uses: actions/checkout@v4
+
+      - name: Check out the wiki
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+      - name: Regenerate Home.md
+        shell: pwsh
+        run: tools/Sync-WikiHome.ps1 -GuidePath docs/USER_GUIDE.md -HomePath wiki/Home.md
+
+      - name: Commit and push if it changed
+        working-directory: wiki
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if git diff --quiet -- Home.md; then
+            echo "Home.md is already up to date - nothing to push."
+            exit 0
+          fi
+          if [ -n "$RELEASE_TAG" ]; then
+            message="Sync Home.md from docs/USER_GUIDE.md for $RELEASE_TAG"
+          else
+            message="Sync Home.md from docs/USER_GUIDE.md @ ${GITHUB_SHA::7}"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Home.md
+          git commit -m "$message"
+          git push
