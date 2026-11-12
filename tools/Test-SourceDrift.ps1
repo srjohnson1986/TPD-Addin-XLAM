@@ -25,7 +25,11 @@
 
 param(
     [string]$XlamPath = (Join-Path (Split-Path $PSScriptRoot -Parent) 'build\TPD_Addin.xlam'),
-    [string]$RepoRoot = (Split-Path $PSScriptRoot -Parent)
+    [string]$RepoRoot = (Split-Path $PSScriptRoot -Parent),
+
+    # Optional: a file to write this run's Excel process id to. tools\Test-All.ps1
+    # passes it so that, if the check hangs, it can end this Excel and no other.
+    [string]$PidFile
 )
 
 $ErrorActionPreference = 'Stop'
@@ -68,6 +72,12 @@ $builtNames = New-Object System.Collections.Generic.HashSet[string]([System.Stri
 
 try {
     $excel = New-Object -ComObject Excel.Application
+    if ($PidFile) {
+        Add-Type -Namespace TpdTools -Name Win32 -MemberDefinition '[System.Runtime.InteropServices.DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(System.IntPtr hWnd, out uint processId);'
+        $excelPid = [uint32]0
+        [void][TpdTools.Win32]::GetWindowThreadProcessId([IntPtr]$excel.Hwnd, [ref]$excelPid)
+        [System.IO.File]::WriteAllText($PidFile, [string]$excelPid)
+    }
     $excel.Visible = $false
     $excel.DisplayAlerts = $false
     $excel.AutomationSecurity = 1
