@@ -91,6 +91,20 @@ Windows user profile — so they carry across an update untouched.
 
 ### What's new
 
+**v2.4.5** — cleaner **EQ List** output:
+
+- Rows that were **bold or italic** in your Smartsheet export now come out as
+  plain text (PARENT rows keep their look), the same as **Split Sheets** has
+  always done.
+- An item row with **no INTERNAL ID or CUSTOMER ID** no longer keeps its yellow
+  (or other status) shading.
+- New option **Remove blank rows**, **on by default**: completely empty rows are
+  dropped and no longer get an EQ COUNT number.
+- New option **Bold PARENT rows**, off by default.
+
+Both new options are in the right-hand column of the EQ List tab in **Set
+Defaults** (see [EQ List behaviour checkboxes](#eq-list-behaviour-checkboxes)).
+
 **v2.4.4** — the project is now open source (see [License](#license)). The one
 thing you might notice in day-to-day use: when a generated sheet has cells with
 wrapped, multi-line text, the rows now grow to show all of it instead of clipping

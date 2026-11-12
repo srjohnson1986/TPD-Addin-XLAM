@@ -11,6 +11,14 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+## [2.4.5] - 2026-11-11
+
+Cleaner **EQ List** output from real Smartsheet exports: item rows no longer
+pick up the source's bold/italic text or leftover status shading, and two new
+EQ List options on the Set Defaults EQ List tab, **Remove blank rows** (on by
+default) and **Bold PARENT rows** (off by default). The Schedule, Split Sheets
+and Save Each Sheet tools are unchanged.
+
 ### Added
 
 - **Remove blank rows** EQ List option on the Set Defaults EQ List tab, **on by
@@ -38,6 +46,16 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   keep their shading (PARENT rows only). The "both IDs blank" test now applies
   only to sheets with no Purchased column, as
   [#130](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/130) intended.
+
+### Changed
+
+- The Set Defaults **EQ List output options** box now has two columns: the
+  original five options on the left, and the two new ones on the right.
+- Internal: the "which rows keep their source look" rule is now a pure
+  `IsStructuralRow` function, and `StripDataRowFill` is renamed
+  `StripCarriedRowFormatting`. Plain and Bold PARENT rows share one
+  `ParentDataRows` lookup and both run before the column autofit. New Rubberduck
+  tests (31 in total) and new EQ List fixture rows for each case.
 
 ## [2.4.4] - 2026-10-06
 
