@@ -102,6 +102,15 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 5. `powershell -ExecutionPolicy Bypass -File tools\Test-Unit.ps1` — runs the unit tests in `/tests/unit` against that build, headlessly (add `-Build` to do step 2 first). Also a local check: it needs Excel. See [tests/README.md](tests/README.md#unit-tests).
 6. If it checks out, this is your release candidate.
 
+**All of the automated part in one command:** `powershell -ExecutionPolicy Bypass -File tools\Test-All.ps1` runs the static checks, steps 2, 4 and 5 above, and two checks of its own, in order, stopping at the first failure:
+
+- nothing has the built add-in or the builder workbook open (the build can't overwrite a loaded add-in, so close Excel or unload the add-in first);
+- the ribbon XML inside the base `.xlam`, and inside the build, is the same as `customUI/customUI14.xml` — an edit to the repo's XML that was never stamped into the base file fails here instead of shipping the old ribbon.
+
+It ends with a short summary block to paste into the PR. Each step that drives Excel runs under a time limit; if one hangs, the script prints the text of the dialog Excel is showing, ends the Excel that step started (and no other), and stops. `-NoExcel` runs only the steps that need no Excel, for when Excel is busy — a partial result, and it says so.
+
+It does not replace step 3, **Debug → Compile VBAProject**, or a Test Explorer run. Those still need a person.
+
 ## Automated checks
 
 `.github/workflows/static-checks.yml` runs `tools/Test-StaticChecks.ps1` on every push/PR against `main`, on a normal GitHub-hosted runner (no Excel/COM needed — it's pure text/XML parsing). It covers `/src` and `/tests/unit`, and checks:
