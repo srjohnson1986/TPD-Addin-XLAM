@@ -197,8 +197,8 @@ End Sub
 
 '--- EQ List behaviour toggles (#97 / #119-#123) ----------------------
 '
-' Six checkboxes on the EQ List page (Remove blank rows on its own in the
-' right-hand column, #171), "1"/"0" prefs, honoured by
+' Seven checkboxes on the EQ List page (Remove blank rows and Bold PARENT
+' rows in the right-hand column, #171 / #174), "1"/"0" prefs, honoured by
 ' modMain_CustEQList.CreateCustEQList_DoWork. Saved by CommitDefaults after
 ' the column keys, reset by cmdRestoreEqList_Click. Which one ships on is
 ' not written here - LoadEqListToggle reads it from the toggle table in
@@ -215,6 +215,7 @@ Private Sub LoadEqListToggles()
     cbxAddCellBorders.value = LoadEqListToggle(PREF_EQLIST_ADD_CELL_BORDERS)
     cbxAddColumnFilters.value = LoadEqListToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
     cbxRemoveBlankRows.value = LoadEqListToggle(PREF_EQLIST_REMOVE_BLANK_ROWS)
+    cbxBoldParentRows.value = LoadEqListToggle(PREF_EQLIST_BOLD_PARENT_ROWS)
 End Sub
 
 Private Sub SaveEqListToggles()
@@ -224,6 +225,7 @@ Private Sub SaveEqListToggles()
     SaveToggle PREF_EQLIST_ADD_CELL_BORDERS, CBool(cbxAddCellBorders.value)
     SaveToggle PREF_EQLIST_ADD_COLUMN_FILTERS, CBool(cbxAddColumnFilters.value)
     SaveToggle PREF_EQLIST_REMOVE_BLANK_ROWS, CBool(cbxRemoveBlankRows.value)
+    SaveToggle PREF_EQLIST_BOLD_PARENT_ROWS, CBool(cbxBoldParentRows.value)
 End Sub
 
 '--- Column boxes: normalize on paste and on losing focus (spec 2) --------
@@ -282,6 +284,7 @@ Private Sub cmdRestoreEqList_Click()
     cbxAddCellBorders.value = EqListToggleShipsOn(PREF_EQLIST_ADD_CELL_BORDERS)
     cbxAddColumnFilters.value = EqListToggleShipsOn(PREF_EQLIST_ADD_COLUMN_FILTERS)
     cbxRemoveBlankRows.value = EqListToggleShipsOn(PREF_EQLIST_REMOVE_BLANK_ROWS)
+    cbxBoldParentRows.value = EqListToggleShipsOn(PREF_EQLIST_BOLD_PARENT_ROWS)
 End Sub
 
 Private Sub cmdRestoreSchedule_Click()

@@ -17,6 +17,10 @@ with the built `TPD_Addin.xlam` attached as an asset. See
   default** ([#171](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171)).
   It drops every completely empty row from the source before the list is built,
   so blank rows no longer show up in the output or get an EQ COUNT number.
+- **Bold PARENT rows** EQ List option, off by default
+  ([#174](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/174)). It makes
+  PARENT-row text bold. Turn on Plain PARENT rows as well to get white rows with
+  bold black text. Like the other PARENT options, it needs a Purchased column.
 
 ### Fixed
 

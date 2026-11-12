@@ -94,7 +94,8 @@ Private Function EqListToggleTable() As Variant
         PREF_EQLIST_PLAIN_PARENT_ROWS & "|0|Plain PARENT rows|1", _
         PREF_EQLIST_ADD_CELL_BORDERS & "|1|Add cell borders|0", _
         PREF_EQLIST_ADD_COLUMN_FILTERS & "|0|Add column filters|0", _
-        PREF_EQLIST_REMOVE_BLANK_ROWS & "|1|Remove blank rows|0")
+        PREF_EQLIST_REMOVE_BLANK_ROWS & "|1|Remove blank rows|0", _
+        PREF_EQLIST_BOLD_PARENT_ROWS & "|0|Bold PARENT rows|1")
 End Function
 
 ' Every toggle key, in the order the checkboxes appear on the page - so a
