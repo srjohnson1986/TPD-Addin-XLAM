@@ -18,11 +18,11 @@ Attribute VB_Name = "modTest_ColumnReorderAndEQCount"
 Option Explicit
 Option Private Module
 
-Private Assert As Object
+Private Assert As clsTestAssert
 
 '@ModuleInitialize
 Public Sub ModuleInitialize()
-    Set Assert = CreateObject("Rubberduck.PermissiveAssertClass")
+    Set Assert = NewTestAssert()
 End Sub
 
 Private Function Coll(ParamArray items() As Variant) As Collection

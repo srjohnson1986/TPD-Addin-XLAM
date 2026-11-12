@@ -4,10 +4,55 @@ Two kinds of test live here.
 
 | Folder | What | How it runs |
 | ------ | ---- | ----------- |
-| `unit/` | [Rubberduck](https://rubberduckvba.com/) unit tests for the pure VBA logic (column lists, preferences, EQ Count numbering, which EQ List rows count as structural) | Rubberduck's Test Explorer, in a workbook that has the add-in's modules loaded (see `docs/ARCHITECTURE.md`) |
+| `unit/` | Unit tests for the pure VBA logic (column lists, preferences, EQ Count numbering, which EQ List rows count as structural, sheet and file naming) | `tools\Test-Unit.ps1` headlessly, or [Rubberduck](https://rubberduckvba.com/)'s Test Explorer — see [Unit tests](#unit-tests) |
 | `fixtures/` | **Synthetic** sample workbooks to run the ribbon flows against by hand | Open a fixture, click through the TPD ribbon, compare with the expectations below |
 
 Everything in `fixtures/` is **made up**: company names, tags, part numbers, people and dates. There is no customer data in the repo and there must never be — see [CONTRIBUTING.md](../CONTRIBUTING.md#license-and-conduct).
+
+## Unit tests
+
+Two ways to run them. They give the same verdicts, because the tests do their own comparing (see "The assert object" below).
+
+**Headless — the quick check.** From the repo root:
+
+```
+powershell -ExecutionPolicy Bypass -File tools\Test-Unit.ps1
+```
+
+It opens `build\TPD_Addin.xlam` read-only in a hidden Excel, imports this folder into it in memory (nothing is saved), runs every `'@TestMethod`, and exits non-zero if any fail. It refuses to run against a build older than `/src`; add `-Build` to rebuild first. It needs Excel and "Trust access to the VBA project object model", so it is a local check, not a CI job. `-PlanOnly` lists what would run without starting Excel.
+
+- **It checks itself every run.** Three canary tests are added: one must pass, one must fail on an assert, one must fail by raising an error. If the runner reports anything else for them, the whole run is thrown out.
+- **It cannot leave Excel stuck.** If Excel stops on a dialog nobody can see (a compile error, a `MsgBox` in the code under test, the VBE in break mode), the script waits `-TimeoutSeconds` (default 120), prints which test it was on and the dialog's text, ends the Excel process *it* started and no other, and exits 3. It does not retry.
+- Leave the VBE's error trapping on **Break on Unhandled Errors** (the default). **Break on All Errors** stops on the errors the runner is meant to catch.
+
+**Rubberduck's Test Explorer — the full check, before a release.** Import `/src` (document modules aside) and everything in `tests/unit` into a scratch workbook, open it, then **Rubberduck → Unit Tests → Test Explorer → Run All Tests**. The workbook must be open for Run All to find the tests.
+
+### The assert object
+
+Test modules get their assert from `modTestSupport.NewTestAssert()`, which returns a `clsTestAssert`:
+
+```vb
+Private Assert As clsTestAssert
+
+'@ModuleInitialize
+Public Sub ModuleInitialize()
+    Set Assert = NewTestAssert()
+End Sub
+```
+
+Don't use `CreateObject("Rubberduck.PermissiveAssertClass")` directly. Rubberduck's assert only does anything while Test Explorer is driving; called any other way, `AreEqual` and `Fail` are silent no-ops and every test "passes". `clsTestAssert` makes the comparison itself, records a failure for the headless runner, and also passes it to Rubberduck's `Fail` so Test Explorer shows it.
+
+It offers `AreEqual`, `AreNotEqual`, `IsTrue`, `IsFalse` and `Fail`. Equality is by value with VBA's usual numeric coercion, text is compared exactly (case-sensitive), and arrays are never equal — assert on their elements.
+
+### Files
+
+| File | What |
+| ---- | ---- |
+| `modTest_*.bas` | The tests. One module per area; each `'@TestMethod` sub is one test |
+| `clsTestAssert.cls` | The assert object |
+| `modTestSupport.bas` | `NewTestAssert`, and where failed asserts are recorded |
+
+None of these are part of `/src`: `BuildAddin` never imports them and they never ship in the `.xlam`. A function has to be `Public` in a standard module for a test to call it.
 
 ## Fixtures
 
@@ -47,7 +92,7 @@ Deliberately awkward inputs, and where to find them:
 
 ### `Vendor` values for Split Sheet by Column
 
-Splitting on `Vendor` should produce **11 sheets** — 11 distinct values once whitespace and case are ignored. Expectations below come from reading `modHelpers_Strings.SanitizeSheetName` and `modMain_SplitSheets`; confirm them on the first manual run and correct this table if the add-in disagrees.
+Splitting on `Vendor` should produce **11 sheets** — 11 distinct values once whitespace and case are ignored. The sheet *names* in this table are checked by the unit tests in `unit/modTest_StringsAndExportNames.bas` (`SanitizeSheetName` and `UniqueRunName`). What those tests don't cover is the split itself — that the right rows land on each sheet and that there are 11 of them — so that part is still a manual check.
 
 | Vendor value in the file | Expected sheet name | Why it's in the fixture |
 | ------------------------ | ------------------- | ----------------------- |

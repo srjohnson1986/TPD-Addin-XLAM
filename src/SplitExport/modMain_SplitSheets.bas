@@ -160,7 +160,8 @@ End Sub
 ' Returns baseName if it hasn't been used this run, otherwise baseName with a
 ' " (2)" / " (3)" / ... suffix - trimming baseName so the result stays within
 ' Excel's 31-char sheet-name limit.
-Private Function UniqueRunName(ByVal baseName As String, ByVal usedNames As Object) As String
+' Public only so tests/unit can call it; SplitSheetByColumn_DoWork is its one caller.
+Public Function UniqueRunName(ByVal baseName As String, ByVal usedNames As Object) As String
     Dim n As Long
     Dim suffix As String
     Dim candidate As String
