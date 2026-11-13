@@ -66,7 +66,7 @@ Same runner, same self-check and same watchdog as the unit tests, but each test 
 | Module | Flow | What it checks |
 | ------ | ---- | -------------- |
 | `flows/modFlowTest_EQList.bas` | `CreateCustEQList_DoWork` | Only the chosen columns, in order; the blank row is removed; bold/italic stripped from item rows ([#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169)); the ID-less item loses its fill ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170)); PARENT rows keep their fill and the 9 bold ones stay bold; one logo; each of the seven options changed from its shipped value |
-| `flows/modFlowTest_Schedule.bas` | `CreateCustSchedule_DoWork` | Chosen columns in the chosen order; a column hidden in the source comes across with its values (where it lands is reported, not asserted); all 135 rows; fills cleared and bold kept on the 27 summary rows; date and percent formats; row grouping levels |
+| `flows/modFlowTest_Schedule.bas` | `CreateCustSchedule_DoWork` | Chosen columns in the chosen order; a column hidden in the source takes its chosen place and comes out visible, and unchosen hidden columns at the end of the source are dropped ([#186](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/186)); all 135 rows; fills cleared and bold kept on the 27 summary rows; date and percent formats; row grouping levels |
 | `flows/modFlowTest_Split.bas` | `SplitSheetByColumn_DoWork` | The `Vendor` table below, end to end: 11 sheets, their names, the row count on each, and that the 67 rows with a vendor each land on exactly one sheet |
 
 How they stay repeatable:
@@ -141,7 +141,7 @@ The shipped default Schedule columns (`Status, % Complete, Tasks, Start Date, En
 
 | Case | Where | What to check |
 | ---- | ----- | ------------- |
-| **Hidden source columns** | `Computed Status`, `Predecessors`, `Baseline Start`, `Baseline Finish`, `Variance`, `Ready to Start` | The picker still lists them; choosing a hidden column puts it in the output. What the add-in does today, as the flow test reports in a note: the column comes out **visible**, and **after** the other chosen columns whatever position was asked for (`Tasks, Predecessors, Start Date, Status` gives `Tasks, Start Date, Status, Predecessors`). Whether that is what you want is still open |
+| **Hidden source columns** | `Computed Status`, `Predecessors`, `Baseline Start`, `Baseline Finish`, `Variance`, `Ready to Start` | The picker still lists them. A hidden column you choose comes out **visible** and **in the position you gave it**; hidden columns you did not choose are dropped like any other ([#186](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/186)). Checked by the flow tests |
 | Real dates and percentages | `Start Date` / `End Date` (`MM/dd/yy`, working days only), `% Complete` (`#,##0%`) | Number formats survive the copy; columns are wide enough that nothing shows as `####` |
 | Mixed-type column | `Duration` is `5d` / `2w` text on tasks and a mix of bare numbers and `Nd` on summary rows; one `Completion Date` cell is text, not a date | No type errors, consistent alignment |
 | Dependencies as text | `Predecessors`: `12`, `12FS +3d`, `12FF`, `10, 12` | Treated as plain text; no formula or date coercion |

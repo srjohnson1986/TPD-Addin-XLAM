@@ -367,6 +367,39 @@ TestFail:
     Resume TestExit
 End Sub
 
+'@TestMethod("EQ List")
+Public Sub EqList_HiddenSourceColumn_TakesItsChosenPlace_AndIsVisible()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim src As Worksheet
+    Dim detailsCol As Long
+    On Error GoTo TestFail
+
+    ' Details hidden in the source (in memory only - the fixture is open
+    ' read-only) and asked for first. Same helpers as the Schedule flow, so
+    ' the same fault (#186): it used to come out last.
+    Set wb = OpenFixture(FIXTURE)
+    Set src = wb.Worksheets(1)
+    detailsCol = ColumnOf(src, 1, "Details")
+    Assert.IsTrue detailsCol > 0, "the fixture should have a Details column"
+    src.Columns(detailsCol).Hidden = True
+
+    Set ws = RunEqList(wb, "Details, INTERNAL ID, Description", TogglesWith())
+
+    Assert.AreEqual "Details|INTERNAL ID|Description", HeadingsJoined(ws, HeadingRow()), _
+                    "a chosen column sits where it was asked for, hidden in the source or not"
+    Assert.AreEqual 3, CLng(Application.WorksheetFunction.CountA(ws.Rows(HeadingRow()))), _
+                    "and nothing else is left on the heading row"
+    Assert.IsFalse ws.Columns(1).Hidden, "and it is visible: someone chose it"
+
+TestExit:
+    CloseFixture wb
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
 '@TestMethod("EQ List options")
 Public Sub EqList_AddCellBordersOff_NoBorders()
     Dim wb As Workbook

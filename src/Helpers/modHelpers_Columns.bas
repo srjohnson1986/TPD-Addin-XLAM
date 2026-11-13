@@ -290,8 +290,14 @@ End Sub
 ' Copies every row of wsSource onto wsDest verbatim. A whole-row copy (rather
 ' than a range copy) carries Excel's row grouping / outline levels across too,
 ' which the Customer EQ List needs.
+'
+' Copying every row also brings across which COLUMNS are hidden. Those are
+' shown again here: the caller keeps only the columns the user chose, and a
+' column someone chose should be visible in what they get (#186). Hidden rows
+' are left as they came.
 Public Sub CopyEntireSheetRows(wsSource As Worksheet, wsDest As Worksheet)
     wsSource.Rows("1:" & wsSource.Rows.Count).Copy wsDest.Rows(1)
+    wsDest.Columns.Hidden = False
 End Sub
 
 

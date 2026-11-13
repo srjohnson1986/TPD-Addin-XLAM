@@ -463,7 +463,9 @@ Sheet and workbook utilities.
 - `GetLastRow` — the last row with content in *any* column. `Find`-based and safe on an empty sheet.
   - This is the "end of the data table" helper. Use a per-column `.End(xlUp)` only when you mean that one
     column ([#89]).
-- `GetLastCol` — the last-column equivalent.
+- `GetLastCol(ws, row)` — the last column with anything in it on that row, **hidden columns included**. `Find`-based for
+  that reason: `.End(xlToLeft)` stops at the last visible column, which hid a trailing hidden column from the heading
+  list, the column delete and the reorder ([#186]).
 
 ### `modHelpers_Headers`
 
@@ -488,7 +490,9 @@ Column selection, ordering and row copying.
 - `GetUniqueValuesInColumn` — the unique values in a column.
 - `CopyFilteredRowsByColumns` — copies matching rows across sheets, projected onto a column selection in the
   selection's order ([#127]). **Values only**; formatting is the caller's job.
-- `CopyEntireSheetRows` — copies every row verbatim. A whole-row copy carries row grouping across.
+- `CopyEntireSheetRows` — copies every row verbatim. A whole-row copy carries row grouping across. It also carries
+  which columns are hidden, so it shows every column again afterwards: a column the user chose should be visible
+  ([#186]).
 
 Four of these are thin `Worksheet`-facing wrappers around a pure sibling that takes and returns plain values
 only. The pure ones have Rubberduck unit tests in `/tests/unit`, which `BuildAddin` never imports ([#163]):
@@ -752,3 +756,4 @@ fixed defects is in [CHANGELOG.md](../CHANGELOG.md).
 [#170]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170
 [#171]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/171
 [#174]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/174
+[#186]: https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/186
