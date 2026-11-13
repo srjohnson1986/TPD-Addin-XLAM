@@ -103,6 +103,9 @@ Rules that hold across those steps:
   `_DoWork` shows one `vbInformation` notice at the end (`SkippedPurchasedToggleNames`).
 - Purchased reaches the output sheet only if it is in the chosen column list, whatever the toggles say.
 - The seven toggles and their shipped values are defined once, in `modPreferences_Defaults`.
+- `_DoWork` takes an optional `toggleOverrides` (a dictionary of `PREF_EQLIST_*` key to Boolean). A toggle it
+  names uses that value; any other is read from the saved settings (`EqListToggleValue`). Both ribbon paths
+  pass nothing. The flow tests in `/tests/flows` pass all seven, so they never depend on the registry.
 
 ### `modMain_CountEquipmentRows`
 

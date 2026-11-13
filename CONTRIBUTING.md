@@ -100,9 +100,10 @@ need step 1. `.bas` modules have none of this hazard — edit them any time.
 3. Load `build/TPD_Addin.xlam` as an add-in (File → Options → Add-ins → Manage: Excel Add-ins → Browse) and exercise the ribbon flows against the synthetic fixtures in `/tests/fixtures` — the manual smoke test and what to expect are in [tests/README.md](tests/README.md). Never use real customer workbooks in anything you commit.
 4. `powershell -ExecutionPolicy Bypass -File tools\Test-SourceDrift.ps1` — confirms `/src` is exactly what got built into `build/TPD_Addin.xlam` (catches a VBE-only edit, or a control placed in a form, that never made it back into `/src`). Needs COM/Office like the build itself, so it's a local check, not part of CI. See "Automated checks" below.
 5. `powershell -ExecutionPolicy Bypass -File tools\Test-Unit.ps1` — runs the unit tests in `/tests/unit` against that build, headlessly (add `-Build` to do step 2 first). Also a local check: it needs Excel. See [tests/README.md](tests/README.md#unit-tests).
-6. If it checks out, this is your release candidate.
+6. `powershell -ExecutionPolicy Bypass -File tools\Test-Unit.ps1 -Suite flows` — runs the EQ List, Schedule and Split flows end to end against copies of the fixtures and checks the sheets they produce. It overwrites the clipboard while it runs. See [tests/README.md](tests/README.md#flow-tests) for what it does and does not cover.
+7. If it checks out, this is your release candidate.
 
-**All of the automated part in one command:** `powershell -ExecutionPolicy Bypass -File tools\Test-All.ps1` runs the static checks, steps 2, 4 and 5 above, and two checks of its own, in order, stopping at the first failure:
+**All of the automated part in one command:** `powershell -ExecutionPolicy Bypass -File tools\Test-All.ps1` runs the static checks, steps 2, 4, 5 and 6 above, and two checks of its own, in order, stopping at the first failure:
 
 - nothing has the built add-in or the builder workbook open (the build can't overwrite a loaded add-in, so close Excel or unload the add-in first);
 - the text in `tools/builder-src` is what is inside `tools/TPD_Builder.xlsm`, so the build macro that runs is the one that was reviewed;
@@ -134,7 +135,7 @@ These are text heuristics, not a compiler: they cover the mistakes this project 
 
 **Changing a check?** Run `tools\Test-StaticChecks.ps1 -SelfTest` afterwards (CI runs it too, before the real checks). It builds a small synthetic source tree, confirms it passes clean, then breaks it one way at a time and confirms each break is reported by exactly the expected check. Add a case there for any new check — a check that has never been seen to fail proves nothing.
 
-It deliberately does **not** check that `/src` matches a built `.xlam`, and it does not run the unit tests — both need Excel/COM, which hosted runners don't have. Those are `tools/Test-SourceDrift.ps1` and `tools/Test-Unit.ps1`, steps 4 and 5 of "Rebuilding a testable `.xlam`" above: local gates, not CI jobs. (A self-hosted runner on a personal Windows machine could run it in Actions too, but that means GitHub Actions can execute workflow code — including from your own pushes — directly on that machine, so this repo keeps it local instead.)
+It deliberately does **not** check that `/src` matches a built `.xlam`, and it does not run the unit or flow tests — all of those need Excel/COM, which hosted runners don't have. Those are `tools/Test-SourceDrift.ps1` and `tools/Test-Unit.ps1`, steps 4 to 6 of "Rebuilding a testable `.xlam`" above: local gates, not CI jobs. (A self-hosted runner on a personal Windows machine could run it in Actions too, but that means GitHub Actions can execute workflow code — including from your own pushes — directly on that machine, so this repo keeps it local instead.)
 
 ## Cutting a release
 

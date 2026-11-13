@@ -5,7 +5,8 @@ Two kinds of test live here.
 | Folder | What | How it runs |
 | ------ | ---- | ----------- |
 | `unit/` | Unit tests for the pure VBA logic (column lists, preferences, EQ Count numbering, which EQ List rows count as structural, sheet and file naming) | `tools\Test-Unit.ps1` headlessly, or [Rubberduck](https://rubberduckvba.com/)'s Test Explorer — see [Unit tests](#unit-tests) |
-| `fixtures/` | **Synthetic** sample workbooks to run the ribbon flows against by hand | Open a fixture, click through the TPD ribbon, compare with the expectations below |
+| `flows/` | Flow tests: the EQ List, Schedule and Split flows run end to end against copies of the fixtures, and the sheets they produce are checked | `tools\Test-Unit.ps1 -Suite flows`, headlessly — see [Flow tests](#flow-tests) |
+| `fixtures/` | **Synthetic** sample workbooks, used by the flow tests and for running the ribbon flows by hand | Open a fixture, click through the TPD ribbon, compare with the expectations below |
 
 Everything in `fixtures/` is **made up**: company names, tags, part numbers, people and dates. There is no customer data in the repo and there must never be — see [CONTRIBUTING.md](../CONTRIBUTING.md#license-and-conduct).
 
@@ -54,6 +55,34 @@ It offers `AreEqual`, `AreNotEqual`, `IsTrue`, `IsFalse` and `Fail`. Equality is
 
 None of these are part of `/src`: `BuildAddin` never imports them and they never ship in the `.xlam`. A function has to be `Public` in a standard module for a test to call it.
 
+## Flow tests
+
+```
+powershell -ExecutionPolicy Bypass -File tools\Test-Unit.ps1 -Suite flows
+```
+
+Same runner, same self-check and same watchdog as the unit tests, but each test runs a whole flow. It opens a copy of a fixture (made in the run's temp folder, so the tracked fixtures are never touched), calls the flow's `_DoWork` routine, and checks the sheet that comes out.
+
+| Module | Flow | What it checks |
+| ------ | ---- | -------------- |
+| `flows/modFlowTest_EQList.bas` | `CreateCustEQList_DoWork` | Only the chosen columns, in order; the blank row is removed; bold/italic stripped from item rows ([#169](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/169)); the ID-less item loses its fill ([#170](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/170)); PARENT rows keep their fill and the 9 bold ones stay bold; one logo; each of the seven options changed from its shipped value |
+| `flows/modFlowTest_Schedule.bas` | `CreateCustSchedule_DoWork` | Chosen columns in the chosen order; a column hidden in the source comes across with its values (where it lands is reported, not asserted); all 135 rows; fills cleared and bold kept on the 27 summary rows; date and percent formats; row grouping levels |
+| `flows/modFlowTest_Split.bas` | `SplitSheetByColumn_DoWork` | The `Vendor` table below, end to end: 11 sheets, their names, the row count on each, and that the 67 rows with a vendor each land on exactly one sheet |
+
+How they stay repeatable:
+
+- **No dialogs.** They call the `_DoWork` routines directly, which take the source sheet and the column list as arguments, so no picker is shown.
+- **No saved settings.** `CreateCustEQList_DoWork` takes an optional `toggleOverrides` argument; the tests pass all seven EQ List options through it, so a run does not depend on what is saved in Set Defaults. `modFlowSupport.TogglesWith(...)` builds it.
+- **Rows are found by value**, not by row number, wherever the flow can delete rows.
+
+Things to know before running them:
+
+- **They overwrite the clipboard.** The logo insert and the EQ COUNT heading format use copy and paste.
+- **They are headless only.** They need the fixture folder, which the runner supplies; they are not set up to run in Rubberduck's Test Explorer.
+- **They do not replace the manual smoke test below.** Not covered: the picker dialogs and Set Defaults, the ribbon buttons, which sheet a flow picks, the messages a flow shows, Save Each Sheet to XLSX, and anything about how the output looks — column widths, row heights, where the logo sits, frozen panes.
+
+The numbers in the tests (16 PARENT rows, 69 items, 11 vendors, …) come from the fixtures. If you change `fixtures/generate_fixtures.py`, expect to update them.
+
 ## Fixtures
 
 Run from the repo root to (re)generate them. They are built from scratch with a fixed seed, so the content is the same every run:
@@ -92,7 +121,7 @@ Deliberately awkward inputs, and where to find them:
 
 ### `Vendor` values for Split Sheet by Column
 
-Splitting on `Vendor` should produce **11 sheets** — 11 distinct values once whitespace and case are ignored. The sheet *names* in this table are checked by the unit tests in `unit/modTest_StringsAndExportNames.bas` (`SanitizeSheetName` and `UniqueRunName`). What those tests don't cover is the split itself — that the right rows land on each sheet and that there are 11 of them — so that part is still a manual check.
+Splitting on `Vendor` should produce **11 sheets** — 11 distinct values once whitespace and case are ignored. The sheet *names* in this table are checked by the unit tests in `unit/modTest_StringsAndExportNames.bas` (`SanitizeSheetName` and `UniqueRunName`), and the split itself — 11 sheets, the right number of rows on each — by the flow tests in `flows/modFlowTest_Split.bas`.
 
 | Vendor value in the file | Expected sheet name | Why it's in the fixture |
 | ------------------------ | ------------------- | ----------------------- |
@@ -112,7 +141,7 @@ The shipped default Schedule columns (`Status, % Complete, Tasks, Start Date, En
 
 | Case | Where | What to check |
 | ---- | ----- | ------------- |
-| **Hidden source columns** | `Computed Status`, `Predecessors`, `Baseline Start`, `Baseline Finish`, `Variance`, `Ready to Start` | The picker still lists them; choosing a hidden column puts it in the output (visible or not — note what the add-in does and whether that is what you want) |
+| **Hidden source columns** | `Computed Status`, `Predecessors`, `Baseline Start`, `Baseline Finish`, `Variance`, `Ready to Start` | The picker still lists them; choosing a hidden column puts it in the output. What the add-in does today, as the flow test reports in a note: the column comes out **visible**, and **after** the other chosen columns whatever position was asked for (`Tasks, Predecessors, Start Date, Status` gives `Tasks, Start Date, Status, Predecessors`). Whether that is what you want is still open |
 | Real dates and percentages | `Start Date` / `End Date` (`MM/dd/yy`, working days only), `% Complete` (`#,##0%`) | Number formats survive the copy; columns are wide enough that nothing shows as `####` |
 | Mixed-type column | `Duration` is `5d` / `2w` text on tasks and a mix of bare numbers and `Nd` on summary rows; one `Completion Date` cell is text, not a date | No type errors, consistent alignment |
 | Dependencies as text | `Predecessors`: `12`, `12FS +3d`, `12FF`, `10, 12` | Treated as plain text; no formula or date coercion |
@@ -123,6 +152,8 @@ The shipped default Schedule columns (`Status, % Complete, Tasks, Start Date, En
 All dates are in 2030 and all names (`Assigned To`, `MANUFACTURER`) are made up.
 
 ## Manual smoke test
+
+The flow tests cover what steps 2 to 4 *produce*. What is left for a person is what only a person can see: that the dialogs open and behave, that the ribbon buttons run the right flow, and that the output looks right.
 
 1. Build and load the add-in (see [CONTRIBUTING.md](../CONTRIBUTING.md#rebuilding-a-testable-xlam-from-src)).
 2. Open `EQ_List_Sample.xlsx` → **TPD › One-click › EQ List**, then **Create Customer EQ List** and pick columns. Check the new `Customer EQ List` sheet: only the chosen columns, the TPD header block and logo, grouping and fills carried over, wrapped rows tall enough, no clipped filter dropdowns.
