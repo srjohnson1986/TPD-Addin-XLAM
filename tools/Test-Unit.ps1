@@ -56,7 +56,15 @@
 [CmdletBinding()]
 param(
     [string]$XlamPath,
-    [int]$TimeoutSeconds = 120,
+
+    # Which tests to run. 'unit' is tests\unit: pure functions, no workbook.
+    # 'flows' is tests\flows: whole flows run against copies of the fixture
+    # workbooks in tests\fixtures. Flow tests use copy and paste, so they
+    # overwrite the clipboard while they run.
+    [ValidateSet('unit', 'flows')][string]$Suite = 'unit',
+
+    # Default: 120 for unit tests, 300 for flow tests.
+    [int]$TimeoutSeconds = 0,
     [switch]$Build,
     [switch]$PlanOnly,
 
@@ -75,6 +83,16 @@ $unitDir  = Join-Path (Join-Path $repoRoot 'tests') 'unit'
 $srcDir   = Join-Path $repoRoot 'src'
 if ([string]::IsNullOrEmpty($XlamPath)) {
     $XlamPath = Join-Path (Join-Path $repoRoot 'build') 'TPD_Addin.xlam'
+}
+
+$flowsDir   = Join-Path (Join-Path $repoRoot 'tests') 'flows'
+$fixtureDir = Join-Path (Join-Path $repoRoot 'tests') 'fixtures'
+
+$suiteLabel = 'unit'
+if ($Suite -eq 'flows') { $suiteLabel = 'flow' }
+if ($TimeoutSeconds -le 0) {
+    $TimeoutSeconds = 120
+    if ($Suite -eq 'flows') { $TimeoutSeconds = 300 }
 }
 
 $canaryModule = 'modTest_RunnerCanary'
@@ -254,7 +272,15 @@ if (-not $PlanOnly) {
 
 # ---- 2. Find the tests by their annotations --------------------------------
 
-$testFiles = @(Get-ChildItem -Path $unitDir -File | Where-Object { $_.Extension -in '.bas', '.cls' } | Sort-Object Name)
+# What gets scanned for tests, and what is only imported alongside.
+$testDir      = $unitDir
+$supportFiles = @()
+if ($Suite -eq 'flows') {
+    $testDir      = $flowsDir
+    $supportFiles = @('clsTestAssert.cls', 'modTestSupport.bas' | ForEach-Object { Get-Item -LiteralPath (Join-Path $unitDir $_) })
+}
+if (-not (Test-Path -LiteralPath $testDir)) { Stop-WithMessage "No tests folder at $testDir" 2 }
+$testFiles = @(Get-ChildItem -Path $testDir -File | Where-Object { $_.Extension -in '.bas', '.cls' } | Sort-Object Name)
 
 $callLines = New-Object System.Collections.Generic.List[string]   # body of RunAllTestsHeadless
 $caseLines = New-Object System.Collections.Generic.List[string]   # Select Case in CallProc
@@ -369,6 +395,7 @@ Private mLogPath As String
 Public Function RunAllTestsHeadless(ByVal logPath As String) As String
     Dim report As String
     mLogPath = logPath
+{{SETUP}}
 {{CALLS}}
     LogStep "(all tests finished)"
     RunAllTestsHeadless = report
@@ -403,6 +430,10 @@ Private Function RunTest(ByVal procId As Long, ByVal procLabel As String, _
         RunTest = "PASS|" & procLabel & vbLf
     Else
         RunTest = "FAIL|" & procLabel & "|" & OneLine(modTestSupport.AssertFailureText) & vbLf
+    End If
+
+    If Len(modTestSupport.TestNoteText) > 0 Then
+        RunTest = RunTest & "NOTE|" & procLabel & "|" & OneLine(modTestSupport.TestNoteText) & vbLf
     End If
 End Function
 
@@ -447,28 +478,41 @@ try {
         $n = Add-ModuleToPlan -Path $f.FullName
         if ($n -gt 0) { $moduleCounts[$f.BaseName] = $n }
     }
-    if ($expected.Count -eq 0) { Stop-WithMessage "No '@TestMethod subs found under $unitDir" 2 }
+    if ($expected.Count -eq 0) { Stop-WithMessage "No '@TestMethod subs found under $testDir" 2 }
 
-    $runnerText = $runnerTemplate.Replace('{{CALLS}}', ($callLines -join "`r`n")).Replace('{{CASES}}', ($caseLines -join "`r`n"))
+    # Flow tests work on copies of the fixtures, in this run's temp folder, so
+    # nothing a test does can reach the tracked files.
+    $setupLines = @()
+    if ($Suite -eq 'flows') {
+        $fixtureCopy = Join-Path $work 'fixtures'
+        New-Item -ItemType Directory -Path $fixtureCopy -Force | Out-Null
+        $fixtures = @(Get-ChildItem -LiteralPath $fixtureDir -Filter *.xlsx -File)
+        if ($fixtures.Count -eq 0) { Stop-WithMessage "No fixture workbooks in $fixtureDir" 2 }
+        $fixtures | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $fixtureCopy }
+        $setupLines = @("    modFlowSupport.SetFixtureFolder `"$fixtureCopy`"")
+    }
+
+    $runnerText = $runnerTemplate.Replace('{{SETUP}}', ($setupLines -join "`r`n")).Replace('{{CALLS}}', ($callLines -join "`r`n")).Replace('{{CASES}}', ($caseLines -join "`r`n"))
     $runnerText = ($runnerText -replace "`r?`n", "`r`n") + "`r`n"
     $runnerPath = Join-Path $work ($runnerModule + '.bas')
     [System.IO.File]::WriteAllText($runnerPath, $runnerText, [System.Text.Encoding]::ASCII)
 
     if ($PlanOnly) {
-        Write-Host "$($expected.Count) test(s) in $($moduleCounts.Count) module(s), plus 3 canaries. Excel not started."
+        Write-Host "$($expected.Count) $suiteLabel test(s) in $($moduleCounts.Count) module(s), plus 3 canaries. Excel not started."
         Write-Host "---- generated $runnerModule.bas ----"
         Write-Host $runnerText
         $exitCode = 0
         return
     }
 
-    $importList = @($testFiles | ForEach-Object { $_.FullName }) + $canaryPath + $runnerPath
+    $importList = @($supportFiles | ForEach-Object { $_.FullName }) + @($testFiles | ForEach-Object { $_.FullName }) + $canaryPath + $runnerPath
     [System.IO.File]::WriteAllLines((Join-Path $work 'imports.txt'), [string[]]$importList)
 
     # ---- 4. Run the worker under a watchdog --------------------------------
 
     $shortXlam = $XlamPath.Substring($repoRoot.Length).TrimStart('\', '/')
-    Write-Host "Unit tests (headless): $($expected.Count) test(s) in $($moduleCounts.Count) module(s), against $shortXlam"
+    $heading = (Get-Culture).TextInfo.ToTitleCase($suiteLabel)
+    Write-Host "$heading tests (headless): $($expected.Count) test(s) in $($moduleCounts.Count) module(s), against $shortXlam"
 
     $hostExe = (Get-Process -Id $PID).Path
     $workerArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"",
@@ -531,6 +575,7 @@ try {
 
     $verdicts = @{}
     $hookErrors = New-Object System.Collections.Generic.List[string]
+    $notes = New-Object System.Collections.Generic.List[string]
     foreach ($line in [regex]::Split((Get-Content -LiteralPath $resultFile -Raw), "\r\n|\n|\r")) {
         if (-not $line) { continue }
         $f = $line.Split('|')
@@ -538,6 +583,7 @@ try {
             'PASS'  { $verdicts[$f[1]] = [pscustomobject]@{ Passed = $true;  Reason = '' } }
             'FAIL'  { $verdicts[$f[1]] = [pscustomobject]@{ Passed = $false; Reason = ($f[2..($f.Length - 1)] -join '|') } }
             'ERROR' { $hookErrors.Add("$($f[1]): $($f[2..($f.Length - 1)] -join '|')") }
+            'NOTE'  { $notes.Add("$($f[1])`n        $($f[2..($f.Length - 1)] -join '|')") }
         }
     }
 
@@ -576,6 +622,7 @@ try {
     foreach ($h in $hookErrors) { Write-Host "  ERROR in setup/teardown: $h" -ForegroundColor Red }
     foreach ($m in $missing)    { Write-Host "  NOT RUN: $m" -ForegroundColor Red }
     foreach ($x in $failed)     { Write-Host "  FAIL: $x" -ForegroundColor Red }
+    foreach ($note in $notes)   { Write-Host "  note: $note" -ForegroundColor Yellow }
 
     Write-Host ''
     $bad = $failed.Count + $missing.Count + $hookErrors.Count
@@ -583,7 +630,7 @@ try {
         Write-Host "$($failed.Count) failed, $($missing.Count) not run, $($hookErrors.Count) setup error(s), of $($expected.Count) test(s)." -ForegroundColor Red
         $exitCode = 1
     } else {
-        Write-Host "All $($expected.Count) unit test(s) passed." -ForegroundColor Green
+        Write-Host "All $($expected.Count) $suiteLabel test(s) passed." -ForegroundColor Green
         $exitCode = 0
     }
 }

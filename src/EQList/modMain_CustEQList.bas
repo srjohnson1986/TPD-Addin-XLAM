@@ -56,9 +56,15 @@ Public Sub CreateCustEQListFromDefaults_Internal()
     CreateCustEQList_DoWork wsSource, presentCols
 End Sub
 
+' toggleOverrides is for callers that must not depend on what is saved in the
+' registry - the flow tests in tests/flows. It is a Scripting.Dictionary of
+' PREF_EQLIST_* key -> Boolean; a toggle it names uses that value, any other
+' toggle is read from the saved settings as usual. Both ribbon paths pass
+' nothing, so for them every toggle comes from Set Defaults, as before.
 Public Sub CreateCustEQList_DoWork( _
         ByVal wsSource As Worksheet, _
-        ByVal selectedCols As Collection)
+        ByVal selectedCols As Collection, _
+        Optional ByVal toggleOverrides As Object = Nothing)
 
     Dim wsNew As Worksheet
     Dim newSheetName As String
@@ -69,13 +75,13 @@ Public Sub CreateCustEQList_DoWork( _
     Dim removeParents As Boolean, addCount As Boolean, plainParents As Boolean
     Dim boldParents As Boolean
     Dim addBorders As Boolean, addFilters As Boolean
-    removeBlanks = LoadEqListToggle(PREF_EQLIST_REMOVE_BLANK_ROWS)
-    removeParents = LoadEqListToggle(PREF_EQLIST_REMOVE_PARENT_ROWS)
-    addCount = LoadEqListToggle(PREF_EQLIST_ADD_COUNT_COLUMN)
-    plainParents = LoadEqListToggle(PREF_EQLIST_PLAIN_PARENT_ROWS)
-    boldParents = LoadEqListToggle(PREF_EQLIST_BOLD_PARENT_ROWS)
-    addBorders = LoadEqListToggle(PREF_EQLIST_ADD_CELL_BORDERS)
-    addFilters = LoadEqListToggle(PREF_EQLIST_ADD_COLUMN_FILTERS)
+    removeBlanks = EqListToggleValue(PREF_EQLIST_REMOVE_BLANK_ROWS, toggleOverrides)
+    removeParents = EqListToggleValue(PREF_EQLIST_REMOVE_PARENT_ROWS, toggleOverrides)
+    addCount = EqListToggleValue(PREF_EQLIST_ADD_COUNT_COLUMN, toggleOverrides)
+    plainParents = EqListToggleValue(PREF_EQLIST_PLAIN_PARENT_ROWS, toggleOverrides)
+    boldParents = EqListToggleValue(PREF_EQLIST_BOLD_PARENT_ROWS, toggleOverrides)
+    addBorders = EqListToggleValue(PREF_EQLIST_ADD_CELL_BORDERS, toggleOverrides)
+    addFilters = EqListToggleValue(PREF_EQLIST_ADD_COLUMN_FILTERS, toggleOverrides)
 
     Dim wantsPurchasedToggle As Boolean
     wantsPurchasedToggle = removeParents Or addCount Or plainParents Or boldParents
@@ -158,7 +164,7 @@ Public Sub CreateCustEQList_DoWork( _
 
     If wantsPurchasedToggle And purchasedCol = 0 Then
         MsgBox "Some EQ List options need a 'Purchased' column, which '" & wsSource.name & _
-               "' doesn't have, so they were skipped: " & SkippedPurchasedToggleNames() & "." & vbCrLf & vbCrLf & _
+               "' doesn't have, so they were skipped: " & SkippedPurchasedToggleNames(toggleOverrides) & "." & vbCrLf & vbCrLf & _
                "The list was still generated.", vbInformation, "TPD Add-in"
     End If
 End Sub
@@ -246,24 +252,38 @@ Private Sub AddHeadingRowFilter(ByVal ws As Worksheet, ByVal headingRow As Long)
     ws.Range(ws.Cells(headingRow, 1), ws.Cells(GetLastRow(ws), lastCol)).AutoFilter
 End Sub
 
-' Comma-joined display names of the Purchased-dependent toggles the user has
-' turned on - read from the saved prefs, since _DoWork forces its local flags
-' False once it finds no Purchased column. Used only for the skip notice.
+' Comma-joined display names of the Purchased-dependent toggles that are
+' turned on for this run - looked up again here, since _DoWork forces its
+' local flags False once it finds no Purchased column. Used only for the skip
+' notice.
 '
 ' Which toggles need Purchased, and what to call them, come from the table in
 ' modPreferences_Defaults: this used to be a hand-kept third copy of that list
 ' and would have gone stale the first time a toggle was added or renamed.
-Private Function SkippedPurchasedToggleNames() As String
+Private Function SkippedPurchasedToggleNames(ByVal toggleOverrides As Object) As String
     Dim names As String
     Dim key As Variant
 
     For Each key In EqListToggleKeys()
         If EqListToggleNeedsPurchased(CStr(key)) Then
-            If LoadEqListToggle(CStr(key)) Then names = names & ", " & EqListToggleName(CStr(key))
+            If EqListToggleValue(CStr(key), toggleOverrides) Then names = names & ", " & EqListToggleName(CStr(key))
         End If
     Next key
 
     If Len(names) > 0 Then SkippedPurchasedToggleNames = Mid$(names, 3)
+End Function
+
+' One EQ List toggle's value for this run: the caller's override when it gave
+' one for this key, otherwise the saved setting (or what the toggle ships as).
+Private Function EqListToggleValue(ByVal key As String, ByVal toggleOverrides As Object) As Boolean
+    If Not toggleOverrides Is Nothing Then
+        If toggleOverrides.exists(key) Then
+            EqListToggleValue = CBool(toggleOverrides(key))
+            Exit Function
+        End If
+    End If
+
+    EqListToggleValue = LoadEqListToggle(key)
 End Function
 
 

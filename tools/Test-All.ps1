@@ -21,8 +21,13 @@
                                    the same as customUI\customUI14.xml
       8. Source drift              tools\Test-SourceDrift.ps1
       9. Unit tests                tools\Test-Unit.ps1
+     10. Flow tests                tools\Test-Unit.ps1 -Suite flows: the EQ
+                                   List, Schedule and Split flows run against
+                                   copies of the fixtures. These use copy and
+                                   paste, so the clipboard is overwritten.
 
-    Steps 1 and 2 need no Excel. Steps 4, 5, 8 and 9 each start a hidden Excel.
+    Steps 1 and 2 need no Excel. Steps 4, 5, 8, 9 and 10 each start a hidden
+    Excel.
 
     Each script runs in its own child process under a time limit. If a step
     that drives Excel runs out of time, this script prints the text of any
@@ -36,7 +41,9 @@
     WHAT THIS DOES NOT COVER, and a person still has to do:
       - Debug > Compile VBAProject in the VBE (the only real compile check)
       - a Rubberduck Test Explorer run
-      - the ribbon flows against tests\fixtures (tests\README.md)
+      - the ribbon flows by hand against tests\fixtures (tests\README.md):
+        the flow tests check what the flows produce, not the dialogs, the
+        ribbon, Save Each Sheet, or how the result looks
 
     Exit code 0 if every step passed, 1 otherwise.
 
@@ -233,6 +240,8 @@ $steps = @(
     @{ Name = 'Source drift';            Excel = $true; Run = { Invoke-ScriptStep -Script 'Test-SourceDrift.ps1' -UsesExcel -TimeoutSeconds $StepTimeoutSeconds } }
     # Test-Unit.ps1 has its own watchdog (120 s); the limit here only has to outlast it.
     @{ Name = 'Unit tests';              Excel = $true; Run = { Invoke-ScriptStep -Script 'Test-Unit.ps1' -TimeoutSeconds ($StepTimeoutSeconds + 60) } }
+    # The flow suite has a 300 s watchdog of its own.
+    @{ Name = 'Flow tests';              Excel = $true; Run = { Invoke-ScriptStep -Script 'Test-Unit.ps1' -ScriptArgs @('-Suite', 'flows') -TimeoutSeconds ($StepTimeoutSeconds + 180) } }
 )
 
 $failedStep = $null
@@ -306,7 +315,7 @@ if ($failedStep) {
 } else {
     Write-Host "RESULT: all $($results.Count) steps passed in $total s."
 }
-Write-Host 'Not covered: Debug > Compile VBAProject, a Test Explorer run, the ribbon flows against the fixtures.'
+Write-Host 'Not covered: Debug > Compile VBAProject, a Test Explorer run, the dialogs and ribbon, how the output looks.'
 Write-Host '---------------------------------'
 
 if ($failedStep) { exit 1 }

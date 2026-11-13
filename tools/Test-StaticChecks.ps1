@@ -5,7 +5,7 @@
     or pwsh, any OS) and in GitHub Actions on a normal hosted runner.
 
 .DESCRIPTION
-    Eleven checks against /src, /tests/unit, /tools, customUI/customUI14.xml, README.md and
+    Eleven checks against /src, /tests (unit and flows), /tools, customUI/customUI14.xml, README.md and
     CHANGELOG.md. Each failure carries a short id (in brackets below), which is
     what -SelfTest asserts on.
 
@@ -295,7 +295,7 @@ function Invoke-StaticChecks {
     $script:Failures = [System.Collections.Generic.List[object]]::new()
 
     $srcRoot     = Join-Path $Root 'src'
-    $testRoot    = Join-Path (Join-Path $Root 'tests') 'unit'
+    $testRoot    = Join-Path $Root 'tests'    # tests/unit and tests/flows
     $customUIXml = Join-Path (Join-Path $Root 'customUI') 'customUI14.xml'
     $readmePath  = Join-Path $Root 'README.md'
     $changelog   = Join-Path $Root 'CHANGELOG.md'
