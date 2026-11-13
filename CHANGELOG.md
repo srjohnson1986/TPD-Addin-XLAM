@@ -11,6 +11,18 @@ with the built `TPD_Addin.xlam` attached as an asset. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **A column that is hidden in the source sheet now behaves like any other
+  column you choose**
+  ([#186](https://github.com/srjohnson1986/TPD-Addin-XLAM/issues/186)). In the
+  Customer EQ List and Customer Schedule it used to come out after all the
+  other columns, whatever order you had asked for; it now sits where you put
+  it, and it is always visible in the output. Hidden columns at the far right
+  of a source sheet that you did *not* choose are no longer left behind in the
+  output, and Split Sheet by Column no longer leaves a chosen column off every
+  sheet because it was hidden at the far right of the source.
+
 ## [2.4.5] - 2026-11-11
 
 Cleaner **EQ List** output from real Smartsheet exports: item rows no longer

@@ -18,8 +18,7 @@ Attribute VB_Name = "modFlowTest_Schedule"
 '  plain task, 32 a task at the deepest outline level.
 '
 '  Not checked here: column widths, row heights, the logo's
-'  position, frozen panes, or whether a column that was
-'  hidden in the source comes out hidden.
+'  position, frozen panes.
 '
 '  Not part of /src. Headless only: tools\Test-Unit.ps1 -Suite flows
 '===========================================================
@@ -101,35 +100,84 @@ TestFail:
 End Sub
 
 '@TestMethod("Schedule")
-Public Sub Schedule_HiddenSourceColumn_ComesAcrossWithItsValues()
+Public Sub Schedule_HiddenSourceColumn_TakesItsChosenPlace_AndIsVisible()
     Dim wb As Workbook
     Dim ws As Worksheet
     Dim src As Worksheet
     Dim srcCol As Long
-    Dim outCol As Long
     On Error GoTo TestFail
 
-    ' Predecessors is hidden in the source. Asked for second of four.
+    ' Predecessors is hidden in the source. Asked for second of four (#186:
+    ' it used to land last, because the reorder could not see a hidden
+    ' column at the end of the row).
     Set wb = OpenFixture(FIXTURE)
     Set src = wb.Worksheets(1)
+    srcCol = ColumnOf(src, 1, "Predecessors")
+    Assert.IsTrue srcCol > 0, "the fixture should have a Predecessors column"
+    Assert.IsTrue src.Columns(srcCol).Hidden, "and it should be hidden in the source, or this test proves nothing"
+    Assert.AreEqual "13FF", CStr(src.Cells(14, srcCol).Value), "the fixture row this test relies on"
+
     Set ws = RunSchedule(wb, "Tasks, Predecessors, Start Date, Status")
 
-    srcCol = ColumnOf(src, 1, "Predecessors")
-    outCol = ColumnOf(ws, HeadingRow(), "Predecessors")
-    Assert.IsTrue srcCol > 0, "the fixture should have a Predecessors column"
-    Assert.IsTrue outCol > 0, "the chosen hidden column should be in the output"
+    Assert.AreEqual "Tasks|Predecessors|Start Date|Status", HeadingsJoined(ws, HeadingRow()), _
+                    "a chosen column sits where it was asked for, hidden in the source or not"
+    Assert.AreEqual "13FF", CStr(ws.Cells(OutRow(14), 2).Value), "with its values"
+    Assert.IsFalse ws.Columns(2).Hidden, "and it is visible: someone chose it"
 
-    ' Source row 14 has "13FF" in Predecessors.
-    Assert.AreEqual "13FF", CStr(src.Cells(14, srcCol).Value), "the fixture row this test relies on"
-    If outCol > 0 Then
-        Assert.AreEqual "13FF", CStr(ws.Cells(OutRow(14), outCol).Value), "its values come across"
+TestExit:
+    CloseFixture wb
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
 
-        ' Where it lands, and whether it is still hidden, is not asserted:
-        ' tests/README.md leaves both open. Reported instead.
-        RecordTestNote "asked for 'Tasks, Predecessors, Start Date, Status'; got [" & _
-                       HeadingsJoined(ws, HeadingRow()) & "]; Predecessors is in column " & outCol & _
-                       ", hidden = " & CBool(ws.Columns(outCol).Hidden)
-    End If
+'@TestMethod("Schedule")
+Public Sub Schedule_HiddenColumnsAtTheEndOfTheSource_AreStillDropped()
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim src As Worksheet
+    On Error GoTo TestFail
+
+    ' The source's last five columns, all hidden and none of them chosen. The
+    ' fixture hides four of them already; this hides the last one, Notes, as
+    ' well (in memory only - the fixture is open read-only). The column delete
+    ' used to stop at the last visible column and leave these behind (#186).
+    Set wb = OpenFixture(FIXTURE)
+    Set src = wb.Worksheets(1)
+    Assert.AreEqual "Notes", CStr(src.Cells(1, 16).Value), "the fixture's last column"
+    src.Range(src.Columns(12), src.Columns(16)).EntireColumn.Hidden = True
+
+    Set ws = RunSchedule(wb, DefaultScheduleColumns())
+
+    ' Counted without GetLastCol, which is the function under test here.
+    Assert.AreEqual 5, CLng(Application.WorksheetFunction.CountA(ws.Rows(HeadingRow()))), _
+                    "exactly the five chosen headings on the heading row, hidden columns included"
+    Assert.AreEqual CsvAsHeadings(DefaultScheduleColumns()), HeadingsJoined(ws, HeadingRow())
+
+TestExit:
+    CloseFixture wb
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
+
+'@TestMethod("Helpers")
+Public Sub GetLastCol_CountsHiddenColumns_AndAnEmptyRowIsOne()
+    Dim wb As Workbook
+    Dim src As Worksheet
+    On Error GoTo TestFail
+
+    Set wb = OpenFixture(FIXTURE)
+    Set src = wb.Worksheets(1)
+
+    Assert.AreEqual 16, GetLastCol(src, 1), "the fixture has 16 headings; the last is visible"
+
+    src.Range(src.Columns(12), src.Columns(16)).EntireColumn.Hidden = True
+    Assert.AreEqual 16, GetLastCol(src, 1), "still 16 with the last five columns hidden (#186)"
+
+    Assert.AreEqual 1, GetLastCol(src, 500), "a row with nothing in it"
 
 TestExit:
     CloseFixture wb

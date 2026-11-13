@@ -121,7 +121,26 @@ Public Function GetLastRow(ws As Worksheet) As Long
 End Function
 
 
+' Last column with anything in it on the given row - hidden columns included.
+' Returns 1 for an empty row.
+'
+' A Find, like GetLastRow, and not .End(xlToLeft): End moves the way Ctrl+Left
+' does and stops at the last VISIBLE cell, so a hidden column at the end of
+' the row was invisible to everything that sizes itself from this - the
+' heading list, the column delete, the reorder (#186). All Find arguments are
+' pinned, for the reason given in GetLastRow. After:= the row's first cell
+' makes the backwards search start from the far end of the row.
 Public Function GetLastCol(ws As Worksheet, headingsRow As Long) As Long
-    GetLastCol = ws.Cells(headingsRow, ws.Columns.Count).End(xlToLeft).Column
+    Dim found As Range
+
+    Set found = ws.Rows(headingsRow).Find(What:="*", After:=ws.Cells(headingsRow, 1), _
+                                         LookIn:=xlFormulas, LookAt:=xlPart, _
+                                         SearchOrder:=xlByColumns, SearchDirection:=xlPrevious, _
+                                         MatchCase:=False)
+    If found Is Nothing Then
+        GetLastCol = 1
+    Else
+        GetLastCol = found.Column
+    End If
 End Function
 

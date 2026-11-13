@@ -188,3 +188,42 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
     Resume TestExit
 End Sub
+
+'@TestMethod("Split")
+Public Sub Split_HiddenColumnsAtTheEndOfTheSource_AreStillFound()
+    Dim wb As Workbook
+    Dim src As Worksheet
+    Dim created As Long
+    Dim failures As Collection
+    Dim ws As Worksheet
+    Dim modelCol As Long
+    On Error GoTo TestFail
+
+    ' Everything from Model to the last column hidden in the source (in memory
+    ' only). Model and Details are among the chosen columns. The source's
+    ' heading list used to stop at the last visible column, so both were
+    ' silently left off every vendor sheet (#186).
+    Set wb = OpenFixture(FIXTURE)
+    Set src = wb.Worksheets(1)
+    modelCol = ColumnOf(src, 1, "Model")
+    Assert.AreEqual 15, modelCol, "Model is the fixture's 15th of 25 columns"
+    src.Range(src.Columns(15), src.Columns(25)).EntireColumn.Hidden = True
+
+    RunSplitOnVendor wb, created, failures
+    Set ws = SheetNamed(wb, "Hollis Thermal")
+
+    Assert.AreEqual VENDOR_SHEETS, created, "the split still makes every vendor sheet"
+    If ws Is Nothing Then
+        Assert.Fail "no sheet named 'Hollis Thermal'"
+    Else
+        Assert.AreEqual CsvAsHeadings(DefaultSplitColumns()), HeadingsJoined(ws, 1), _
+                        "every chosen column is there, the hidden ones included"
+    End If
+
+TestExit:
+    CloseFixture wb
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+    Resume TestExit
+End Sub
